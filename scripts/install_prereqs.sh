@@ -83,6 +83,9 @@ case "$project-$platform-$method" in
   Crashlytics-*)
     ;;
 
+  CombineSwift-*)
+    ;;
+
   Database-*)
     ;;
 
@@ -137,6 +140,11 @@ case "$project-$platform-$method" in
   MessagingSample-*)
     install_xcpretty
     bundle exec pod install --project-directory=FirebaseMessaging/Apps/Sample --repo-update
+    ;;
+
+  MLModelDownloaderSample-*)
+    install_xcpretty
+    bundle exec pod install --project-directory=FirebaseMLModelDownloader/Apps/Sample --repo-update
     ;;
 
   RemoteConfigSample-*)

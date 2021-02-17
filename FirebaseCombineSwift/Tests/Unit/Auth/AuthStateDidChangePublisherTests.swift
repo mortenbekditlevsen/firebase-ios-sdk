@@ -27,7 +27,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
 
   static let email = "johnnyappleseed@apple.com"
   static let password = "secret"
-  static let localId = "LOCAL_ID"
+  static let localID = "LOCAL_ID"
   static let displayName = "Johnny Appleseed"
   static let passwordHash = "UkVEQUNURUQ="
 
@@ -40,7 +40,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
   }
 
   class MockGetAccountInfoResponseUser: FIRGetAccountInfoResponseUser {
-    override var localID: String { return AuthStateDidChangePublisherTests.localId }
+    override var localID: String { return AuthStateDidChangePublisherTests.localID }
     override var email: String { return AuthStateDidChangePublisherTests.email }
     override var displayName: String { return AuthStateDidChangePublisherTests.displayName }
   }
@@ -52,7 +52,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
   }
 
   class MockVerifyPasswordResponse: FIRVerifyPasswordResponse {
-    override var localID: String { return AuthStateDidChangePublisherTests.localId }
+    override var localID: String { return AuthStateDidChangePublisherTests.localID }
     override var email: String { return AuthStateDidChangePublisherTests.email }
     override var displayName: String { return AuthStateDidChangePublisherTests.displayName }
     override var idToken: String { return AuthStateDidChangePublisherTests.accessToken }
@@ -115,7 +115,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
 
     let expect = expectation(description: "Publisher emits on main thread")
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
+      .sink { user in
         XCTAssertTrue(Thread.isMainThread)
         expect.fulfill()
       }
@@ -133,7 +133,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
     let expect = expectation(description: "Subscribers can receive events on non-main threads")
     let cancellable = Auth.auth().authStateDidChangePublisher()
       .receive(on: DispatchQueue.global())
-      .sink { auth, user in
+      .sink { user in
         XCTAssertFalse(Thread.isMainThread)
         expect.fulfill()
       }
@@ -152,8 +152,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
       expectation(description: "Publisher emits value as soon as it is subscribed")
 
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
-        XCTAssertEqual(auth, Auth.auth())
+      .sink { user in
         XCTAssertNil(user)
         subscriptionActivatedExpectation.fulfill()
       }
@@ -169,9 +168,8 @@ class AuthStateDidChangePublisherTests: XCTestCase {
     let signedInExpectation =
       expectation(description: "Publisher emits value when user is signed in")
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
+      .sink { user in
         print("Running on the main thread? \(Thread.isMainThread)")
-        XCTAssertEqual(auth, Auth.auth())
 
         if let user = user, user.isAnonymous {
           signedInExpectation.fulfill()
@@ -192,9 +190,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
     var expect = expectation(description: "Publisher emits value when user is signed in")
 
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
-        XCTAssertEqual(auth, Auth.auth())
-
+      .sink { user in
         if let user = user, user.isAnonymous {
           expect.fulfill()
         }
@@ -223,9 +219,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
     var shouldUserBeNil = false
 
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
-        XCTAssertEqual(auth, Auth.auth())
-
+      .sink { user in
         if shouldUserBeNil {
           if user == nil {
             expect.fulfill()
@@ -261,9 +255,7 @@ class AuthStateDidChangePublisherTests: XCTestCase {
     var shouldUserBeNil = false
 
     let cancellable = Auth.auth().authStateDidChangePublisher()
-      .sink { auth, user in
-        XCTAssertEqual(auth, Auth.auth())
-
+      .sink { user in
         if shouldUserBeNil {
           if user == nil {
             expect.fulfill()

@@ -15,14 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This Package.swift is a Work in Progress. We intend to keep it functional
-// on the master branch, but it is rapidly evolving and may have occasional
-// breakages. Please report any issues at
-// https://github.com/firebase/firebase-ios-sdk/issues/new/choose.
-
 import PackageDescription
 
-let firebaseVersion = "7.1.0"
+let firebaseVersion = "7.5.0"
 
 let package = Package(
   name: "Firebase",
@@ -37,8 +32,16 @@ let package = Package(
       targets: ["FirebaseAuth"]
     ),
     .library(
+      name: "FirebaseAppDistribution-Beta",
+      targets: ["FirebaseAppDistributionTarget"]
+    ),
+    .library(
       name: "FirebaseCombineSwift-Beta",
       targets: ["FirebaseCombineSwift"]
+    ),
+    .library(
+      name: "FirebaseAuthCombineSwift-Beta",
+      targets: ["FirebaseAuthCombineSwift"]
     ),
     .library(
       name: "FirebaseCrashlytics",
@@ -47,10 +50,6 @@ let package = Package(
     .library(
       name: "FirebaseDatabase",
       targets: ["FirebaseDatabaseTarget"]
-    ),
-    .library(
-      name: "FirebaseDatabaseSwift",
-      targets: ["FirebaseDatabaseSwift"]
     ),
     .library(
       name: "FirebaseDynamicLinks",
@@ -81,6 +80,10 @@ let package = Package(
       targets: ["FirebaseMessaging"]
     ),
     .library(
+      name: "FirebaseMLModelDownloader",
+      targets: ["FirebaseMLModelDownloader"]
+    ),
+    .library(
       name: "FirebaseRemoteConfig",
       targets: ["FirebaseRemoteConfigTarget"]
     ),
@@ -92,15 +95,29 @@ let package = Package(
       name: "FirebaseStorageSwift-Beta",
       targets: ["FirebaseStorageSwift"]
     ),
-
-    // Not intended for public consumption, but needed for FirebaseUI.
-    .library(
-      name: "GoogleUtilities_UserDefaults",
-      targets: ["GoogleUtilities_UserDefaults"]
-    ),
   ],
   dependencies: [
     .package(name: "Promises", url: "https://github.com/google/promises.git", "1.2.8" ..< "1.3.0"),
+    .package(
+      name: "SwiftProtobuf",
+      url: "https://github.com/apple/swift-protobuf.git",
+      from: "1.14.0"
+    ),
+    .package(
+      name: "GoogleAppMeasurement",
+      url: "https://github.com/google/GoogleAppMeasurement.git",
+      .exact("7.5.1")
+    ),
+    .package(
+      name: "GoogleDataTransport",
+      url: "https://github.com/google/GoogleDataTransport.git",
+      "8.2.0" ..< "9.0.0"
+    ),
+    .package(
+      name: "GoogleUtilities",
+      url: "https://github.com/google/GoogleUtilities.git",
+      "7.2.1" ..< "8.0.0"
+    ),
     .package(
       name: "GTMSessionFetcher",
       url: "https://github.com/google/gtm-session-fetcher.git",
@@ -110,7 +127,7 @@ let package = Package(
       name: "nanopb",
       url: "https://github.com/firebase/nanopb.git",
       // This revision adds SPM enablement to the 0.3.9.6 release tag.
-      "2.30906.0" ..< "2.30907.0"
+      "2.30907.0" ..< "2.30908.0"
     ),
     .package(name: "abseil",
              url: "https://github.com/firebase/abseil-cpp-SwiftPM.git",
@@ -144,8 +161,8 @@ let package = Package(
       dependencies: [
         "Firebase",
         "FirebaseCoreDiagnostics",
-        "GoogleUtilities_Environment",
-        "GoogleUtilities_Logger",
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GULLogger", package: "GoogleUtilities"),
       ],
       path: "FirebaseCore/Sources",
       publicHeadersPath: "Public",
@@ -171,9 +188,9 @@ let package = Package(
     .target(
       name: "FirebaseCoreDiagnostics",
       dependencies: [
-        "GoogleDataTransport",
-        "GoogleUtilities_Environment",
-        "GoogleUtilities_Logger",
+        .product(name: "GoogleDataTransport", package: "GoogleDataTransport"),
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GULLogger", package: "GoogleUtilities"),
         .product(name: "nanopb", package: "nanopb"),
       ],
       path: "Firebase/CoreDiagnostics/FIRCDLibrary",
@@ -215,14 +232,15 @@ let package = Package(
       name: "FirebaseAnalyticsWrapper",
       dependencies: [
         .target(name: "FirebaseAnalytics", condition: .when(platforms: [.iOS])),
-        .target(name: "FIRAnalyticsConnector", condition: .when(platforms: [.iOS])),
-        .target(name: "GoogleAppMeasurement", condition: .when(platforms: [.iOS])),
+        .product(name: "GoogleAppMeasurement",
+                 package: "GoogleAppMeasurement",
+                 condition: .when(platforms: [.iOS])),
         "FirebaseCore",
         "FirebaseInstallations",
-        "GoogleUtilities_AppDelegateSwizzler",
-        "GoogleUtilities_MethodSwizzler",
-        "GoogleUtilities_NSData",
-        "GoogleUtilities_Network",
+        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
+        .product(name: "GULMethodSwizzler", package: "GoogleUtilities"),
+        .product(name: "GULNSData", package: "GoogleUtilities"),
+        .product(name: "GULNetwork", package: "GoogleUtilities"),
         .product(name: "nanopb", package: "nanopb"),
       ],
       path: "FirebaseAnalyticsWrapper",
@@ -235,26 +253,49 @@ let package = Package(
     ),
     .binaryTarget(
       name: "FirebaseAnalytics",
-      url: "https://dl.google.com/firebase/ios/swiftpm/7.1.0/FirebaseAnalytics.zip",
-      checksum: "a374cbaecd629d14d6b365b0cc2c28744170ba9372d337c7b99df2c6e16e9044"
+      url: "https://dl.google.com/firebase/ios/swiftpm/7.5.0/FirebaseAnalytics.zip",
+      checksum: "2a622329e1f233d9bd38333c62c900854cb2eb9c63a00b65df14dadf4ef7988e"
     ),
-    .binaryTarget(
-      name: "FIRAnalyticsConnector",
-      url: "https://dl.google.com/firebase/ios/swiftpm/7.1.0/FIRAnalyticsConnector.zip",
-      checksum: "4510ff862833307f76f1392e43d82639966e052bdb58ee6b10005839298c0197"
+
+    .target(
+      name: "FirebaseAppDistributionTarget",
+      dependencies: [.target(name: "FirebaseAppDistribution",
+                             condition: .when(platforms: [.iOS]))],
+      path: "SwiftPM-PlatformExclude/FirebaseAppDistributionWrap"
     ),
-    .binaryTarget(
-      name: "GoogleAppMeasurement",
-      url: "https://dl.google.com/firebase/ios/swiftpm/7.1.0/GoogleAppMeasurement.zip",
-      checksum: "b0062d581e1bde54a1f6935bde1a49c6718a2a471825e02ab364e2dd8aef69c2"
+    .target(
+      name: "FirebaseAppDistribution",
+      dependencies: [
+        "FirebaseCore",
+        "FirebaseInstallations",
+        .product(name: "GoogleDataTransport", package: "GoogleDataTransport"),
+        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
+        .product(name: "GULUserDefaults", package: "GoogleUtilities"),
+      ],
+      path: "FirebaseAppDistribution/Sources",
+      publicHeadersPath: "Public",
+      cSettings: [
+        .headerSearchPath("../../"),
+      ]
+    ),
+    .testTarget(
+      name: "AppDistributionUnit",
+      dependencies: ["FirebaseAppDistribution", "OCMock"],
+      path: "FirebaseAppDistribution/Tests/Unit",
+      resources: [.process("Resources")],
+      cSettings: [
+        .headerSearchPath("../../.."),
+      ]
     ),
 
     .target(
       name: "FirebaseAuth",
-      dependencies: ["FirebaseCore",
-                     "GoogleUtilities_Environment",
-                     "GoogleUtilities_AppDelegateSwizzler",
-                     .product(name: "GTMSessionFetcherCore", package: "GTMSessionFetcher")],
+      dependencies: [
+        "FirebaseCore",
+        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GTMSessionFetcherCore", package: "GTMSessionFetcher"),
+      ],
       path: "FirebaseAuth/Sources",
       publicHeadersPath: "Public",
       cSettings: [
@@ -280,12 +321,18 @@ let package = Package(
     ),
     .target(
       name: "FirebaseCombineSwift",
-      dependencies: ["FirebaseAuth", "FirebaseFirestore", "FirebaseFirestoreSwift", "FirebaseDatabase", "FirebaseDatabaseSwift"],
-      path: "FirebaseCombineSwift/Sources"
+      dependencies: ["FirebaseAuthCombineSwift"],
+      path: "FirebaseCombineSwift/Sources/Core"
+    ),
+    .target(
+      name: "FirebaseAuthCombineSwift",
+      dependencies: ["FirebaseAuth"],
+      path: "FirebaseCombineSwift/Sources/Auth"
     ),
     .target(
       name: "FirebaseCrashlytics",
-      dependencies: ["FirebaseCore", "FirebaseInstallations", "GoogleDataTransport",
+      dependencies: ["FirebaseCore", "FirebaseInstallations",
+                     .product(name: "GoogleDataTransport", package: "GoogleDataTransport"),
                      .product(name: "FBLPromises", package: "Promises"),
                      .product(name: "nanopb", package: "nanopb")],
       path: "Crashlytics",
@@ -368,20 +415,7 @@ let package = Package(
         .headerSearchPath("../.."),
       ]
     ),
-    .target(
-      name: "FirebaseDatabaseSwift",
-      dependencies: ["FirebaseDatabase"],
-      path: "FirebaseDatabaseSwift/Sources",
-      exclude: [
-        "third_party/RTDBEncoder/LICENSE",
-        "third_party/RTDBEncoder/METADATA",
-      ]
-    ),
-    .testTarget(
-      name: "FirebaseDatabaseSwiftTests",
-      dependencies: ["FirebaseDatabase", "FirebaseDatabaseSwift"],
-      path: "FirebaseDatabaseSwift/Tests/"
-    ),
+
     .target(
       name: "FirebaseDynamicLinksTarget",
       dependencies: [.target(name: "FirebaseDynamicLinks",
@@ -540,7 +574,7 @@ let package = Package(
         "FirebaseCore",
         "FirebaseInstallations",
         "FirebaseABTesting",
-        "GoogleUtilities_Environment",
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
         .product(name: "nanopb", package: "nanopb"),
       ],
       path: "FirebaseInAppMessaging/Sources",
@@ -560,8 +594,12 @@ let package = Package(
 
     .target(
       name: "FirebaseInstanceID",
-      dependencies: ["FirebaseCore", "FirebaseInstallations",
-                     "GoogleUtilities_Environment", "GoogleUtilities_UserDefaults"],
+      dependencies: [
+        "FirebaseCore",
+        "FirebaseInstallations",
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GULUserDefaults", package: "GoogleUtilities"),
+      ],
       path: "Firebase/InstanceID",
       exclude: [
         "CHANGELOG.md",
@@ -574,8 +612,12 @@ let package = Package(
 
     .target(
       name: "FirebaseInstallations",
-      dependencies: ["FirebaseCore", .product(name: "FBLPromises", package: "Promises"),
-                     "GoogleUtilities_Environment", "GoogleUtilities_UserDefaults"],
+      dependencies: [
+        "FirebaseCore",
+        .product(name: "FBLPromises", package: "Promises"),
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GULUserDefaults", package: "GoogleUtilities"),
+      ],
       path: "FirebaseInstallations/Source/Library",
       publicHeadersPath: "Public",
       cSettings: [
@@ -591,8 +633,13 @@ let package = Package(
       dependencies: [
         "FirebaseCore",
         "FirebaseInstallations",
+        .product(name: "GULLogger", package: "GoogleUtilities"),
+        "SwiftProtobuf",
       ],
       path: "FirebaseMLModelDownloader/Sources",
+      exclude: [
+        "proto/firebase_ml_log_sdk.proto",
+      ],
       cSettings: [
         .define("FIRMLModelDownloader_VERSION", to: firebaseVersion),
       ]
@@ -608,10 +655,10 @@ let package = Package(
       dependencies: [
         "FirebaseCore",
         "FirebaseInstanceID",
-        "GoogleUtilities_AppDelegateSwizzler",
-        "GoogleUtilities_Environment",
-        "GoogleUtilities_Reachability",
-        "GoogleUtilities_UserDefaults",
+        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
+        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+        .product(name: "GULReachability", package: "GoogleUtilities"),
+        .product(name: "GULUserDefaults", package: "GoogleUtilities"),
       ],
       path: "FirebaseMessaging/Sources",
       publicHeadersPath: "Public",
@@ -657,7 +704,7 @@ let package = Package(
         "FirebaseCore",
         "FirebaseABTesting",
         "FirebaseInstallations",
-        "GoogleUtilities_NSData",
+        .product(name: "GULNSData", package: "GoogleUtilities"),
       ],
       path: "FirebaseRemoteConfig/Sources",
       publicHeadersPath: "Public",
@@ -715,46 +762,13 @@ let package = Package(
       dependencies: ["FirebaseStorage"],
       path: "FirebaseStorageSwift/Sources"
     ),
-    .target(
-      name: "GoogleDataTransport",
-      dependencies: [
-        .product(name: "nanopb", package: "nanopb"),
-      ],
-      path: "GoogleDataTransport",
-      exclude: [
-        "CHANGELOG.md",
-        "README.md",
-        "generate_project.sh",
-        "GDTCCTWatchOSTestApp/",
-        "GDTWatchOSTestApp/",
-        "GDTCCTTestApp/",
-        "GDTTestApp/",
-        "GDTCCTTests/",
-        "GDTCORTests/",
-        "ProtoSupport/",
-      ],
-      sources: [
-        "GDTCORLibrary",
-        "GDTCCTLibrary",
-      ],
-      publicHeadersPath: "GDTCORLibrary/Public",
-      cSettings: [
-        .headerSearchPath("../"),
-        .define("GDTCOR_VERSION", to: "0.0.1"),
-        .define("PB_FIELD_32BIT", to: "1"),
-        .define("PB_NO_PACKED_STRUCTS", to: "1"),
-        .define("PB_ENABLE_MALLOC", to: "1"),
-      ],
-      linkerSettings: [
-        .linkedFramework("SystemConfiguration", .when(platforms: [.iOS, .macOS, .tvOS])),
-        .linkedFramework("CoreTelephony", .when(platforms: [.macOS, .iOS])),
-      ]
-    ),
     .testTarget(
       name: "swift-test",
       dependencies: [
         "FirebaseAuth",
         "FirebaseABTesting",
+        .target(name: "FirebaseAppDistribution",
+                condition: .when(platforms: [.iOS])),
         "Firebase",
         "FirebaseCombineSwift",
         "FirebaseCrashlytics",
@@ -770,16 +784,6 @@ let package = Package(
         "FirebaseRemoteConfig",
         "FirebaseStorage",
         "FirebaseStorageSwift",
-        "GoogleDataTransport",
-        "GoogleUtilities_AppDelegateSwizzler",
-        "GoogleUtilities_Environment",
-        // "GoogleUtilities_ISASwizzler", // Build needs to disable ARC.
-        "GoogleUtilities_Logger",
-        "GoogleUtilities_MethodSwizzler",
-        "GoogleUtilities_Network",
-        "GoogleUtilities_NSData",
-        "GoogleUtilities_Reachability",
-        "GoogleUtilities_UserDefaults",
         .product(name: "nanopb", package: "nanopb"),
       ],
       path: "SwiftPMTests/swift-test"
@@ -797,6 +801,8 @@ let package = Package(
       dependencies: [
         "FirebaseAuth",
         "FirebaseABTesting",
+        .target(name: "FirebaseAppDistribution",
+                condition: .when(platforms: [.iOS])),
         "Firebase",
         "FirebaseCrashlytics",
         "FirebaseCore",
@@ -822,133 +828,6 @@ let package = Package(
         .define("FIR_VERSION", to: firebaseVersion),
       ]
     ),
-    .target(
-      name: "GoogleUtilities_AppDelegateSwizzler",
-      dependencies: ["GoogleUtilities_Environment", "GoogleUtilities_Logger",
-                     "GoogleUtilities_Network"],
-      path: "GoogleUtilities",
-      exclude: [
-        "CHANGELOG.md",
-        "CMakeLists.txt",
-        "LICENSE",
-        "README.md",
-        "AppDelegateSwizzler/README.md",
-        "Environment/",
-        "Network/",
-        "ISASwizzler/",
-        "Logger/",
-        "MethodSwizzler/",
-        "NSData+zlib/",
-        "Reachability",
-        "SwizzlerTestHelpers/",
-        "Tests",
-        "UserDefaults/",
-      ],
-      sources: [
-        "AppDelegateSwizzler/",
-        "SceneDelegateSwizzler/",
-        "Common/*.h",
-      ],
-      publicHeadersPath: "AppDelegateSwizzler/Public",
-      cSettings: [
-        .headerSearchPath("../"),
-      ]
-    ),
-    .target(
-      name: "GoogleUtilities_Environment",
-      dependencies: [.product(name: "FBLPromises", package: "Promises")],
-      path: "GoogleUtilities/Environment",
-      exclude: ["third_party/LICENSE"],
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../../"),
-      ]
-    ),
-
-    .target(
-      name: "GoogleUtilities_Logger",
-      dependencies: ["GoogleUtilities_Environment"],
-      path: "GoogleUtilities/Logger",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../../"),
-      ]
-    ),
-
-    // TODO: ISA_Swizzler requires building without ARC.
-
-    .target(
-      name: "GoogleUtilities_MethodSwizzler",
-      dependencies: ["GoogleUtilities_Logger"],
-      path: "GoogleUtilities/MethodSwizzler",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../../"),
-      ]
-    ),
-    .target(
-      name: "GoogleUtilities_Network",
-      dependencies: ["GoogleUtilities_Logger", "GoogleUtilities_NSData",
-                     "GoogleUtilities_Reachability"],
-      path: "GoogleUtilities/Network",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../.."),
-      ]
-    ),
-    .target(
-      name: "GoogleUtilities_NSData",
-      path: "GoogleUtilities/NSData+zlib",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../.."),
-      ],
-      linkerSettings: [
-        .linkedLibrary("z"),
-      ]
-    ),
-    .target(
-      name: "GoogleUtilities_Reachability",
-      dependencies: ["GoogleUtilities_Logger"],
-      path: "GoogleUtilities/Reachability",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../../"),
-      ]
-    ),
-    .target(
-      name: "GoogleUtilities_UserDefaults",
-      dependencies: ["GoogleUtilities_Logger"],
-      path: "GoogleUtilities/UserDefaults",
-      publicHeadersPath: "Public",
-      cSettings: [
-        .headerSearchPath("../../"),
-      ]
-    ),
-    // TODO: - need to port Network/third_party/GTMHTTPServer.m to ARC.
-    // .testTarget(
-    //   name: "UtilitiesUnit",
-    //   dependencies: [
-    //     "OCMock",
-    //     "GoogleUtilities_AppDelegateSwizzler",
-    //     "GoogleUtilities_Environment",
-    //     "GoogleUtilities_ISASwizzler", // Build needs to disable ARC.
-    //     "GoogleUtilities_Logger",
-    //     "GoogleUtilities_MethodSwizzler",
-    //     "GoogleUtilities_Network",
-    //     "GoogleUtilities_NSData",
-    //     "GoogleUtilities_Reachability",
-    //     "GoogleUtilities_UserDefaults",
-    //   ],
-    //   path: "GoogleUtilities/Tests/Unit",
-    //   exclude: [
-    //     "Network/third_party/LICENSE",
-    //     "Network/third_party/GTMHTTPServer.m", // Requires disabling ARC
-    //   ],
-    //   cSettings: [
-    //     .headerSearchPath("../../.."),
-    //   ]
-    // ),
   ],
   cLanguageStandard: .c99,
   cxxLanguageStandard: CXXLanguageStandard.gnucxx14

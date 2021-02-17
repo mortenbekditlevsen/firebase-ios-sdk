@@ -32,11 +32,11 @@
     ///
     /// The publisher will emit events on the **main** thread.
     ///
-    /// - Returns: A publisher emitting (`Auth`, `User`) tuples.
-    public func authStateDidChangePublisher() -> AnyPublisher<(Auth, User?), Never> {
-      let subject = PassthroughSubject<(Auth, User?), Never>()
+    /// - Returns: A publisher emitting a `User` instance (if the user has signed in) or `nil` (if the user has signed out)
+    public func authStateDidChangePublisher() -> AnyPublisher<User?, Never> {
+      let subject = PassthroughSubject<User?, Never>()
       let handle = addStateDidChangeListener { auth, user in
-        subject.send((auth, user))
+        subject.send(user)
       }
       return subject
         .handleEvents(receiveCancel: {
@@ -56,11 +56,11 @@
     ///
     /// The publisher will emit events on the **main** thread.
     ///
-    /// - Returns: A publisher emitting (`Auth`, User`) tuples.
-    public func idTokenDidChangePublisher() -> AnyPublisher<(Auth, User?), Never> {
-      let subject = PassthroughSubject<(Auth, User?), Never>()
+    /// - Returns: A publisher emitting a `User` instance (if a different user as signed in or the ID token of the current user has changed) or `nil` (if the user has signed out)
+    public func idTokenDidChangePublisher() -> AnyPublisher<User?, Never> {
+      let subject = PassthroughSubject<User?, Never>()
       let handle = addIDTokenDidChangeListener { auth, user in
-        subject.send((auth, user))
+        subject.send(user)
       }
       return subject
         .handleEvents(receiveCancel: {
@@ -76,6 +76,7 @@
     /// - Parameter user: The user object to be set as the current user of the calling Auth instance.
     /// - Returns: A publisher that emits as soon as the user of the calling Auth instance has been
     ///   updated or an error was encountered. The publisher will emit on the *main* thread.
+    @discardableResult
     public func updateCurrentUser(_ user: User) -> Future<Void, Error> {
       Future<Void, Error> { promise in
         self.updateCurrentUser(user) { error in
@@ -285,6 +286,7 @@
     ///   - `AuthErrorCodeInvalidActionCode` - Indicates the OOB code is invalid.
     ///
     ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
     public func confirmPasswordReset(withCode code: String,
                                      newPassword: String) -> Future<Void, Error> {
       Future<Void, Error> { promise in
@@ -305,6 +307,7 @@
     /// - Parameter code: The password reset code to be verified.
     /// - Returns: A publisher that emits an error if the code could not be verified. If the code could be
     ///   verified, the publisher will emit the email address of the account the code was issued for.
+    @discardableResult
     public func verifyPasswordResetCode(_ code: String) -> Future<String, Error> {
       Future<String, Error> { promise in
         self.verifyPasswordResetCode(code) { email, error in
@@ -324,6 +327,7 @@
     /// - Parameter code: The out of band code to check validity.
     /// - Returns: A publisher that emits an error if the code could not be verified. If the code could be
     ///   verified, the publisher will emit the email address of the account the code was issued for.
+    @discardableResult
     public func checkActionCode(code: String) -> Future<ActionCodeInfo, Error> {
       Future<ActionCodeInfo, Error> { promise in
         self.checkActionCode(code) { actionCodeInfo, error in
@@ -344,6 +348,7 @@
     /// - Returns: A publisher that emits an error if the code could not be applied.
     /// - Remark: This method will not work for out of band codes which require an additional parameter,
     ///   such as password reset code.
+    @discardableResult
     public func applyActionCode(code: String) -> Future<Void, Error> {
       Future<Void, Error> { promise in
         self.applyActionCode(code) { error in
@@ -368,6 +373,7 @@
     ///   - `AuthErrorCodeInvalidMessagePayload` - Indicates an invalid email template for sending update email.
     ///
     ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
     public func sendPasswordReset(withEmail email: String) -> Future<Void, Error> {
       Future<Void, Error> { promise in
         self.sendPasswordReset(withEmail: email) { error in
@@ -397,6 +403,7 @@
     ///   - `AuthErrorCodeInvalidContinueURI` - Indicates that the domain specified in the continue URI is not valid.
     ///
     ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
     public func sendPasswordReset(withEmail email: String,
                                   actionCodeSettings: ActionCodeSettings) -> Future<Void, Error> {
       Future<Void, Error> { promise in
@@ -443,6 +450,7 @@
     ///     the "One account per email address" setting is enabled in the Firebase console, under Auth settings.
     ///
     ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
     public func signIn(with provider: FederatedAuthProvider,
                        uiDelegate: AuthUIDelegate?) -> Future<AuthDataResult, Error> {
       Future<AuthDataResult, Error> { promise in
@@ -464,15 +472,65 @@
     /// - Returns: A publisher that emits an `AuthDataResult` when the sign-in flow completed
     ///   successfully, or an error otherwise. The publisher will emit on the *main* thread.
     /// - Remark: Possible error codes:
-    ///   - AuthErrorCodeInvalidCustomToken` - Indicates a validation error with the custom token.
+    ///   - `AuthErrorCodeInvalidCustomToken` - Indicates a validation error with the custom token.
     ///   - `AuthErrorCodeUserDisabled` - Indicates the user's account is disabled.
     ///   - `AuthErrorCodeCustomTokenMismatch` - Indicates the service account and the API key
     ///     belong to different projects.
     ///
     ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
     public func signIn(withCustomToken token: String) -> Future<AuthDataResult, Error> {
       Future<AuthDataResult, Error> { promise in
         self.signIn(withCustomToken: token) { authDataResult, error in
+          if let error = error {
+            promise(.failure(error))
+          } else if let authDataResult = authDataResult {
+            promise(.success(authDataResult))
+          }
+        }
+      }
+    }
+
+    /// Asynchronously signs in to Firebase with the given 3rd-party credentials (e.g. a Facebook
+    /// login Access Token, a Google ID Token/Access Token pair, etc.) and returns additional
+    /// identity provider data.
+    ///
+    /// The publisher will emit events on the **main** thread.
+    ///
+    /// - Parameter credential: The credential supplied by the IdP.
+    /// - Returns: A publisher that emits an `AuthDataResult` when the sign-in flow completed
+    ///   successfully, or an error otherwise. The publisher will emit on the *main* thread.
+    /// - Remark: Possible error codes:
+    ///   - `FIRAuthErrorCodeInvalidCredential` - Indicates the supplied credential is invalid.
+    ///     This could happen if it has expired or it is malformed.
+    ///   - `FIRAuthErrorCodeOperationNotAllowed` - Indicates that accounts
+    ///     with the identity provider represented by the credential are not enabled.
+    ///     Enable them in the Auth section of the Firebase console.
+    ///   - `FIRAuthErrorCodeAccountExistsWithDifferentCredential` - Indicates the email asserted
+    ///     by the credential (e.g. the email in a Facebook access token) is already in use by an
+    ///     existing account, that cannot be authenticated with this sign-in method. Call
+    ///     fetchProvidersForEmail for this user’s email and then prompt them to sign in with any of
+    ///     the sign-in providers returned. This error will only be thrown if the "One account per
+    ///     email address" setting is enabled in the Firebase console, under Auth settings.
+    ///   - `FIRAuthErrorCodeUserDisabled` - Indicates the user's account is disabled.
+    ///   - `FIRAuthErrorCodeWrongPassword` - Indicates the user attempted sign in with an
+    ///     incorrect password, if credential is of the type EmailPasswordAuthCredential.
+    ///   - `FIRAuthErrorCodeInvalidEmail` - Indicates the email address is malformed.
+    ///   - `FIRAuthErrorCodeMissingVerificationID` - Indicates that the phone auth credential was
+    ///     created with an empty verification ID.
+    ///   - `FIRAuthErrorCodeMissingVerificationCode` - Indicates that the phone auth credential
+    ///     was created with an empty verification code.
+    ///   - `FIRAuthErrorCodeInvalidVerificationCode` - Indicates that the phone auth credential
+    ///     was created with an invalid verification Code.
+    ///   - `FIRAuthErrorCodeInvalidVerificationID` - Indicates that the phone auth credential was
+    ///     created with an invalid verification ID.
+    ///   - `FIRAuthErrorCodeSessionExpired` - Indicates that the SMS code has expired.
+    ///
+    ///   See `AuthErrors` for a list of error codes that are common to all API methods
+    @discardableResult
+    public func signIn(with credential: AuthCredential) -> Future<AuthDataResult, Error> {
+      Future<AuthDataResult, Error> { promise in
+        self.signIn(with: credential) { authDataResult, error in
           if let error = error {
             promise(.failure(error))
           } else if let authDataResult = authDataResult {

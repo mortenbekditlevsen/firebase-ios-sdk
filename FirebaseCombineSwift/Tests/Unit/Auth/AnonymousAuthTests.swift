@@ -18,31 +18,11 @@ import XCTest
 import FirebaseAuth
 
 class AnonymousAuthTests: XCTestCase {
-  override class func setUp() {
-    FirebaseApp.configureForTests()
-  }
-
-  override class func tearDown() {
-    FirebaseApp.app()?.delete { success in
-      if success {
-        print("Shut down app successfully.")
-      } else {
-        print("💥 There was a problem when shutting down the app..")
-      }
-    }
-  }
-
-  override func setUp() {
-    do {
-      try Auth.auth().signOut()
-    } catch {}
-  }
-
   static let apiKey = Credentials.apiKey
   static let accessTokenTimeToLive: TimeInterval = 60 * 60
   static let refreshToken = "REFRESH_TOKEN"
   static let accessToken = "ACCESS_TOKEN"
-  static let localId = "LOCAL_ID"
+  static let localID = "LOCAL_ID"
 
   class MockSignUpNewUserResponse: FIRSignUpNewUserResponse {
     override var idToken: String { return AnonymousAuthTests.accessToken }
@@ -53,7 +33,7 @@ class AnonymousAuthTests: XCTestCase {
   }
 
   class MockGetAccountInfoResponseUser: FIRGetAccountInfoResponseUser {
-    override var localID: String { return AnonymousAuthTests.localId }
+    override var localID: String { return AnonymousAuthTests.localID }
   }
 
   class MockGetAccountInfoResponse: FIRGetAccountInfoResponse {
@@ -82,16 +62,30 @@ class AnonymousAuthTests: XCTestCase {
     }
   }
 
+  // MARK: - Test case setup
+
+  override class func setUp() {
+    FIRAuthBackend.setBackendImplementation(MockAuthBackend())
+  }
+
+  // MARK: - Test method setup
+
+  var app: FirebaseApp?
+  var auth: Auth?
+
+  override func setUp() {
+    self.app = FirebaseApp.appForAuthUnitTestsWithName(name: "app1")
+    guard let app = app else { fatalError() }
+    auth = Auth.auth(app: app)
+  }
+
   func testSignInAnonymouslySuccessfully() {
     // given
-    FIRAuthBackend.setBackendImplementation(MockAuthBackend())
-
     var cancellables = Set<AnyCancellable>()
-
     let userSignedInExpectation = expectation(description: "Signed in anonymously")
 
     // when
-    Auth.auth().signInAnonymously()
+    auth?.signInAnonymously()
       .sink { completion in
         switch completion {
         case .finished:
@@ -101,16 +95,15 @@ class AnonymousAuthTests: XCTestCase {
         }
       } receiveValue: { authDataResult in
         XCTAssertNotNil(authDataResult.user)
-        XCTAssertEqual(authDataResult.user.uid, AnonymousAuthTests.localId)
+        XCTAssertEqual(authDataResult.user.uid, AnonymousAuthTests.localID)
         XCTAssertNil(authDataResult.user.displayName)
         XCTAssertTrue(authDataResult.user.isAnonymous)
         XCTAssertEqual(authDataResult.user.providerData.count, 0)
 
-        guard let userInfo = authDataResult.additionalUserInfo else { return }
-        XCTAssertNotNil(userInfo)
-        XCTAssertTrue(userInfo.isNewUser)
-        XCTAssertNil(userInfo.username)
-        XCTAssertNil(userInfo.profile)
+        XCTAssertNotNil(authDataResult.additionalUserInfo)
+        XCTAssertTrue((authDataResult.additionalUserInfo?.isNewUser) != nil)
+        XCTAssertNil(authDataResult.additionalUserInfo?.username)
+        XCTAssertNil(authDataResult.additionalUserInfo?.profile)
 
         userSignedInExpectation.fulfill()
       }
