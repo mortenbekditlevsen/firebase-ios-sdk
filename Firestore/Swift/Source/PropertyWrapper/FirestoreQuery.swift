@@ -48,7 +48,7 @@ import SwiftUI
 @available(iOS 14.0, *)
 @available(tvOS, unavailable)
 @propertyWrapper
-public struct FirestoreQuery<T: Decodable>: DynamicProperty {
+public struct FirestoreQuery<T>: DynamicProperty {
   @StateObject private var firestoreQueryObservable: FirestoreQueryObservable<T>
 
   public var wrappedValue: [T] {
@@ -65,7 +65,14 @@ public struct FirestoreQuery<T: Decodable>: DynamicProperty {
     }
   }
 
-  public init(collectionPath: String, predicates: [QueryPredicate] = []) {
+  public init(collectionPath: String, predicates: [QueryPredicate] = []) where T: Decodable {
+    let configuration = FirestoreQueryConfiguration(path: collectionPath, predicates: predicates)
+
+    _firestoreQueryObservable =
+      StateObject(wrappedValue: FirestoreQueryObservable<T>(configuration: configuration))
+  }
+
+  public init<U: Decodable>(collectionPath: String, predicates: [QueryPredicate] = []) where T == Result<U, Error> {
     let configuration = FirestoreQueryConfiguration(path: collectionPath, predicates: predicates)
 
     _firestoreQueryObservable =
