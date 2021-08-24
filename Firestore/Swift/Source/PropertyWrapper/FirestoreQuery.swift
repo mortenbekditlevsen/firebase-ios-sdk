@@ -51,7 +51,7 @@ import SwiftUI
 public struct FirestoreQuery<T>: DynamicProperty {
   @StateObject private var firestoreQueryObservable: FirestoreQueryObservable<T>
 
-  public var wrappedValue: [T] {
+  public var wrappedValue: T {
     firestoreQueryObservable.items
   }
 
@@ -65,14 +65,21 @@ public struct FirestoreQuery<T>: DynamicProperty {
     }
   }
 
-  public init(collectionPath: String, predicates: [QueryPredicate] = []) where T: Decodable {
+  public init<U: Decodable>(collectionPath: String, predicates: [QueryPredicate] = []) where T == [U] {
     let configuration = FirestoreQueryConfiguration(path: collectionPath, predicates: predicates)
 
     _firestoreQueryObservable =
       StateObject(wrappedValue: FirestoreQueryObservable<T>(configuration: configuration))
   }
 
-  public init<U: Decodable>(collectionPath: String, predicates: [QueryPredicate] = []) where T == Result<U, Error> {
+  public init<U: Decodable>(collectionPath: String, predicates: [QueryPredicate] = []) where T == [Result<U, Error>] {
+    let configuration = FirestoreQueryConfiguration(path: collectionPath, predicates: predicates)
+
+    _firestoreQueryObservable =
+      StateObject(wrappedValue: FirestoreQueryObservable<T>(configuration: configuration))
+  }
+
+  public init<U: Decodable>(collectionPath: String, predicates: [QueryPredicate] = []) where T == Result<[U], Error> {
     let configuration = FirestoreQueryConfiguration(path: collectionPath, predicates: predicates)
 
     _firestoreQueryObservable =

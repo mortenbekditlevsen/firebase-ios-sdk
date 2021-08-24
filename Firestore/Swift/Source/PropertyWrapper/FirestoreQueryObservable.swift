@@ -27,7 +27,7 @@ import SwiftUI
 @available(iOS 13.0, *)
 @available(tvOS, unavailable)
 internal class FirestoreQueryObservable<T>: ObservableObject {
-  @Published var items: [T] = []
+  @Published var items: T
 
   private let firestore = Firestore.firestore()
   private var listener: ListenerRegistration? = nil
@@ -41,7 +41,8 @@ internal class FirestoreQueryObservable<T>: ObservableObject {
     }
   }
 
-  init(configuration: FirestoreQueryConfiguration) where T: Decodable {
+  init<U: Decodable>(configuration: FirestoreQueryConfiguration) where T == [U] {
+    self.items = []
     self.configuration = configuration
     self.setupListener = createListener { [weak self] snapshot, error in
       if let error = error {
@@ -57,14 +58,15 @@ internal class FirestoreQueryObservable<T>: ObservableObject {
       }
 
       self?.items = snapshot.documents.compactMap { document in
-        try? document.data(as: T.self)
+        try? document.data(as: U.self)
       }
     }
 
     setupListener()
   }
 
-  init<U: Decodable>(configuration: FirestoreQueryConfiguration) where T == Result<U, Error> {
+  init<U: Decodable>(configuration: FirestoreQueryConfiguration) where T == [Result<U, Error>] {
+    self.items = []
     self.configuration = configuration
     self.setupListener = createListener { [weak self] snapshot, error in
       if let error = error {
@@ -95,6 +97,37 @@ internal class FirestoreQueryObservable<T>: ObservableObject {
 
     setupListener()
   }
+
+  init<U: Decodable>(configuration: FirestoreQueryConfiguration) where T == Result<[U], Error> {
+    self.items = .success([])
+    self.configuration = configuration
+    self.setupListener = createListener { [weak self] snapshot, error in
+      if let error = error {
+        self?.items = .failure(error)
+        return
+      }
+
+      guard let snapshot = snapshot else {
+        print("FirestoreQuery: Registering the SnapshotListener returned a bad snapshot.")
+        // TODO: Represent this internal error as an `Error`? - or is it indeed the case
+        // that this can never happen? If it can't, then it would be better handled through
+        // a `fatalError`...
+        fatalError()
+      }
+
+      do {
+        let items = try snapshot.documents.map { document in
+          try document.data(as: U.self)!
+        }
+        self?.items = .success(items)
+      } catch {
+        self?.items = .failure(error)
+      }
+    }
+
+    setupListener()
+  }
+
 
   deinit {
     removeListener()
