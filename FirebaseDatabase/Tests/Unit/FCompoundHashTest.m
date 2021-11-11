@@ -18,7 +18,7 @@
 
 #import "FirebaseDatabase/Sources/Core/FCompoundHash.h"
 
-#import "FirebaseDatabase/Sources/Utilities/FStringUtilities.h"
+
 #import "FirebaseDatabase/Tests/Helpers/FTestHelpers.h"
 
 @interface FCompoundHashTest : XCTestCase

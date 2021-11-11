@@ -23,5 +23,3 @@
 #pragma mark C functions
 
 FIRLoggerService kFIRLoggerDatabase = @"[Firebase/Database]";
-static NSMutableDictionary *options = nil;
-
