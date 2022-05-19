@@ -132,8 +132,9 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         // NOTE: Maybe it doesn't need to. Auth will be likely be bridged
         // in some other way
         // Otherwise we need some other synchronization method
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(self)
+//        defer { objc_sync_exit(self) }
         for observer in self.appCheckNotificationObservers {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -204,8 +205,9 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
                 listener(appCheckToken)
             }
 
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(self)
+//        defer { objc_sync_exit(self) }
         self.appCheckNotificationObservers.append(observer)
     }
 

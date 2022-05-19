@@ -16,10 +16,11 @@ public class FRepoManager {
      */
 
     public class func getRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> FRepo {
-        objc_sync_enter(configs)
-        defer {
-            objc_sync_exit(configs)
-        }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(configs)
+//        defer {
+//            objc_sync_exit(configs)
+//        }
         let repos = configs[config.sessionIdentifier]
         if let repo = repos?[repoInfo] {
             return repo

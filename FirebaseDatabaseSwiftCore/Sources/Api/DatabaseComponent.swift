@@ -29,10 +29,11 @@ public class DatabaseComponent: DatabaseProvider {
         guard databaseUrl.path == "" || databaseUrl.path == "/" else {
             fatalError("Configured Database URL '\(databaseUrl)' is invalid. It should point to the root of a Firebase Database but it includes a path: \(databaseUrl.path)")
         }
-        objc_sync_enter(instances)
-        defer {
-            objc_sync_exit(instances)
-        }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(instances)
+//        defer {
+//            objc_sync_exit(instances)
+//        }
         let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl.absoluteString)
         let urlIndex = "\(parsedUrl.repoInfo.host):\(parsedUrl.path)"
         if let database = instances[urlIndex] {

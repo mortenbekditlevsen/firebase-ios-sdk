@@ -35,7 +35,7 @@ public class FNextPushId {
         var id: String = String(timeStampChars.reversed())
         if !duplicateTime {
             for i in (0 ..< 12).reversed() {
-                lastRandChars[i] = UInt8(arc4random() % 64)
+                lastRandChars[i] = UInt8.random(in: 0 ..< 64)
             }
         } else {
             var j = 0

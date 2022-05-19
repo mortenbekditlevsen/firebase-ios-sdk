@@ -357,7 +357,8 @@ public class FLevelDBStorageEngine: FStorageEngine {
 
         // HACK to make sure iter is freed now to avoid race conditions (if self.db
         // is deleted before iter, you get an access violation).
-        return autoreleasepool {
+        // XXX TODO: No autoreleasepool without obj c???
+//        return autoreleasepool {
             let iter = APLevelDBIterator.iterator(levelDB: serverCacheDB)
             _ = iter.seek(toKey: baseKey)
             if let key = iter.key() {
@@ -373,7 +374,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
                 return nil
 
             }
-        }
+//        }
     }
 
     private func internalNestedDataFromIterator(_ iterator: APLevelDBIterator, andKeyPrefix prefix: String) -> Any? {
