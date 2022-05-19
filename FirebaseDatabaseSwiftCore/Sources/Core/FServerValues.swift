@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 let kTimestamp = "timestamp"
 let kIncrement = "increment"
