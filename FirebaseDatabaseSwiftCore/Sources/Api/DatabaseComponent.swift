@@ -60,10 +60,11 @@ public class DatabaseComponent: DatabaseProvider {
 
     // MARK: - Instance management.
     func appWillBeDeleted(_ app: FIRAppThing) {
-        objc_sync_enter(instances)
-        defer {
-            objc_sync_exit(instances)
-        }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(instances)
+//        defer {
+//            objc_sync_exit(instances)
+//        }
         // Clean up the deleted instance in an effort to remove any resources
         // still in use. Note: Any leftover instances of this exact database
         // will be invalid.

@@ -452,19 +452,20 @@ public class FLevelDBStorageEngine: FStorageEngine {
             // hashing on the server this will lead to hash mismatches. The parser
             // of NSNumber seems to be more in line with what the server expects, so
             // we use that here
-            let type = CFNumberGetType(number as CFNumber)
-            if (type == .doubleType || type == .floatType) {
-                // The NSJSON parser returns all numbers as double values, even
-                // those that contain no exponent. To make sure that the String
-                // conversion below doesn't unexpectedly reduce precision, we make
-                // sure that our number is indeed not an integer.
-                if Double(Int64(number.doubleValue)) != number.doubleValue {
-                    let doubleString = number.stringValue as NSString
-                    return NSNumber(value: doubleString.doubleValue)
-                } else {
-                    return NSNumber(value: number.int64Value)
-                }
-            }
+            // XXX TODO: Doesn't work on non-Darwin
+//            let type = CFNumberGetType(number as CFNumber)
+//            if (type == .doubleType || type == .floatType) {
+//                // The NSJSON parser returns all numbers as double values, even
+//                // those that contain no exponent. To make sure that the String
+//                // conversion below doesn't unexpectedly reduce precision, we make
+//                // sure that our number is indeed not an integer.
+//                if Double(Int64(number.doubleValue)) != number.doubleValue {
+//                    let doubleString = number.stringValue as NSString
+//                    return NSNumber(value: doubleString.doubleValue)
+//                } else {
+//                    return NSNumber(value: number.int64Value)
+//                }
+//            }
         }
         return value
     }
