@@ -34,10 +34,11 @@ public class FRepoManager {
 
     public class func createRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig, database: Database) -> FRepo {
         config.freeze()
-        objc_sync_enter(configs)
-        defer {
-            objc_sync_exit(configs)
-        }
+        // XXX TODO: NO objc_sync on non-Darwin
+//        objc_sync_enter(configs)
+//        defer {
+//            objc_sync_exit(configs)
+//        }
         var repos = configs[config.sessionIdentifier, default: [:]]
         if repos[repoInfo] != nil {
             fatalError("createRepo called for Repo that already exists.")
