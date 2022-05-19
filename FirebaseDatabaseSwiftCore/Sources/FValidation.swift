@@ -85,9 +85,10 @@ public enum FValidationSwift {
             guard !NSDecimalNumber.notANumber.isEqual(to: numberValue) else {
                 return handleError("NaN")
             }
-            if numberValue === kCFBooleanTrue || numberValue === kCFBooleanFalse {
-                return handleError("true/false")
-            }
+            // XXX TODO: Doesn't work without objc support. Anything else we may do?
+//            if numberValue === kCFBooleanTrue || numberValue === kCFBooleanFalse {
+//                return handleError("true/false")
+//            }
         } else if let dval = value as? NSDictionary {
             if dval[kServerValueSubKey] != nil {
                 if dval.count > 1 {

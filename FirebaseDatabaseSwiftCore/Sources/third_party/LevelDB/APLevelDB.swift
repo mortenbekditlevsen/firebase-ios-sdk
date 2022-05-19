@@ -446,7 +446,10 @@ final fileprivate class DefaultComparator: Comparator {
         // compare memory
         return a.slice { (aBytes: UnsafeBufferPointer<Int8>, aCount: Int) in
             return b.slice { (bBytes: UnsafeBufferPointer<Int8>, bCount: Int) in
-                var cmp = memcmp(aBytes.baseAddress, bBytes.baseAddress, min(aCount, bCount))
+                var cmp: Int32 = 0
+                if let aBase = aBytes.baseAddress, let bBase = bBytes.baseAddress {
+                    cmp = memcmp(aBase, bBase, min(aCount, bCount))
+                }
 
                 if cmp == 0 {
                     cmp = Int32(aCount - bCount)
