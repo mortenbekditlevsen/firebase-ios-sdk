@@ -75,6 +75,11 @@ public class FLevelDBStorageEngine: FStorageEngine {
         let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
         let cachesDir = urls[0] // Yes, it's a hard error if we have no documents directory
         return cachesDir.appendingPathComponent("firebase")
+    #else
+        let fileManager = FileManager.default
+        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
+        return documentsDir.appendingPathComponent("firebase")
 #endif
     }
 
