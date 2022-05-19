@@ -8,12 +8,12 @@
 import Foundation
 
 
-@objc public class FCancelEvent: NSObject, FEvent {
-    @objc public var eventRegistration: FEventRegistration
-    @objc public var error: Error
-    @objc public var path: FPath
+public class FCancelEvent: FEvent {
+    public var eventRegistration: FEventRegistration
+    public var error: Error
+    public var path: FPath
 
-    @objc public init(eventRegistration: FEventRegistration, error: Error, path: FPath) {
+    public init(eventRegistration: FEventRegistration, error: Error, path: FPath) {
         self.eventRegistration = eventRegistration
         self.error = error
         self.path = path
@@ -23,7 +23,7 @@ import Foundation
         eventRegistration.fireEvent(self, queue: queue)
     }
     public var isCancelEvent: Bool { true }
-    public override var description: String {
+    public var description: String {
         "\(path): cancel"
     }
 }

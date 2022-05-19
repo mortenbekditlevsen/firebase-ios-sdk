@@ -7,20 +7,20 @@
 
 import Foundation
 
-@objc public class FViewCache: NSObject {
-    @objc public let cachedEventSnap: FCacheNode
-    @objc public var completeEventSnap: FNode? {
+public class FViewCache {
+    public let cachedEventSnap: FCacheNode
+    public var completeEventSnap: FNode? {
         cachedEventSnap.isFullyInitialized ? cachedEventSnap.node : nil
     }
 
-    @objc public let cachedServerSnap: FCacheNode
-    @objc public var completeServerSnap: FNode? {
+    public let cachedServerSnap: FCacheNode
+    public var completeServerSnap: FNode? {
         cachedServerSnap.isFullyInitialized
                    ? cachedServerSnap.node
                    : nil
     }
 
-    @objc public init(eventCache: FCacheNode, serverCache: FCacheNode) {
+    public init(eventCache: FCacheNode, serverCache: FCacheNode) {
         self.cachedEventSnap = eventCache
         self.cachedServerSnap = serverCache
     }

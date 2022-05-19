@@ -7,14 +7,14 @@
 
 import Foundation
 
-#if !os(watchOS)
+#if os(iOS) || os(tvOS) || os(macOS)
 import SystemConfiguration
 #endif
 #if os(iOS) || os(tvOS)
 import UIKit
 #endif
 
-@objc public class FOutstandingQuery: NSObject {
+public class FOutstandingQuery {
     fileprivate init(query: FQuerySpec, tagId: Int?, syncTreeHash: FSyncTreeHash, onComplete: ((String) -> Void)?) {
         self.query = query
         self.tagId = tagId
@@ -89,7 +89,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
                            status: String,
                            errorReason: String)
 
-@objc public class FPersistentConnection: NSObject, FConnectionDelegate {
+public class FPersistentConnection: FConnectionDelegate {
     var connectionState: ConnectionState
     var firstConnection: Bool
     var reconnectDelay: TimeInterval
@@ -126,9 +126,9 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
      PUBLIC
      */
     weak var delegate: FPersistentConnectionDelegate?
-    @objc public var pauseWrites: Bool
+    public var pauseWrites: Bool
 
-    @objc public init(repoInfo: FRepoInfo, dispatchQueue: DispatchQueue, config: DatabaseConfig) {
+    public init(repoInfo: FRepoInfo, dispatchQueue: DispatchQueue, config: DatabaseConfig) {
         self.lastConnectionEstablishedTime = 0
         self.lastConnectionAttemptTime = 0
         self.forceTokenRefreshes = false
@@ -158,7 +158,6 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
                                           retryExponent: kPersistentConnReconnectMultiplier,
                                           jitterFactor: 0.7)
 
-        super.init()
         setupNotifications()
         // Make sure we don't actually connect until open is called
         interruptForReason(kFInterruptReasonWaitingForOpen)
@@ -181,11 +180,11 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
     // MARK: -
     // MARK: Public methods
 
-    @objc public func open() {
+    public func open() {
         resumeForReason(kFInterruptReasonWaitingForOpen)
     }
 
-    @objc public static var userAgent: String {
+    public static var userAgent: String {
         var systemVersion: String = ""
         var deviceName: String = ""
         var hasUIDeviceClass = false
@@ -218,7 +217,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         return ua
     }
 
-    @objc public var userAgent: String {
+    public var userAgent: String {
         FPersistentConnection.userAgent
     }
 
@@ -248,14 +247,14 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func listen(_ query: FQuerySpec,
+    public func listen(_ query: FQuerySpec,
                              tagId: Int,
                              hash: FSyncTreeHash,
                              onComplete: @escaping (String) -> Void) {
         listen(query, tagId: tagId, hash: hash, onComplete: onComplete)
     }
 
-    @objc public func putData(_ data: Any,
+    public func putData(_ data: Any,
                               forPath pathString: String,
                               withHash hash: String?,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
@@ -266,7 +265,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
                     withCallback: onComplete)
     }
 
-    @objc public func mergeData(_ data: Any,
+    public func mergeData(_ data: Any,
                               forPath pathString: String,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
         putInternal(data,
@@ -276,7 +275,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
                     withCallback: onComplete)
     }
 
-    @objc public func onDisconnectPutData(_ data: Any,
+    public func onDisconnectPutData(_ data: Any,
                                           forPath path: FPath,
                                           withCallback callback: @escaping (String, String?) -> Void) {
         if canSendWrites {
@@ -295,7 +294,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func onDisconnectMergeData(_ data: Any,
+    public func onDisconnectMergeData(_ data: Any,
                                             forPath path: FPath,
                                             withCallback callback: @escaping (String, String?) -> Void) {
 
@@ -315,7 +314,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func onDisconnectCancelPath(_ path: FPath,
+    public func onDisconnectCancelPath(_ path: FPath,
                                              withCallback callback: @escaping (String, String?) -> Void) {
         if canSendWrites {
             sendOnDisconnectAction(kFWPRequestActionDisconnectCancel,
@@ -333,7 +332,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func unlistenObjc(_ query: FQuerySpec,
+    public func unlistenObjc(_ query: FQuerySpec,
                                tagId: Int) {
         unlisten(query, tagId: tagId)
     }
@@ -348,7 +347,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func refreshAuthToken(_ token: String?) {
+    public func refreshAuthToken(_ token: String?) {
         self.authToken = token
         if connected {
             if token != nil {
@@ -449,7 +448,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
     // MARK: -
     // MARK: Connection handling methods
 
-    @objc public func interruptForReason(_ reason: String) {
+    public func interruptForReason(_ reason: String) {
         FFLog("I-RDB034006", "Connection interrupted for: \(reason)")
         interruptReasons.insert(reason)
         if let realtime = realtime {
@@ -464,7 +463,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         retryHelper.signalSuccess()
     }
 
-    @objc public func resumeForReason(_ reason: String) {
+    public func resumeForReason(_ reason: String) {
         FFLog("I-RDB034007", "Connection no longer interrupted for: \(reason)")
         interruptReasons.remove(reason)
         if shouldReconnect && connectionState == .disconnected {
@@ -476,7 +475,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         interruptReasons.isEmpty
     }
 
-    @objc public func isInterruptedForReason(_ reason: String) -> Bool {
+    public func isInterruptedForReason(_ reason: String) -> Bool {
         interruptReasons.contains(reason)
     }
 
@@ -793,7 +792,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
         }
     }
 
-    @objc public func getDataAtPath(_ pathString: String,
+    public func getDataAtPath(_ pathString: String,
                                withParams queryWireProtocolParams: [String: Any],
                                withCallback onComplete: @escaping (String, Any?, String?) -> Void) {
         var request: [String: Any] = [
@@ -1077,7 +1076,7 @@ better performance
         return removed
     }
 
-    @objc public func purgeOutstandingWrites() {
+    public func purgeOutstandingWrites() {
         // We might have unacked puts in our queue that we need to ack now before we
         // send out any cancels...
         ackPuts()
@@ -1151,13 +1150,13 @@ better performance
      */
 
     // Testing methods
-    @objc public func dumpListens() -> [FQuerySpec: FOutstandingQuery] {
+    public func dumpListens() -> [FQuerySpec: FOutstandingQuery] {
         listens
     }
 
     // MARK: - App Check Token update
     // TODO: Add tests!
-    @objc public func refreshAppCheckToken(_ token: String) {
+    public func refreshAppCheckToken(_ token: String) {
         if !connected {
             // A fresh FAC token will be sent as a part of initial handshake.
             return

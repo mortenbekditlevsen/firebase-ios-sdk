@@ -80,34 +80,34 @@ struct FWriteRecordImpl: Hashable, Equatable {
 protocol Ski: Hashable {}
 
 
-@objc public class FWriteRecord: NSObject {
+public class FWriteRecord {
   let impl: FWriteRecordImpl
 
-  @objc public init(path: FPath, overwrite: FNode, writeId: Int, visible: Bool) {
+  public init(path: FPath, overwrite: FNode, writeId: Int, visible: Bool) {
     self.impl = FWriteRecordImpl(path: path, overwrite: overwrite, writeId: writeId, visible: visible)
   }
 
-  @objc public init(path: FPath, merge: FCompoundWrite, writeId: Int) {
+  public init(path: FPath, merge: FCompoundWrite, writeId: Int) {
     self.impl = .init(path: path, merge: merge, writeId: writeId)
   }
 
-  @objc public var writeId: Int { impl.writeId }
-  @objc public var visible: Bool { impl.visible }
-  @objc public var path: FPath { impl.path }
-  @objc public var isOverwrite: Bool { impl.isOverwrite }
-  @objc public var isMerge: Bool { impl.isMerge }
-  @objc public var overwrite: FNode? { impl.overwrite }
-  @objc public var merge: FCompoundWrite? { impl.merge }
-    @objc public override var hash: Int { impl.hashValue }
-    @objc public override var debugDescription: String {
+  public var writeId: Int { impl.writeId }
+  public var visible: Bool { impl.visible }
+  public var path: FPath { impl.path }
+  public var isOverwrite: Bool { impl.isOverwrite }
+  public var isMerge: Bool { impl.isMerge }
+  public var overwrite: FNode? { impl.overwrite }
+  public var merge: FCompoundWrite? { impl.merge }
+    public var hash: Int { impl.hashValue }
+    public var debugDescription: String {
         impl.debugDescription
     }
 
-    @objc public override var description: String {
+    public var description: String {
         impl.debugDescription
     }
 
-    @objc public override func isEqual(_ object: Any?) -> Bool {
+    public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FWriteRecord else { return false }
         return other.impl == self.impl
     }

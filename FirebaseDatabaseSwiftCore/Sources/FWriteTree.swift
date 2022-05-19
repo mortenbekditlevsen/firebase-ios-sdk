@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public class FWriteTree: NSObject {
+public class FWriteTree {
   /**
    * A tree tracking the results of applying all visible writes. This does not
    * include transactions with applyLocally=false or writes that are completely
@@ -25,7 +25,7 @@ import Foundation
 
   var lastWriteId: Int
 
-  @objc public override init() {
+  public init() {
     visibleWrites = .emptyWrite
     allWrites = []
     lastWriteId = -1
@@ -35,7 +35,7 @@ import Foundation
    * Create a new WriteTreeRef for the given path. For use with a new sync point
    * at the given path.
    */
-    @objc public func childWritesForPath(_ path: FPath) -> FWriteTreeRef {
+    public func childWritesForPath(_ path: FPath) -> FWriteTreeRef {
     FWriteTreeRef(path: path, writeTree: self)
   }
 
@@ -44,7 +44,7 @@ import Foundation
    * @param visible Is set to false by some transactions. It should be excluded
    * from event caches.
    */
-    @objc public func addOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) {
+    public func addOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) {
     assert(writeId > self.lastWriteId,
              "Stacking an older write on top of a newer one")
     let record = FWriteRecord(path: path, overwrite: newData, writeId: writeId, visible: isVisible)
@@ -61,7 +61,7 @@ import Foundation
    * Record a new merge from user code.
    * @param changedChildren maps NSString -> id<FNode>
    */
-    @objc public func addMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) {
+    public func addMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) {
     assert(writeId > self.lastWriteId,
              "Stacking an older merge on top of newer one")
     let record = FWriteRecord(path: path, merge: changedChildren, writeId: writeId)
@@ -81,7 +81,7 @@ import Foundation
    * @return YES if the write may have been visible (meaning we'll need to
    * reevaluate / raise events as a result).
    */
-    @objc public func removeWriteId(_ writeId: Int) -> Bool {
+    public func removeWriteId(_ writeId: Int) -> Bool {
     guard let index = allWrites.firstIndex(where: { $0.writeId == writeId }) else {
       assert(false,
                "[FWriteTree removeWriteId:] called with nonexistent writeId.")
@@ -132,14 +132,14 @@ import Foundation
      }
   }
 
-    @objc public func removeAllWrites() -> [FWriteRecord] {
+    public func removeAllWrites() -> [FWriteRecord] {
     let writes = allWrites
     visibleWrites = .emptyWrite
     allWrites = []
     return writes
   }
 
-    @objc public func writeForId(_ writeId: Int) -> FWriteRecord? {
+    public func writeForId(_ writeId: Int) -> FWriteRecord? {
     allWrites.first { $0.writeId == writeId }
   }
 
@@ -159,7 +159,7 @@ import Foundation
    * @param includeHiddenWrites Defaults to false, whether or not to layer on
    * writes with visible set to false
    */
-    @objc public func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode?, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode? {
+    public func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode?, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode? {
     if excludeWriteIds == nil && !includeHiddenWrites {
       if let shadowingNode = visibleWrites.completeNodeAtPath(treePath) {
         return shadowingNode
@@ -254,7 +254,7 @@ import Foundation
      * Either existingEventSnap or existingServerSnap must exist.
      */
     // XXX TODO: existingEventSnap never used in original method...
-    @objc public func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
+    public func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
 
       let path = treePath.child(childPath)
       if visibleWrites.hasCompleteWriteAtPath(path) {

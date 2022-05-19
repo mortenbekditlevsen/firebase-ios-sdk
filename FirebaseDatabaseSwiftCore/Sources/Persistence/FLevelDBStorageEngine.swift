@@ -58,12 +58,12 @@ private func trackedQueryKeysKey(trackedQueryId: Int, key: String) -> String {
     "\(kFTrackedQueryKeysPrefix)\(trackedQueryId)/\(key)"
 }
 
-@objc public class FLevelDBStorageEngine: NSObject, FStorageEngine {
+public class FLevelDBStorageEngine: FStorageEngine {
     private var writesDB: APLevelDB!
     private var serverCacheDB: APLevelDB!
     private var basePath: URL
     
-    @objc public static var firebaseDir: URL {
+    public static var firebaseDir: URL {
         // XXX TODO: Handle linux (and more) too. Note that for macOS this differs from previously
 #if os(iOS) || os(watchOS) || os(macOS)
         let fileManager = FileManager.default
@@ -78,14 +78,13 @@ private func trackedQueryKeysKey(trackedQueryId: Int, key: String) -> String {
 #endif
     }
 
-    @objc public init(path: String) {
+    public init(path: String) {
         self.basePath = FLevelDBStorageEngine.firebaseDir.appendingPathComponent(path)
         /* For reference:
          serverDataDB = [aPersistence createDbByName:@"server_data"];
          FPangolinDB *completenessDb = [aPersistence
          createDbByName:@"server_complete"];
          */
-        super.init()
         FLevelDBStorageEngine.ensureDir(&self.basePath, markAsDoNotBackup: true)
         runMigration()
         openDatabases()
@@ -117,7 +116,7 @@ private func trackedQueryKeysKey(trackedQueryId: Int, key: String) -> String {
         }
     }
 
-    @objc public func runLegacyMigration(_ info: FRepoInfo) {
+    public func runLegacyMigration(_ info: FRepoInfo) {
         fatalError("Not yet supported")
         /*
          - (void)runLegacyMigration:(FRepoInfo *)info {
@@ -224,7 +223,7 @@ private func trackedQueryKeysKey(trackedQueryId: Int, key: String) -> String {
         }
     }
 
-    @objc public func purgeEverything() {
+    public func purgeEverything() {
         close()
         for path in [kFServerDBPath, kFWritesDBPath] {
             purgeDatabase(dbPath: path)

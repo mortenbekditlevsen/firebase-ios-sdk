@@ -7,19 +7,19 @@
 
 import Foundation
 
-@objc enum FConnectionState : Int {
+enum FConnectionState : Int {
     case connecting = 0
     case connected = 1
     case disconnected = 2
 }
 
-@objc public final class FConnection: NSObject, FWebSocketDelegate {
-    @objc public weak var delegate: FConnectionDelegate?
-    @objc var state: FConnectionState
+public final class FConnection: FWebSocketDelegate {
+    public weak var delegate: FConnectionDelegate?
+    var state: FConnectionState
     var conn: FWebSocketConnection?
-    @objc let repoInfo: FRepoInfo
+    var repoInfo: FRepoInfo
 
-    @objc public init(
+    public init(
         with aRepoInfo: FRepoInfo,
         andDispatchQueue queue: DispatchQueue,
         googleAppID: String,
@@ -38,19 +38,17 @@ import Foundation
             appCheckToken: appCheckToken,
             userAgent: userAgent)
 
-        super.init()
-
         conn?.delegate = self
     }
 
     // MARK: -
     // MARK: Public method implementation
-    @objc public func open() {
+    public func open() {
         FFLog("I-RDB082001", "Calling open in FConnection")
         conn?.open()
     }
 
-    @objc public func close(with reason: FDisconnectReason) {
+    public func close(with reason: FDisconnectReason) {
         if state != .disconnected {
             FFLog("I-RDB082002", "Closing realtime connection.")
             state = .disconnected
@@ -65,7 +63,7 @@ import Foundation
         }
     }
 
-    @objc public func close() {
+    public func close() {
         close(with: .DISCONNECT_REASON_OTHER)
     }
 
@@ -82,7 +80,7 @@ import Foundation
     }
 
 
-    @objc public func sendRequest(_ dataMsg: NSDictionary, sensitive: Bool) throws {
+    public func sendRequest(_ dataMsg: NSDictionary, sensitive: Bool) throws {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
         let msg: [String: Any] = [

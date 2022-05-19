@@ -7,20 +7,20 @@
 
 import Foundation
 
-@objc(FIRDatabaseConfig) public class DatabaseConfig: NSObject {
+public class DatabaseConfig {
     // XXX TODO: Only public during porting - after that it should be internal
-    @objc public var sessionIdentifier: String
+    public var sessionIdentifier: String
     // XXX TODO: Only public during porting - after that it should be internal
-    @objc public var googleAppID: String
+    public var googleAppID: String
 
     // XXX TODO: Only public during porting - after that it should be internal
-    @objc public var contextProvider: DatabaseConnectionContextProviderProtocol {
+    public var contextProvider: DatabaseConnectionContextProviderProtocol {
         willSet {
             assertUnfrozen()
         }
     }
 
-    @objc public init(sessionIdentifier: String, googleAppID: String, contextProvider: DatabaseConnectionContextProviderProtocol) {
+    public init(sessionIdentifier: String, googleAppID: String, contextProvider: DatabaseConnectionContextProviderProtocol) {
         self.sessionIdentifier = sessionIdentifier
         self.googleAppID = googleAppID
         self.contextProvider = contextProvider
@@ -37,12 +37,12 @@ import Foundation
         }
     }
 
-    @objc public func freeze() {
+    public func freeze() {
         isFrozen = true
     }
 
     // XXX TODO: Only public during porting - after that it should be internal
-    @objc public var forceStorageEngine: FStorageEngine?
+    public var forceStorageEngine: FStorageEngine?
 
     /**
      * By default the Firebase Database client will keep data in memory while your
@@ -60,7 +60,7 @@ import Foundation
      * successfully re-authenticate (or explicitly unauthenticate) to prevent your
      * writes from being sent unauthenticated and failing due to security rules.
      */
-    @objc public var persistenceEnabled: Bool {
+    public var persistenceEnabled: Bool {
         willSet {
             assertUnfrozen()
         }
@@ -78,7 +78,7 @@ import Foundation
      * disk may temporarily exceed it at times.
      */
 
-    @objc public var persistenceCacheSizeBytes: Int {
+    public var persistenceCacheSizeBytes: Int {
         willSet {
             assertUnfrozen()
             // Can't be less than 1MB
@@ -95,7 +95,7 @@ import Foundation
      * Sets the dispatch queue on which all events are raised. The default queue is
      * the main queue.
      */
-    @objc public var callbackQueue: DispatchQueue {
+    public var callbackQueue: DispatchQueue {
         willSet {
             assertUnfrozen()
         }

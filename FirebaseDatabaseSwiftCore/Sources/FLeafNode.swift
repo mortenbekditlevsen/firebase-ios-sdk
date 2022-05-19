@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public class FLeafNode: NSObject, FNode {
+public class FLeafNode: FNode {
     public func isLeafNode() -> Bool {
         true
     }
@@ -155,7 +155,8 @@ import Foundation
 //        NSArray().objectEnumerator()
 //    }
 
-    public override var hash: Int {
+    public var hash: Int {
+        #warning("Extra fishy")
         guard let v = value as? NSObject else {
             return priority.hash
         }
@@ -163,7 +164,7 @@ import Foundation
         return v.hash &* 17 &+ priority.hash
     }
 
-    public override func isEqual(_ object: Any?) -> Bool {
+    public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FLeafNode else {
             return false
         }
@@ -181,22 +182,22 @@ import Foundation
         return v.isEqual(ov) && priority.isEqual(other.priority)
     }
 
-    @objc public let value: Any
+    public let value: Any
     let priority: FNode
     var lazyHash: String?
 
-    @objc public init(value: Any) {
+    public init(value: Any) {
         self.value = value
         self.priority = FEmptyNode.emptyNode
     }
 
-    @objc public init(value: Any, withPriority priority: FNode) {
+    public init(value: Any, withPriority priority: FNode) {
         self.value = value
         FSnapshotUtilitiesSwift.validatePriorityNode(priority)
 
         self.priority = priority
     }
-    public override var description: String {
+    public var description: String {
         "\(val(forExport: true))"
     }
 }

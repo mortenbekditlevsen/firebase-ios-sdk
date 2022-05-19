@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FValueEventRegistration: NSObject, FEventRegistration {
+class FValueEventRegistration: FEventRegistration {
     let repo: FRepo
     let handle: DatabaseHandle
     let callback: ((DataSnapshot) -> Void)?

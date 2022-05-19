@@ -9,7 +9,7 @@ import Foundation
 
 /// This protocol is used in the interop registration process to register an
 /// instance provider for individual FIRApps.
-@objc(FIRDatabaseProvider) public protocol DatabaseProvider: NSObjectProtocol {
+public protocol DatabaseProvider {
     /// Gets a FirebaseDatabase instance for the specified URL, using the specified
     /// FirebaseApp.
     func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database
@@ -17,7 +17,7 @@ import Foundation
 
 /// A concrete implementation for FIRDatabaseProvider to create Database
 /// instances.
-@objc(FIRDatabaseComponent) public class DatabaseComponent: NSObject, DatabaseProvider {
+public class DatabaseComponent: DatabaseProvider {
     internal init(app: FIRAppThing) {
         self.app = app
     }

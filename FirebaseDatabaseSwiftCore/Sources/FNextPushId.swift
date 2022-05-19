@@ -16,10 +16,10 @@ let MAX_PUSH_CHAR: Character = "z"
 
 let MAX_KEY_LEN = 786
 
-@objc public class FNextPushId: NSObject {
+public class FNextPushId {
     private static var lastPushTime: Int64 = 0
     private static var lastRandChars: [UInt8] = Array<UInt8>(repeating: 0, count: 12)
-    @objc public static func get(_ currentTime: TimeInterval) -> String {
+    public static func get(_ currentTime: TimeInterval) -> String {
         var now: Int64 = Int64(currentTime * 1000)
         let duplicateTime = now == lastPushTime
         lastPushTime = now
@@ -55,7 +55,7 @@ let MAX_KEY_LEN = 786
         return id
     }
 
-    @objc public static func successor(_ key: String) -> String {
+    public static func successor(_ key: String) -> String {
         var keyAsInt: Int = 0
         if tryParseStringToInt(key, integer: &keyAsInt) {
             if keyAsInt == Int(Int32.max) {
@@ -87,7 +87,7 @@ let MAX_KEY_LEN = 786
     #warning("It would perhaps be good to assert this, or even to support this, because even though keys can't be empty, queryBefore for instance may make sence on an empty String...")
     // In this implementation 'key' is not assumed to be non-empty, but the key that comes
     // before the empty string is Int32.max
-    @objc public static func predecessor(_ key: String) -> String {
+    public static func predecessor(_ key: String) -> String {
         var keyAsInt: Int = 0
         if tryParseStringToInt(key, integer: &keyAsInt) {
             if keyAsInt == Int(Int32.min) {

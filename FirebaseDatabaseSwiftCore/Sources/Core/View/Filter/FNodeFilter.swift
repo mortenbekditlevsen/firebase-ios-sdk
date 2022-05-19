@@ -15,7 +15,7 @@ import Foundation
  * the node itself. Different kind of queries require different kind of
  * implementations of this interface.
  */
-public protocol FNodeFilter: NSObjectProtocol {
+public protocol FNodeFilter {
 
 /**
  * Update a single complete child in the snap. If the child equals the old child

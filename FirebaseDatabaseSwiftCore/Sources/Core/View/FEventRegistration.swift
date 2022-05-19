@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public protocol FEventRegistration: NSObjectProtocol {
+public protocol FEventRegistration: AnyObject {
     func responseTo(_ eventType: DataEventType) -> Bool
     func createEventFrom(_ change: FChange, query: FQuerySpec) -> FDataEvent
     func fireEvent(_ event: FEvent, queue: DispatchQueue)

@@ -7,16 +7,13 @@
 
 import Foundation
 
-@objc public class FRepoInfo: NSObject, NSCopying {
-    public func copy(with zone: NSZone? = nil) -> Any {
-        self
-    }
+public struct FRepoInfo: Hashable {
 
     /// The host that the database should connect to.
-    @objc public let host: String
+    public let host: String
 
-    @objc public let namespace: String
-    @objc public var internalHost: String {
+    public let namespace: String
+    public var internalHost: String {
         didSet {
             if internalHost != oldValue {
                 let internalHostKey = "firebase:host:\(host)"
@@ -24,10 +21,10 @@ import Foundation
             }
         }
     }
-    @objc public var secure: Bool
+    public var secure: Bool
     public let domain: String
 
-    @objc public init(host: String, isSecure: Bool, withNamespace namespace: String) {
+    public init(host: String, isSecure: Bool, withNamespace namespace: String) {
         self.host = host
         self.namespace = namespace
         self.secure = isSecure
@@ -45,15 +42,15 @@ import Foundation
         }
     }
 
-    public override var description: String {
+    public var description: String {
         return "http\(secure ? "s" : ""):\(host)"
     }
 
-    @objc public convenience init(info: FRepoInfo, emulatedHost: String) {
+    public init(info: FRepoInfo, emulatedHost: String) {
         self.init(host: emulatedHost, isSecure: false, withNamespace: info.namespace)
     }
 
-    @objc public func connectionURL(lastSessionID: String?) -> String {
+    public func connectionURL(lastSessionID: String?) -> String {
         let scheme: String
         if secure {
             scheme = "wss"
@@ -68,11 +65,11 @@ import Foundation
         return url
     }
 
-    @objc public var connectionURL: String {
+    public var connectionURL: String {
         connectionURL(lastSessionID: nil)
     }
 
-    @objc public func clearInternalHostCache() {
+    public mutating func clearInternalHostCache() {
         // Remove the cached entry
         self.internalHost = self.host
         let internalHostKey = "firebase:host:\(host)"
@@ -83,7 +80,7 @@ import Foundation
         domain == "firebaseio-demo.com"
     }
 
-    @objc public var isCustomHost: Bool {
+    public var isCustomHost: Bool {
         domain != "firebaseio-demo.com" &&
         domain != "firebaseio.com"
     }

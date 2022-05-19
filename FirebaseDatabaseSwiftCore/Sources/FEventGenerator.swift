@@ -7,9 +7,9 @@
 
 import Foundation
 
-@objc public class FEventGenerator: NSObject {
+public class FEventGenerator {
     let query: FQuerySpec
-    @objc public init(query: FQuerySpec) {
+    public init(query: FQuerySpec) {
         self.query = query
     }
 

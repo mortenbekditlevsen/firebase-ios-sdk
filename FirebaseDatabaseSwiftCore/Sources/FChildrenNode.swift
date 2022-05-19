@@ -8,52 +8,37 @@
 import SortedCollections
 import Foundation
 
-@objc public class FEmptyNode: NSObject {
-    @objc public static var emptyNode: FNode = FChildrenNode(children: [:])
+public class FEmptyNode {
+    public static var emptyNode: FNode = FChildrenNode(children: [:])
 }
 
 private let kMinName = "[MIN_NAME]"
 private let kMaxName = "[MAX_NAME]"
 
-@objc public class FNamedNode: NSObject, NSCopying {
-    @objc public var name: String
-    @objc public var node: FNode
-    @objc public init(name: String, andNode node: FNode) {
+public struct FNamedNode: Hashable {
+    public static func == (lhs: FNamedNode, rhs: FNamedNode) -> Bool {
+        lhs.name == rhs.name && lhs.node.isEqual(rhs.node)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        name.hash(into: &hasher)
+        node.hash.hash(into: &hasher)
+    }
+
+    public var name: String
+    public var node: FNode
+    public init(name: String, andNode node: FNode) {
         self.name = name
         self.node = node
     }
-    @objc public class func nodeWithName(_ name: String, node: FNode) -> FNamedNode {
+    public static func nodeWithName(_ name: String, node: FNode) -> FNamedNode {
         FNamedNode(name: name, andNode: node)
     }
-    @objc public static var min: FNamedNode = FNamedNode(name: kMinName, andNode: FEmptyNode.emptyNode)
-    @objc public static var max: FNamedNode = FNamedNode(name: kMaxName, andNode: FEmptyNode.emptyNode)
+    public static var min: FNamedNode = FNamedNode(name: kMinName, andNode: FEmptyNode.emptyNode)
+    public static var max: FNamedNode = FNamedNode(name: kMaxName, andNode: FEmptyNode.emptyNode)
 
-    @objc public override func copy() -> Any {
-        self
-    }
-
-    @objc public func copy(with zone: NSZone? = nil) -> Any {
-        self
-    }
-
-    @objc public override var description: String {
+    public var description: String {
         "NamedNode[\(name)] \(node)"
-    }
-
-    @objc public override func isEqual(_ object: Any?) -> Bool {
-        guard let object = object as? FNamedNode else { return false }
-        if self === object { return true }
-        guard name == object.name else { return false }
-        return node.isEqual(object.node)
-    }
-
-    @objc public override var hash: Int {
-        var hasher = Hasher()
-        name.hash(into: &hasher)
-        // Obj-C protocol can't conform to hashable, so we convert
-        // by calling hash(into:) on the hash value...
-        node.hash.hash(into: &hasher)
-        return hasher.finalize()
     }
 }
 
@@ -65,17 +50,17 @@ struct KeyIndex: Comparable {
     let key: String
 }
 
-@objc public class FChildrenNode: NSObject, FNode {
+public class FChildrenNode: FNode {
 
-    @objc public func isLeafNode() -> Bool {
+    public func isLeafNode() -> Bool {
         false
     }
     
-    @objc public func getPriority() -> FNode {
+    public func getPriority() -> FNode {
         priorityNode ?? FEmptyNode.emptyNode
     }
 
-    @objc public func updatePriority(_ priority: FNode) -> FNode {
+    public func updatePriority(_ priority: FNode) -> FNode {
         if children.isEmpty {
             return FEmptyNode.emptyNode
         } else {
@@ -91,7 +76,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func getImmediateChild(_ childKey: String) -> FNode {
+    public func getImmediateChild(_ childKey: String) -> FNode {
         if childKey == ".priority" {
             return getPriority()
         } else {
@@ -99,14 +84,14 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func getChild(_ path: FPath) -> FNode {
+    public func getChild(_ path: FPath) -> FNode {
         guard let front = path.getFront() else {
             return self
         }
         return getImmediateChild(front).getChild(path.popFront())
     }
 
-    @objc public func predecessorChildKey(_ childKey: String) -> String? {
+    public func predecessorChildKey(_ childKey: String) -> String? {
         let wrapped = KeyIndex(key: childKey)
         guard let keyIndex = children.keys.firstIndex(of: wrapped), keyIndex != children.keys.startIndex else {
             return nil
@@ -114,7 +99,7 @@ struct KeyIndex: Comparable {
         return children.keys[children.keys.index(before: keyIndex)].key
     }
 
-    @objc public func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
+    public func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
         guard childKey != ".priority" else {
             return updatePriority(newChildNode)
         }
@@ -133,7 +118,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
+    public func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
         guard let front = path.getFront() else {
             return newChildNode
         }
@@ -143,23 +128,23 @@ struct KeyIndex: Comparable {
         return updateImmediateChild(front, withNewChild: newImmediateChild)
     }
 
-    @objc public func hasChild(_ childKey: String) -> Bool {
+    public func hasChild(_ childKey: String) -> Bool {
         !getImmediateChild(childKey).isEmpty
     }
 
-    @objc public var isEmpty: Bool {
+    public var isEmpty: Bool {
         children.isEmpty
     }
 
-    @objc public func numChildren() -> Int {
+    public func numChildren() -> Int {
         children.count
     }
 
-    @objc public func val() -> Any {
+    public func val() -> Any {
         return val(forExport: false)
     }
 
-    @objc public func val(forExport exp: Bool) -> Any {
+    public func val(forExport exp: Bool) -> Any {
         guard !isEmpty else {
             return NSNull()
         }
@@ -204,7 +189,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func dataHash() -> String {
+    public func dataHash() -> String {
         if let hash = lazyHash {
             return hash
         }
@@ -253,7 +238,7 @@ struct KeyIndex: Comparable {
         return calculatedHash
     }
 
-    @objc public func compare(_ other: FNode) -> ComparisonResult {
+    public func compare(_ other: FNode) -> ComparisonResult {
         
         // children nodes come last, unless this is actually an empty node, then we
         // come first.
@@ -273,7 +258,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop = ObjCBool(booleanLiteral: false)
         for (key, value) in children {
             block(key.key, value, &stop)
@@ -281,7 +266,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop = ObjCBool(booleanLiteral: false)
         if reverse {
             for (key, value) in children.reversed() {
@@ -296,7 +281,7 @@ struct KeyIndex: Comparable {
         }
     }
 
-//    @objc public func childEnumerator() -> NSEnumerator {
+//    public func childEnumerator() -> NSEnumerator {
 //        NodeEnumerator(iterator: children.makeIterator(), node: self)
 //    }
 
@@ -308,11 +293,11 @@ struct KeyIndex: Comparable {
         self.children = children
     }
 
-    public override var description: String {
+    public var description: String {
         "FChildrenNode: \(children)"
     }
 
-    public override var hash: Int {
+    public var hash: Int {
         var hasher = Hasher()
         for (key, node) in children {
             key.key.hash(into: &hasher)
@@ -322,7 +307,7 @@ struct KeyIndex: Comparable {
         return hasher.finalize()
     }
 
-    public override func isEqual(_ object: Any?) -> Bool {
+    public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FNode else { return false }
         if other === self { return true }
         if other.isLeafNode() { return false }
@@ -354,12 +339,12 @@ struct KeyIndex: Comparable {
         self.priorityNode = priority
     }
 
-    @objc public override init() {
+    public init() {
         self.children = [:]
         self.priorityNode = nil
     }
 
-    @objc public func enumerateChildrenAndPriority(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    public func enumerateChildrenAndPriority(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         if getPriority().isEmpty {
             enumerateChildren(usingBlock: block)
         } else {
@@ -385,14 +370,14 @@ struct KeyIndex: Comparable {
         }
     }
 
-    @objc public func firstChild() -> FNamedNode? {
+    public func firstChild() -> FNamedNode? {
         guard let first = children.keys.first else {
             return nil
         }
         return FNamedNode(name: first.key, andNode: getImmediateChild(first.key))
     }
 
-    @objc public func lastChild() -> FNamedNode? {
+    public func lastChild() -> FNamedNode? {
         guard let last = children.keys.last else {
             return nil
         }
@@ -400,8 +385,8 @@ struct KeyIndex: Comparable {
     }
 }
 
-@objc public class FMaxNode: FChildrenNode {
-    @objc public static var maxNode = FMaxNode()
+public class FMaxNode: FChildrenNode {
+    public static var maxNode = FMaxNode()
     public override func compare(_ other: FNode) -> ComparisonResult {
         if other === self { return .orderedSame }
         else { return .orderedDescending }

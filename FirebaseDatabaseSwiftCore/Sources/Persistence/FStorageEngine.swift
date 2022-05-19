@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public protocol FStorageEngine: NSObjectProtocol {
+public protocol FStorageEngine {
     func close()
     func saveUserOverwrite(_ node: FNode, atPath path: FPath, writeId: Int)
     func saveUserMerge(_ merge: FCompoundWrite, atPath path: FPath, writeId: Int)

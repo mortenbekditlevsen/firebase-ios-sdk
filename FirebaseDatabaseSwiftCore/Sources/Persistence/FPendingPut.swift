@@ -7,12 +7,12 @@
 
 import Foundation
 
-@objc public class FPendingPut: NSObject, NSCoding {
-    @objc public let path: FPath
-    @objc public let priority: Any
-    @objc public let data: Any
+public class FPendingPut: NSCoding {
+    public let path: FPath
+    public let priority: Any
+    public let data: Any
 
-    @objc public init(path: FPath, andData data: Any, andPriority priority: Any) {
+    public init(path: FPath, andData data: Any, andPriority priority: Any) {
         self.path = path
         self.priority = priority
         self.data = data
@@ -43,10 +43,10 @@ import Foundation
 
 
 
-@objc public class FPendingPutPriority: NSObject, NSCoding {
-    @objc public let path: FPath
-    @objc public let priority: Any
-    @objc public init(path: FPath, andPriority priority: Any) {
+public class FPendingPutPriority: NSCoding {
+    public let path: FPath
+    public let priority: Any
+    public init(path: FPath, andPriority priority: Any) {
         self.path = path
         self.priority = priority
     }
@@ -67,10 +67,10 @@ import Foundation
     }
 }
 
-@objc public class FPendingUpdate: NSObject, NSCoding {
-    @objc public let path: FPath
-    @objc public let data: NSDictionary
-    @objc public init(path: FPath, andData data: NSDictionary) {
+public class FPendingUpdate: NSCoding {
+    public let path: FPath
+    public let data: NSDictionary
+    public init(path: FPath, andData data: NSDictionary) {
         self.path = path
         self.data = data
     }

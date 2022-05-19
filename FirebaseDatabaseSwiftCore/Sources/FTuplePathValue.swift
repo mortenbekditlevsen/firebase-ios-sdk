@@ -7,11 +7,11 @@
 
 import Foundation
 
-@objc public class FTuplePathValue: NSObject {
-    @objc public private(set) var path: FPath
-    @objc public private(set) var value: Any
+public class FTuplePathValue {
+    public private(set) var path: FPath
+    public private(set) var value: Any
 
-    @objc public init(path: FPath, value: Any) {
+    public init(path: FPath, value: Any) {
         self.path = path
         self.value = value
     }

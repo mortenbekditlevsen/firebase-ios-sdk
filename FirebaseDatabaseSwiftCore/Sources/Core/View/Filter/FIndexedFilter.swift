@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public class FIndexedFilter: NSObject, FNodeFilter {
+public class FIndexedFilter: FNodeFilter {
     public func updateChildIn(_ indexedNode: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         assert(indexedNode.hasIndex(index), "The index in FIndexedNode must match the index of the filter")
         let node = indexedNode.node
@@ -92,7 +92,7 @@ import Foundation
     public var indexedFilter: FNodeFilter { self }
 
     public let index: FIndex
-    @objc public init(index: FIndex) {
+    public init(index: FIndex) {
         self.index = index
     }
 }

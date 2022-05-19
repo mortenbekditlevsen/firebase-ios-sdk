@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FAckUserWrite: NSObject, FOperation {
+class FAckUserWrite: FOperation {
     let source: FOperationSource
     let type: FOperationType
     let path: FPath
@@ -43,7 +43,7 @@ class FAckUserWrite: NSObject, FOperation {
         }
     }
 
-    public override var description: String {
+    public var description: String {
         "FAckUserWrite { path=\(path), revert=\(revert), affectedTree=\(affectedTree) }"
     }
 }

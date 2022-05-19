@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FAtomicNumber: NSObject {
+class FAtomicNumber {
     var number: Int = 1
     var lock: NSLock = NSLock()
 

@@ -7,9 +7,9 @@
 
 import Foundation
 
-@objc public class FViewOperationResult: NSObject {
-    @objc public let changes: [FChange]
-    @objc public let events: [FEvent]
+public class FViewOperationResult {
+    public let changes: [FChange]
+    public let events: [FEvent]
     init(changes: [FChange], events: [FEvent]) {
         self.changes = changes
         self.events = events
@@ -33,22 +33,22 @@ import Foundation
  @property(nonatomic, strong) FEventGenerator *eventGenerator;
 
  */
-@objc public class FView: NSObject {
+public class FView {
     private let processor: FViewProcessor
     private var viewCache: FViewCache
     private var eventRegistrations: [FEventRegistration]
     private let eventGenerator: FEventGenerator
-    @objc public let query: FQuerySpec
-    @objc public var eventCache: FNode {
+    public let query: FQuerySpec
+    public var eventCache: FNode {
         viewCache.cachedEventSnap.node
     }
-    @objc public var serverCache: FNode {
+    public var serverCache: FNode {
         viewCache.cachedServerSnap.node
     }
-    @objc public var completeEventCache: FNode? {
+    public var completeEventCache: FNode? {
         viewCache.completeEventSnap
     }
-    @objc public init(query: FQuerySpec, initialViewCache: FViewCache) {
+    public init(query: FQuerySpec, initialViewCache: FViewCache) {
         self.query = query
         let indexFilter = FIndexedFilter(index: query.index)
         let filter = query.params.nodeFilter
@@ -68,7 +68,7 @@ import Foundation
         self.eventGenerator = FEventGenerator(query: query)
     }
 
-    @objc public func completeServerCache(for path: FPath) -> FNode? {
+    public func completeServerCache(for path: FPath) -> FNode? {
         guard let cache = viewCache.completeServerSnap else { return nil }
         // If this isn't a "loadsAllData" view, then cache isn't actually a
         // complete cache and we need to see if it contains the child we're
@@ -82,7 +82,7 @@ import Foundation
         return nil
     }
 
-    @objc public func completeEventCache(for path: FPath) -> FNode? {
+    public func completeEventCache(for path: FPath) -> FNode? {
         guard let cache = viewCache.completeEventSnap else { return nil }
         // If this isn't a "loadsAllData" view, then cache isn't actually a
         // complete cache and we need to see if it contains the child we're
@@ -96,11 +96,11 @@ import Foundation
         return nil
 
     }
-    @objc public var isEmpty: Bool {
+    public var isEmpty: Bool {
         eventRegistrations.isEmpty
     }
 
-    @objc public func addEventRegistration(_ eventRegistration: FEventRegistration) {
+    public func addEventRegistration(_ eventRegistration: FEventRegistration) {
         eventRegistrations.append(eventRegistration)
     }
 
@@ -110,7 +110,7 @@ import Foundation
      * will be returned.
      * @return Cancel events, if cancelError was provided.
      */
-    @objc public func removeEventRegistration(_ eventRegistration: FEventRegistration?, cancelError: Error?) -> [FEvent] {
+    public func removeEventRegistration(_ eventRegistration: FEventRegistration?, cancelError: Error?) -> [FEvent] {
         var cancelEvents: [FEvent] = []
         if let cancelError = cancelError {
             assert(eventRegistration == nil, "A cancel should cancel all event registrations.")
@@ -135,7 +135,7 @@ import Foundation
      * Applies the given Operation, updates our cache, and returns the appropriate
      * events and changes
      */
-    @objc public func applyOperation(_ operation: FOperation, writesCache: FWriteTreeRef, serverCache optCompleteServerCache: FNode?) -> FViewOperationResult {
+    public func applyOperation(_ operation: FOperation, writesCache: FWriteTreeRef, serverCache optCompleteServerCache: FNode?) -> FViewOperationResult {
         if operation.type == .merge && operation.source.queryParams != nil {
             assert(self.viewCache.completeServerSnap != nil,
                      "We should always have a full cache before handling merges")
@@ -153,7 +153,7 @@ import Foundation
         return FViewOperationResult(changes: result.changes, events: events)
     }
 
-    @objc public func initialEvents(_ registration: FEventRegistration) -> [FEvent] {
+    public func initialEvents(_ registration: FEventRegistration) -> [FEvent] {
         let eventSnap = viewCache.cachedEventSnap
         var initialChanges: [FChange] = []
         eventSnap.indexedNode.node.enumerateChildren { key, node, stop in

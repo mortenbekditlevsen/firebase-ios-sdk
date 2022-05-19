@@ -7,11 +7,11 @@
 
 import Foundation
 
-@objc public class FListenComplete: NSObject, FOperation {
+public class FListenComplete: FOperation {
     public var source: FOperationSource
     public var path: FPath
     public var type: FOperationType
-    @objc public init(source: FOperationSource, path: FPath) {
+    public init(source: FOperationSource, path: FPath) {
         assert(!source.fromUser,
                  "Can't have a listen complete from a user source")
         self.source = source
@@ -26,7 +26,7 @@ import Foundation
             return FListenComplete(source: source, path: path.popFront())
         }
     }
-    public override var description: String {
+    public var description: String {
         "FListenComplete { path=\(path), source=\(source) }"
     }
 }

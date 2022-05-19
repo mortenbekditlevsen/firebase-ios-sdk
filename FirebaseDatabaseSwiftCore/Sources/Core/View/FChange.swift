@@ -7,13 +7,13 @@
 
 import Foundation
 
-@objc public class FChange: NSObject {
-    @objc public let type: DataEventType
+public class FChange {
+    public let type: DataEventType
     public let indexedNode: FIndexedNode
-    @objc public let childKey: String?
-    @objc public let prevKey: String?
+    public let childKey: String?
+    public let prevKey: String?
     public let oldIndexedNode: FIndexedNode?
-    @objc(indexedNode) public var indexedNodeObjC: FIndexedNodeObjC {
+    public var indexedNodeObjC: FIndexedNodeObjC {
         .init(wrapped: indexedNode)
     }
 
@@ -49,7 +49,7 @@ import Foundation
         self.prevKey = prevKey
     }
 
-    @objc public func change(prevKey: String?) -> FChange {
+    public func change(prevKey: String?) -> FChange {
         FChange(type: type,
                 indexedNode: indexedNode,
                 childKey: childKey,
@@ -57,11 +57,11 @@ import Foundation
                 prevKey: prevKey)
     }
 
-    @objc public override var description: String {
+    public var description: String {
         "event: \(type.rawValue), data: \(indexedNode.node.val())"
     }
     
-    public override var debugDescription: String {
+    public var debugDescription: String {
         "event: \(type.rawValue), data: \(indexedNode.node.val())"
     }
 }

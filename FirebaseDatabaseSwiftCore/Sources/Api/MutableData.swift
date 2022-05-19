@@ -27,7 +27,7 @@ import Foundation
  * the parent.
  */
 
-@objc(FIRMutableData) public class MutableData: NSObject {
+public class MutableData {
 
     // MARK: - Inspecting and navigating the data
 
@@ -36,7 +36,7 @@ import Foundation
      *
      * @return YES if this data contains child nodes.
      */
-    @objc public var hasChildren: Bool {
+    public var hasChildren: Bool {
         let node = data.getNode(prefixPath)
         guard let childrenNode = node as? FChildrenNode else {
             return false
@@ -51,7 +51,7 @@ import Foundation
      * 'child', or multiple segments, 'a/deeper/child'
      * @return YES if this data contains a child at the specified relative path
      */
-    @objc public func hasChildAtPath(_ path: String) -> Bool {
+    public func hasChildAtPath(_ path: String) -> Bool {
         let node = data.getNode(prefixPath)
         let childPath = FPath(with: path)
         return !node.getChild(childPath).isEmpty
@@ -66,7 +66,7 @@ import Foundation
      * 'child', or multiple segments, 'a/deeper/child'
      * @return A FIRMutableData instance containing the data at the given path
      */
-    @objc public func childDataByAppendingPath(_ path: String) -> MutableData {
+    public func childDataByAppendingPath(_ path: String) -> MutableData {
         let wholePath = prefixPath.child(fromString: path)
         return MutableData(prefixPath: wholePath, andSnapshotHolder: data)
     }
@@ -78,13 +78,13 @@ import Foundation
         return MutableData(prefixPath: path, andSnapshotHolder: data)
     }
 
-    @objc public func setValue(_ value: Any?) {
+    public func setValue(_ value: Any?) {
         let node = FSnapshotUtilitiesSwift.nodeFrom(value,
                                                     withValidationFrom: "setValue:")
         data.updateSnapshot(prefixPath, withNewSnapshot: node)
     }
 
-    @objc public func setPriority(_ priority: Any) {
+    public func setPriority(_ priority: Any) {
         var node = data.getNode(prefixPath)
         let pri = FSnapshotUtilitiesSwift.nodeFrom(priority)
         node = node.updatePriority(pri)
@@ -108,7 +108,7 @@ import Foundation
      *
      * @return The current data at this location as a native object
      */
-    @objc public var value: Any {
+    public var value: Any {
         data.getNode(prefixPath).val()
     }
 
@@ -122,19 +122,19 @@ import Foundation
      *
      * @return The priority of the data at this location
      */
-    @objc public var priority: Any {
+    public var priority: Any {
         data.getNode(prefixPath).getPriority().val()
     }
 
     /**
      * @return The number of child nodes at this location
      */
-    @objc public var childrenCount: Int {
+    public var childrenCount: Int {
         data.getNode(prefixPath).numChildren()
     }
 
     // NOTE: Only used for testing
-    @objc public var children: [MutableData] {
+    public var children: [MutableData] {
         let indexedNode = FIndexedNode(node: nodeValue)
         return indexedNode.children.map { namedNode in
             let childPath = self.prefixPath.child(fromString: namedNode.name)
@@ -146,7 +146,7 @@ import Foundation
     /**
      * @return The key name of this node, or nil if it is the top-most location
      */
-    @objc public var key: String? {
+    public var key: String? {
         prefixPath.getBack()
     }
 
@@ -157,7 +157,7 @@ import Foundation
     internal let data: FSnapshotHolder
     internal let prefixPath: FPath
 
-    @objc public convenience init(node: FNode) {
+    public convenience init(node: FNode) {
         let holder = FSnapshotHolder()
         let path = FPath.empty
         holder.updateSnapshot(path, withNewSnapshot: node)
@@ -168,7 +168,7 @@ import Foundation
         self.prefixPath = prefixPath
         self.data = snapshotHolder
     }
-    public override var description: String {
+    public var description: String {
         if let key = key {
             return "FIRMutableData (\(key)) \(value)"
         } else {

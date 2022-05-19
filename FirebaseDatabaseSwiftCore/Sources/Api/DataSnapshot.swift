@@ -17,13 +17,13 @@ import Foundation
  * location. They can't be modified and will never change. To modify data at a
  * location, use a FIRDatabaseReference (e.g. with setValue:).
  */
-@objc(FIRDataSnapshot) public class DataSnapshot: NSObject {
+public class DataSnapshot {
     public let node: FIndexedNode
-    @objc(node) public var nodeObjC: FIndexedNodeObjC {
+    public var nodeObjC: FIndexedNodeObjC {
         .init(wrapped: node)
     }
 
-    @objc(initWithRef:indexedNode:) public init(ref: DatabaseReference, indexedNode: FIndexedNodeObjC) {
+    public init(ref: DatabaseReference, indexedNode: FIndexedNodeObjC) {
         self.ref = ref
         self.node = indexedNode.wrapped
     }
@@ -44,7 +44,7 @@ import Foundation
      * @param childPathString A relative path to the location of child data.
      * @return The FIRDataSnapshot for the child location.
      */
-    @objc public func childSnapshotForPath(_ childPathString: String) -> DataSnapshot {
+    public func childSnapshotForPath(_ childPathString: String) -> DataSnapshot {
         FValidation.validateFrom("child:", validPathString: childPathString)
         let childPath = FPath(with: childPathString)
         let childRef = self.ref.child(childPathString)
@@ -58,7 +58,7 @@ import Foundation
      * @param childPathString A relative path to the location of a potential child.
      * @return YES if data exists at the specified childPathString, else NO.
      */
-    @objc public func hasChild(_ childPathString: String) -> Bool {
+    public func hasChild(_ childPathString: String) -> Bool {
         FValidation.validateFrom("hasChild:", validPathString: childPathString)
         let childPath = FPath(with: childPathString)
         return !node.node.getChild(childPath).isEmpty
@@ -69,7 +69,7 @@ import Foundation
      *
      * @return YES if this snapshot has any children, else NO.
      */
-    @objc public func hasChildren() -> Bool {
+    public func hasChildren() -> Bool {
         if node.node.isLeafNode() {
             return false
         } else {
@@ -82,7 +82,7 @@ import Foundation
      *
      * @return YES if this snapshot contains a non-null value, else NO.
      */
-    @objc public var exists: Bool {
+    public var exists: Bool {
         !node.node.isEmpty
     }
 
@@ -96,7 +96,7 @@ import Foundation
      * instances of NSDictionary. For leaf locations with priorities, the value will
      * be under the ".value" key.
      */
-    @objc public var valueInExportFormat: Any? {
+    public var valueInExportFormat: Any? {
         node.node.val(forExport: true)
     }
 
@@ -113,7 +113,7 @@ import Foundation
      *
      * @return The data as a native object.
      */
-    @objc public var value: Any? {
+    public var value: Any? {
         node.node.val()
     }
 
@@ -122,7 +122,7 @@ import Foundation
      *
      * @return An integer indicating the number of children.
      */
-    @objc public var childrenCount: Int {
+    public var childrenCount: Int {
         node.node.numChildren()
     }
 
@@ -131,7 +131,7 @@ import Foundation
      *
      * @return A FIRDatabaseReference instance for the location of this data.
      */
-    @objc public let ref: DatabaseReference
+    public let ref: DatabaseReference
 
     /**
      * The key of the location that generated this FIRDataSnapshot.
@@ -139,11 +139,11 @@ import Foundation
      * @return An NSString containing the key for the location of this
      * FIRDataSnapshot.
      */
-    @objc public var key: String? {
+    public var key: String? {
         ref.key
     }
 
-    @objc public
+    public
     var children: [DataSnapshot] {
         node.children.map { namedNode -> DataSnapshot in
             let childRef = self.ref.child(namedNode.name)
@@ -151,7 +151,7 @@ import Foundation
         }
     }
 
-    public override var description: String {
+    public var description: String {
         "Snap (\(key ?? "-")) \(node.node)"
     }
 
@@ -160,7 +160,7 @@ import Foundation
      *
      * @return The priority as a string, or nil if no priority was set.
      */
-    @objc public var priority: Any? {
+    public var priority: Any? {
         node.node.getPriority().val()
     }
 }

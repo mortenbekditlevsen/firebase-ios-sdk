@@ -7,43 +7,43 @@
 
 import Foundation
 
-@objc public class FPersistenceManager: NSObject {
+public class FPersistenceManager {
     var storageEngine: FStorageEngine!
     let cachePolicy: FCachePolicy
     var trackedQueryManager: FTrackedQueryManager!
     var serverCacheUpdatesSinceLastPruneCheck: Int
 
-    @objc public init(storageEngine: FStorageEngine, cachePolicy: FCachePolicy) {
+    public init(storageEngine: FStorageEngine, cachePolicy: FCachePolicy) {
         self.storageEngine = storageEngine
         self.cachePolicy = cachePolicy
         self.trackedQueryManager = FTrackedQueryManager(storageEngine: storageEngine, clock: FSystemClock.clock)
         self.serverCacheUpdatesSinceLastPruneCheck = 0
     }
 
-    @objc public func close() {
+    public func close() {
         storageEngine.close()
         self.storageEngine = nil
         self.trackedQueryManager = nil
     }
 
-    @objc public func saveUserOverwrite(_ node: FNode, atPath path: FPath, writeId: Int) {
+    public func saveUserOverwrite(_ node: FNode, atPath path: FPath, writeId: Int) {
         storageEngine.saveUserOverwrite(node, atPath: path, writeId: writeId)
     }
 
-    @objc public func saveUserMerge(_ merge: FCompoundWrite, atPath path: FPath, writeId: Int) {
+    public func saveUserMerge(_ merge: FCompoundWrite, atPath path: FPath, writeId: Int) {
         storageEngine.saveUserMerge(merge, atPath: path, writeId: writeId)
     }
-    @objc public func removeUserWrite(_ writeId: Int) {
+    public func removeUserWrite(_ writeId: Int) {
         storageEngine.removeUserWrite(writeId)
     }
-    @objc public func removeAllUserWrites() {
+    public func removeAllUserWrites() {
         storageEngine.removeAllUserWrites()
     }
-    @objc public var userWrites: [FWriteRecord] {
+    public var userWrites: [FWriteRecord] {
         storageEngine.userWrites
     }
 
-    @objc public func serverCacheForQuery(_ query: FQuerySpec) -> FCacheNode {
+    public func serverCacheForQuery(_ query: FQuerySpec) -> FCacheNode {
         let trackedKeys: Set<String>?
         let complete: Bool
         // TODO[offline]: Should we use trackedKeys to find out if this location is
@@ -69,19 +69,19 @@ import Foundation
         return FCacheNode(indexedNode: indexedNode, isFullyInitialized: complete, isFiltered: trackedKeys != nil)
     }
 
-    @objc public func updateServerCache(node: FNode, forQuery query: FQuerySpec) {
+    public func updateServerCache(node: FNode, forQuery query: FQuerySpec) {
         let merge = !query.loadsAllData
         storageEngine.updateServerCache(node, atPath: query.path, merge: merge)
         setQueryComplete(query)
         doPruneCheckAfterServerUpdate()
     }
 
-    @objc public func updateServerCache(merge: FCompoundWrite, atPath path: FPath) {
+    public func updateServerCache(merge: FCompoundWrite, atPath path: FPath) {
         storageEngine.updateServerCache(merge: merge, atPath: path)
         doPruneCheckAfterServerUpdate()
     }
 
-    @objc public func applyUserWrite(_ write: FNode, toServerCacheAtPath path: FPath) {
+    public func applyUserWrite(_ write: FNode, toServerCacheAtPath path: FPath) {
         // This is a hack to guess whether we already cached this because we got a
         // server data update for this write via an existing active default query.
         // If we didn't, then we'll manually cache this and add a tracked query to
@@ -97,14 +97,14 @@ import Foundation
         }
 
     }
-    @objc public func applyUserMerge(_ merge: FCompoundWrite, toServerCacheAtPath path: FPath) {
+    public func applyUserMerge(_ merge: FCompoundWrite, toServerCacheAtPath path: FPath) {
         // TODO[offline]: rework this to be more efficient
         merge.enumerateWrites { relativePath, node, stop in
             self.applyUserWrite(node, toServerCacheAtPath: path.child(relativePath))
         }
     }
 
-    @objc public func setQueryComplete(_ query: FQuerySpec) {
+    public func setQueryComplete(_ query: FQuerySpec) {
         if query.loadsAllData {
             trackedQueryManager.setQueriesCompleteAtPath(query.path)
         } else {
@@ -112,11 +112,11 @@ import Foundation
         }
     }
 
-    @objc public func setQueryActive(_ spec: FQuerySpec) {
+    public func setQueryActive(_ spec: FQuerySpec) {
         trackedQueryManager.setQueryActive(spec)
     }
 
-    @objc public func setQueryInactive(_ spec: FQuerySpec) {
+    public func setQueryInactive(_ spec: FQuerySpec) {
         trackedQueryManager.setQueryInactive(spec)
     }
 
@@ -149,7 +149,7 @@ import Foundation
         FFDebug("I-RDB078004", "Pruning round took \(date.timeIntervalSinceNow * -1000)ms")
     }
 
-    @objc public func setTrackedQueryKeys(_ keys: Set<String>, forQuery query: FQuerySpec) {
+    public func setTrackedQueryKeys(_ keys: Set<String>, forQuery query: FQuerySpec) {
         assert(!query.loadsAllData,
                  "We should only track keys for filtered queries")
         guard let trackedQuery =
@@ -162,7 +162,7 @@ import Foundation
         storageEngine.setTrackedQueryKeys(keys, forQueryId: trackedQuery.queryId)
     }
 
-    @objc public func updateTrackedQueryKeys(withAddedKeys added: Set<String>, removedKeys removed: Set<String>, forQuery query: FQuerySpec) {
+    public func updateTrackedQueryKeys(withAddedKeys added: Set<String>, removedKeys removed: Set<String>, forQuery query: FQuerySpec) {
         assert(!query.loadsAllData,
                  "We should only track keys for filtered queries")
         guard let trackedQuery =

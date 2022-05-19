@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public protocol FIndex: NSObjectProtocol, NSCopying {
+public protocol FIndex: AnyObject {
     func compareKey(
             _ key1: String,
             andNode node1: FNode,
@@ -31,6 +31,8 @@ import Foundation
     var maxPost: FNamedNode { get }
     func makePost(_ indexValue: FNode, name: String) -> FNamedNode
     var queryDefinition: String { get }
+    func isEqual(_ other: Any?) -> Bool
+    var hash: Int { get }
 }
 
 enum FIndexSwift: Equatable {
@@ -197,7 +199,7 @@ extension FIndexSwift {
     }
 }
 
-@objc public class FKeyIndex: FIndexBase {
+public class FKeyIndex: FIndexBase {
 
     public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FKeyIndex else { return false }
@@ -212,10 +214,10 @@ extension FIndexSwift {
         super.init(index: .key)
     }
 
-    @objc public static var keyIndex: FIndex = FKeyIndex()
+    public static var keyIndex: FIndex = FKeyIndex()
 }
 
-@objc public class FValueIndex: FIndexBase {
+public class FValueIndex: FIndexBase {
 
     public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FValueIndex else { return false }
@@ -230,10 +232,10 @@ extension FIndexSwift {
         super.init(index: .value)
     }
 
-    @objc public static var valueIndex: FIndex = FValueIndex()
+    public static var valueIndex: FIndex = FValueIndex()
 }
 
-@objc public class FPriorityIndex: FIndexBase {
+public class FPriorityIndex: FIndexBase {
 
     public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FPriorityIndex else { return false }
@@ -252,48 +254,56 @@ extension FIndexSwift {
         super.init(index: .priority)
     }
 
-    @objc public static var priorityIndex: FPriorityIndex = FPriorityIndex()
+    public static var priorityIndex: FPriorityIndex = FPriorityIndex()
 }
 
-@objc public class FIndexBase: NSObject, FIndex {
+public class FIndexBase: FIndex {
+    public func isEqual(_ other: Any?) -> Bool {
+        fatalError("abstract")
+    }
+
+    public var hash: Int {
+        fatalError("abstract")
+    }
+
     internal let index: FIndexSwift
 
-    @objc(copyWithZone:) public func copy(with zone: NSZone? = nil) -> Any {
+    public func copy(with zone: NSZone? = nil) -> Any {
         // Safe since we're immutable.
         self
     }
 
-    @objc public func compareKey(_ key1: String, andNode node1: FNode, toOtherKey key2: String, andNode node2: FNode) -> ComparisonResult {
+    public func compareKey(_ key1: String, andNode node1: FNode, toOtherKey key2: String, andNode node2: FNode) -> ComparisonResult {
         index.compare(lhs: (key: key1, node: node1), rhs: (key: key2, node: node2))
     }
 
-    @objc public func compareKey(_ key1: String, andNode node1: FNode, toOtherKey key2: String, andNode node2: FNode, reverse: Bool) -> ComparisonResult {
+    public func compareKey(_ key1: String, andNode node1: FNode, toOtherKey key2: String, andNode node2: FNode, reverse: Bool) -> ComparisonResult {
         index.compare(lhs: (key: key1, node: node1), rhs: (key: key2, node: node2), reversed: reverse)
     }
 
-    @objc public func compareNamedNode(_ namedNode1: FNamedNode, toNamedNode namedNode2: FNamedNode) -> ComparisonResult {
+    public func compareNamedNode(_ namedNode1: FNamedNode, toNamedNode namedNode2: FNamedNode) -> ComparisonResult {
         index.compareNamedNode(lhs: namedNode1, rhs: namedNode2)
     }
 
-    @objc public func isDefined(on node: FNode) -> Bool {
+    public func isDefined(on node: FNode) -> Bool {
         index.isDefined(on: node)
     }
 
-    @objc public func indexedValueChangedBetween(_ oldNode: FNode, and newNode: FNode) -> Bool {
+    public func indexedValueChangedBetween(_ oldNode: FNode, and newNode: FNode) -> Bool {
         index.indexedValueChanged(between: oldNode, and: newNode)
     }
 
-    @objc public var minPost: FNamedNode { index.minPost }
-    @objc public var maxPost: FNamedNode { index.maxPost }
-    @objc public func makePost(_ indexValue: FNode, name: String) -> FNamedNode {
+    public var minPost: FNamedNode { index.minPost }
+    public var maxPost: FNamedNode { index.maxPost }
+    public func makePost(_ indexValue: FNode, name: String) -> FNamedNode {
         index.makePost(indexValue, name: name)
     }
 
-    public override var description: String {
+    public var description: String {
         index.description
     }
 
-    @objc public var queryDefinition: String {
+    public var queryDefinition: String {
         index.queryDefinition
     }
 
@@ -302,18 +312,20 @@ extension FIndexSwift {
     }
 }
 
-@objc public class FPathIndex: FIndexBase {
+public class FPathIndex: FIndexBase {
 
     public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FPathIndex else { return false }
-        return path.isEqual(other.path)
+        return path == other.path
     }
 
     public override var hash: Int {
-        path.hash
+        var hasher = Hasher()
+        path.hash(into: &hasher)
+        return hasher.finalize()
     }
 
-    @objc public init(path: FPath) {
+    public init(path: FPath) {
         if path.isEmpty || path.getFront() == ".priority" {
             fatalError("Invalid path for PathIndex: \(path)")
         }
@@ -323,8 +335,8 @@ extension FIndexSwift {
     let path: FPath
 }
 
-@objc public class FIndexFactory: NSObject {
-    @objc public class func indexFromQueryDefinition(_ definition: String) -> FIndex {
+public class FIndexFactory {
+    public class func indexFromQueryDefinition(_ definition: String) -> FIndex {
         switch definition {
         case ".key":
             return FKeyIndex.keyIndex

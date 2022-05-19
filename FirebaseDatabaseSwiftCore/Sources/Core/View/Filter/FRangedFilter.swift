@@ -7,10 +7,10 @@
 
 import Foundation
 
-@objc public class FRangedFilter: NSObject, FNodeFilter {
-    @objc public let startPost: FNamedNode
-    @objc public let endPost: FNamedNode
-    @objc public init(queryParams params: FQueryParams) {
+public class FRangedFilter: FNodeFilter {
+    public let startPost: FNamedNode
+    public let endPost: FNamedNode
+    public init(queryParams params: FQueryParams) {
         self.indexedFilter = FIndexedFilter(index: params.index)
         self.index = params.index
         self.startPost = FRangedFilter.startPost(fromQueryParams: params)
@@ -77,7 +77,7 @@ import Foundation
         }
     }
 
-    @objc public func matchesKey(_ key: String, andNode node: FNode) -> Bool {
+    public func matchesKey(_ key: String, andNode node: FNode) -> Bool {
         index.compareKey(startPost.name,
                          andNode: startPost.node,
                          toOtherKey: key,

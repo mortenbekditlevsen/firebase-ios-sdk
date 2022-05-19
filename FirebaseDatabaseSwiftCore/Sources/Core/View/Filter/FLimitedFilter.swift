@@ -7,12 +7,12 @@
 
 import Foundation
 
-@objc public class FLimitedFilter: NSObject, FNodeFilter {
+public class FLimitedFilter: FNodeFilter {
     let rangedFilter: FRangedFilter
-    @objc public let index: FIndex
+    public let index: FIndex
     let limit: Int
     let reverse: Bool
-    @objc public init(queryParams params: FQueryParams) {
+    public init(queryParams params: FQueryParams) {
         self.rangedFilter = FRangedFilter(queryParams: params)
         self.index = params.index
         self.limit = params.limit
@@ -205,5 +205,5 @@ import Foundation
         rangedFilter.indexedFilter
     }
 
-    @objc public var filtersNodes: Bool { true }
+    public var filtersNodes: Bool { true }
 }

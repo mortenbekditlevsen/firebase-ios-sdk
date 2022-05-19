@@ -11,7 +11,7 @@ import Foundation
  * Used for runTransactionBlock:. An FIRTransactionResult instance is a
  * container for the results of the transaction.
  */
-@objc(FIRTransactionResult) public class TransactionResult: NSObject {
+public class TransactionResult {
     internal init(isSuccess: Bool, update: MutableData?) {
         self.isSuccess = isSuccess
         self.update = update
@@ -29,7 +29,7 @@ import Foundation
      * @return An FIRTransactionResult instance that can be used as a return value
      * from the block given to runTransactionBlock:
      */
-    @objc class func successWithValue(_ value: MutableData) -> TransactionResult {
+    class func successWithValue(_ value: MutableData) -> TransactionResult {
         TransactionResult(isSuccess: true, update: value)
     }
 
@@ -40,7 +40,7 @@ import Foundation
      * @return An FIRTransactionResult instance that can be used as a return value
      * from the block given to runTransactionBlock:
      */
-    @objc class func abort() -> TransactionResult {
+    class func abort() -> TransactionResult {
         .init(isSuccess: false, update: nil)
     }
 }

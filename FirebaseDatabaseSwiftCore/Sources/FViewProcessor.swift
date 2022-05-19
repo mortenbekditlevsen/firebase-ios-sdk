@@ -7,8 +7,8 @@
 
 import Foundation
 
-@objc public class FNoCompleteChildSource: NSObject, FCompleteChildSource {
-    @objc public static var instance: FNoCompleteChildSource = .init()
+public class FNoCompleteChildSource: FCompleteChildSource {
+    public static var instance: FNoCompleteChildSource = .init()
     public func completeChild(_ childKey: String) -> FNode? {
         nil
     }
@@ -22,11 +22,11 @@ import Foundation
  * to any other server data or old event caches available to calculate complete
  * children.
  */
-@objc public class FWriteTreeCompleteChildSource: NSObject, FCompleteChildSource {
-    @objc public let writes: FWriteTreeRef
-    @objc public let viewCache: FViewCache
-    @objc public let completeServerCache: FNode?
-    @objc public init(writes: FWriteTreeRef, viewCache: FViewCache, serverCache: FNode?) {
+public class FWriteTreeCompleteChildSource: FCompleteChildSource {
+    public let writes: FWriteTreeRef
+    public let viewCache: FViewCache
+    public let completeServerCache: FNode?
+    public init(writes: FWriteTreeRef, viewCache: FViewCache, serverCache: FNode?) {
         self.writes = writes
         self.viewCache = viewCache
         self.completeServerCache = serverCache
@@ -59,13 +59,13 @@ import Foundation
 }
 
 
-@objc public class FViewProcessor: NSObject {
+public class FViewProcessor {
     public let filter: FNodeFilter
     public init(filter: FNodeFilter) {
         self.filter = filter
     }
 
-    @objc public func applyOperationOn(_ oldViewCache: FViewCache,
+    public func applyOperationOn(_ oldViewCache: FViewCache,
                                        operation: FOperation,
                                        writesCache: FWriteTreeRef,
                                        completeCache: FNode?) -> FViewProcessorResult {

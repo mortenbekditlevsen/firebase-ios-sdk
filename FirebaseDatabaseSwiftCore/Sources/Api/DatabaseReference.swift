@@ -17,14 +17,14 @@ import Foundation
  * you can use it to read data (ie. observeEventType:withBlock:), write data
  * (ie. setValue:), and to create new FIRDatabaseReferences (ie. child:).
  */
-@objc(FIRDatabaseReference) public class DatabaseReference: DatabaseQuery {
+public class DatabaseReference: DatabaseQuery {
     convenience internal init(config: DatabaseConfig) {
         let parsedUrl = FUtilitiesSwift.parseUrl(FIRAppThing.defaultApp!.options.databaseURL!)
         FValidationSwift.validateFrom("initWithUrl:", validURL: parsedUrl)
         self.init(repo: FRepoManager.getRepo(parsedUrl.repoInfo, config: config), path: parsedUrl.path)
     }
 
-    @objc public init(repo: FRepo, path: FPath) {
+    public init(repo: FRepo, path: FPath) {
         super.init(repo: repo, path: path, params: .defaultInstance, orderByCalled: false, priorityMethodCalled: false)
     }
 
@@ -39,7 +39,7 @@ import Foundation
      * location.
      * @return A FIRDatabaseReference for the specified relative path.
      */
-    @objc public func child(_ pathString: String) -> DatabaseReference {
+    public func child(_ pathString: String) -> DatabaseReference {
         if path.getFront() == nil {
             // we're at the root
             FValidationSwift.validateFrom("child:", validRootPathString: pathString)
@@ -61,7 +61,7 @@ import Foundation
      *
      * @return A FIRDatabaseReference for the generated location.
      */
-    @objc public func childByAutoId() -> DatabaseReference {
+    public func childByAutoId() -> DatabaseReference {
         FValidationSwift.validateFrom("childByAutoId:", writablePath: path)
 
         let name = FNextPushId.get(repo.serverTime)
@@ -93,7 +93,7 @@ import Foundation
 
     @param value The value to be written.
      */
-    @objc public func setValue(_ value: Any?) {
+    public func setValue(_ value: Any?) {
         setValueInternal(value, andPriority: nil, completionBlock: nil, from: "setValue:")
     }
 
@@ -105,7 +105,7 @@ import Foundation
      * @param block The block to be called after the write has been committed to the
      * Firebase Database servers.
      */
-    @objc public func setValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func setValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setValueInternal(value, andPriority: nil, completionBlock: block, from: "setValue:withCompletionBlock:")
     }
 
@@ -116,7 +116,7 @@ import Foundation
      * @param value The value to be written.
      * @param priority The priority to be attached to that data.
      */
-    @objc public func setValue(_ value: Any?, andPriority priority: Any?) {
+    public func setValue(_ value: Any?, andPriority priority: Any?) {
         setValueInternal(value, andPriority: priority, completionBlock: nil, from: "setValue:andPriority:")
     }
 
@@ -129,7 +129,7 @@ import Foundation
      * @param block The block to be called after the write has been committed to the
      * Firebase Database servers.
      */
-    @objc public func setValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func setValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setValueInternal(value, andPriority: priority, completionBlock: block, from: "setValue:andPriority:withCompletionBlock")
     }
 
@@ -151,7 +151,7 @@ import Foundation
      *
      * remove: is equivalent to calling setValue:nil
      */
-    @objc public func removeValue() {
+    public func removeValue() {
         setValueInternal(nil, andPriority: nil, completionBlock: nil, from: "removeValue:")
     }
 
@@ -162,7 +162,7 @@ import Foundation
      * @param block The block to be called after the remove has been committed to
      * the Firebase Database servers.
      */
-    @objc public func removeValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func removeValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setValueInternal(nil, andPriority: nil, completionBlock: block, from: "removeValue:withCompletionBlock:")
     }
 
@@ -192,7 +192,7 @@ import Foundation
      *
      * @param priority The priority to set at the specified location.
      */
-    @objc public func setPriority(_ priority: Any?) {
+    public func setPriority(_ priority: Any?) {
         setPriorityInternal(priority, withCompletionBlock: nil, from: "setPriority:")
     }
 
@@ -204,7 +204,7 @@ import Foundation
      * @param block The block that is triggered after the priority has been written
      * on the servers.
      */
-    @objc public func setPriority(_ priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func setPriority(_ priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setPriorityInternal(priority, withCompletionBlock: block, from: "setPriority:withCompletionBlock:")
     }
 
@@ -221,7 +221,7 @@ import Foundation
      *
      * @param values A dictionary of the keys to change and their new values
      */
-    @objc public func updateChildValues(_ values: [String: Any]) {
+    public func updateChildValues(_ values: [String: Any]) {
         updateChildValuesInternal(values, withCompletionBlock: nil, from: "updateChildValues:")
     }
 
@@ -233,7 +233,7 @@ import Foundation
      * @param block The block that is triggered after the update has been written on
      * the Firebase Database servers
      */
-    @objc public func updateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func updateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         updateChildValuesInternal(values, withCompletionBlock: block, from: "updateChildValues:withCompletionBlock:")
     }
 
@@ -260,7 +260,7 @@ import Foundation
 //     * @return A handle used to unregister this block later using
 //     * removeObserverWithHandle:
 //     */
-//    @objc public override func observeEventType(_ eventType: DataEventType, withBlock block: (DataSnapshot) -> Void) -> DatabaseHandle {
+//    public override func observeEventType(_ eventType: DataEventType, withBlock block: (DataSnapshot) -> Void) -> DatabaseHandle {
 //
 //    }
 //
@@ -631,7 +631,7 @@ import Foundation
      *
      * @param value The value to be set after the connection is lost.
      */
-    @objc public func onDisconnectSetValue(_ value: Any?) {
+    public func onDisconnectSetValue(_ value: Any?) {
         onDisconnectSetValueInternal(value, andPriority: nil, withCompletionBlock: nil, from: "onDisconnectSetValue:")
     }
 
@@ -647,7 +647,7 @@ import Foundation
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    @objc public func onDisconnectSetValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func onDisconnectSetValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(value, andPriority: nil, withCompletionBlock: block, from: "onDisconnectSetValue:withCompletionBlock:")
     }
 
@@ -659,7 +659,7 @@ import Foundation
      * @param value The value to be set after the connection is lost.
      * @param priority The priority to be set after the connection is lost.
      */
-    @objc public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?) {
+    public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?) {
         onDisconnectSetValueInternal(value, andPriority: priority, withCompletionBlock: nil, from: "onDisconnectSetValue:andPriority:")
     }
 
@@ -676,7 +676,7 @@ import Foundation
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    @objc public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(value, andPriority: priority, withCompletionBlock: block, from: "onDisconnectSetValue:andPriority:withCompletionBlock:")
     }
 
@@ -696,7 +696,7 @@ import Foundation
      * onDisconnectRemoveValue is especially useful for implementing "presence"
      * systems.
      */
-    @objc public func onDisconnectRemoveValue() {
+    public func onDisconnectRemoveValue() {
         onDisconnectSetValueInternal(nil, andPriority: nil, withCompletionBlock: nil, from: "onDisconnectRemoveValue")
     }
 
@@ -711,7 +711,7 @@ import Foundation
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    @objc public func onDisconnectRemoveValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func onDisconnectRemoveValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(nil, andPriority: nil, withCompletionBlock: block, from: "onDisconnectRemoveValueWithCompletionBlock:")
     }
 
@@ -724,7 +724,7 @@ import Foundation
      * @param values A dictionary of child node keys and the values to set them to
      * after the connection is lost.
      */
-    @objc public func onDisconnectUpdateChildValues(_ values: [String: Any]) {
+    public func onDisconnectUpdateChildValues(_ values: [String: Any]) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: nil, from: "onDisconnectUpdateChildValues:")
     }
 
@@ -739,7 +739,7 @@ import Foundation
      * @param block A block that will be called once the operation has been queued
      * up on the Firebase Database servers
      */
-    @objc public func onDisconnectUpdateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func onDisconnectUpdateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: block, from: "onDisconnectUpdateChildValues:withCompletionBlock:")
     }
 
@@ -757,7 +757,7 @@ import Foundation
      * onDisconnectUpdateChildValues:, and no longer want the values updated when
      * the connection is lost, call cancelDisconnectOperations:
      */
-    @objc public func cancelDisconnectOperations() {
+    public func cancelDisconnectOperations() {
         cancelDisconnectOperations(completionBlock: nil)
     }
 
@@ -770,7 +770,7 @@ import Foundation
      * @param block A block that will be triggered once the Firebase Database
      * servers have acknowledged the cancel request.
      */
-    @objc public func cancelDisconnectOperations(completionBlock block: ((Error?, DatabaseReference) -> Void)?) {
+    public func cancelDisconnectOperations(completionBlock block: ((Error?, DatabaseReference) -> Void)?) {
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectCancel(self.path, withCallback: block)
         }
@@ -801,7 +801,7 @@ import Foundation
      *
      * Note: Invoking this method will impact all Firebase Database connections.
      */
-    @objc public class func goOffline() {
+    public class func goOffline() {
         FRepoManager.interruptAll()
     }
 
@@ -824,7 +824,7 @@ import Foundation
      *
      * Note: Invoking this method will impact all Firebase Database connections.
      */
-    @objc public class func goOnline() {
+    public class func goOnline() {
         FRepoManager.resumeAll()
     }
 
@@ -847,7 +847,7 @@ import Foundation
      * @param block This block receives the current data at this location and must
      * return an instance of FIRTransactionResult
      */
-    @objc public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult) {
+    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult) {
         FValidationSwift.validateFrom("runTransactionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: nil, withLocalEvents: true)
     }
@@ -873,7 +873,7 @@ import Foundation
      * error, whether or not the data was committed, and what the current value of
      * the data at this location is.
      */
-    @objc public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock completionBlock: @escaping (Error?, Bool, DataSnapshot?) -> Void) {
+    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock completionBlock: @escaping (Error?, Bool, DataSnapshot?) -> Void) {
         FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: completionBlock, withLocalEvents: true)
     }
@@ -906,7 +906,7 @@ import Foundation
      * @param localEvents Set this to NO to suppress events raised for intermediate
      * states, and only get events based on the final state of the transaction.
      */
-    @objc public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, withLocalEvents localEvents: Bool) {
+    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, withLocalEvents localEvents: Bool) {
         FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:withLocalEvents", writablePath: path)
         DatabaseQuery.sharedQueue.async {
             self.repo.startTransactionOnPath(self.path, update: block, onComplete: onComplete, withLocalEvents: localEvents)
@@ -920,7 +920,7 @@ import Foundation
      *
      * @return The absolute URL of the referenced Firebase Database location.
      */
-    @objc public override var description: String {
+    public override var description: String {
         URL
     }
 
@@ -933,7 +933,7 @@ import Foundation
      *
      * @return A FIRDatabaseReference for the parent location.
      */
-    @objc public var parent: DatabaseReference? {
+    public var parent: DatabaseReference? {
         guard let parentPath = path.parent() else { return nil }
         return DatabaseReference(repo: repo, path: parentPath)
     }
@@ -943,7 +943,7 @@ import Foundation
      *
      * @return A new FIRDatabaseReference to root location.
      */
-    @objc public var root: DatabaseReference { .init(repo: repo, path: .empty) }
+    public var root: DatabaseReference { .init(repo: repo, path: .empty) }
 
     /**
      * Gets the last token in a Firebase Database location (e.g. 'fred' in
@@ -951,7 +951,7 @@ import Foundation
      *
      * @return The key of the location this reference points to.
      */
-    @objc public var key: String? { self.path.getBack() }
+    public var key: String? { self.path.getBack() }
 
      /**
       * Gets the URL for the Firebase Database location referenced by this
@@ -959,7 +959,7 @@ import Foundation
       *
       * @return The url of the location this reference points to.
       */
-    @objc public var URL: String {
+    public var URL: String {
         if let parent = parent, let key = key {
             return "\(parent.description)/\(FStringUtilitiesSwift.urlEncoded(key))"
         } else {
@@ -972,5 +972,5 @@ import Foundation
      *
      * @return The FIRDatabase object for this reference.
      */
-    @objc public var database: Database { self.repo.database }
+    public var database: Database { self.repo.database }
 }

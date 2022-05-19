@@ -21,7 +21,7 @@ enum FTransactionStatus: Int {
 
 let kFirebaseCoreErrorDomain = "com.firebase.core"
 
-@objc public class FRepo: NSObject, FPersistentConnectionDelegate {
+public class FRepo: FPersistentConnectionDelegate {
     var config: DatabaseConfig
 
     private var repoInfo: FRepoInfo
@@ -48,7 +48,7 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
     private let dispatchQueue: DispatchQueue = DatabaseQuery.sharedQueue
 
 
-    @objc public init(repoInfo info: FRepoInfo, config: DatabaseConfig, database: Database) {
+    public init(repoInfo info: FRepoInfo, config: DatabaseConfig, database: Database) {
         print("FREPO INIT", config, info, database)
         self.config = config
         self.repoInfo = info
@@ -66,7 +66,6 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
         self.onDisconnect = FSparseSnapshotTree()
         self.infoData = FSnapshotHolder()
 
-        super.init()
         dispatchQueue.async {
             self.deferredInit()
         }
@@ -195,18 +194,18 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
     }
 
     var name: String { repoInfo.namespace }
-    public override var description: String { repoInfo.description }
-    @objc public func interrupt() {
+    public var description: String { repoInfo.description }
+    public func interrupt() {
         connection.interruptForReason(kFInterruptReasonRepoInterrupt)
     }
-    @objc public func resume() {
+    public func resume() {
         connection.resumeForReason(kFInterruptReasonRepoInterrupt)
     }
 
     // NOTE: Typically if you're calling this, you should be in an @autoreleasepool
     // block to make sure that ARC kicks in and cleans up things no longer
     // referenced (i.e. pendingPutsDB).
-    @objc public func dispose() {
+    public func dispose() {
         connection.interruptForReason(kFInterruptReasonRepoInterrupt)
 
         // We need to nil out any references to LevelDB, to make sure the
@@ -219,9 +218,9 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
         return writeIdCounter
     }
 
-    @objc public var serverTime: TimeInterval { serverClock.currentTime }
+    public var serverTime: TimeInterval { serverClock.currentTime }
 
-    @objc public func set(_ path: FPath, withNode node: FNode, withCallback onComplete: ((Error?, DatabaseReference) -> Void)?) {
+    public func set(_ path: FPath, withNode node: FNode, withCallback onComplete: ((Error?, DatabaseReference) -> Void)?) {
         let value = node.val(forExport: true)
         FFLog("I-RDB038003", "Setting: \(path) with \(value) pri: \(node.getPriority().val())")
 
@@ -248,7 +247,7 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
         rerunTransactionsForPath(affectedPath)
     }
 
-    @objc public func update(_ path: FPath, withNodes nodes: FCompoundWrite, withCallback callback: ((Error?, DatabaseReference) -> Void)?) {
+    public func update(_ path: FPath, withNodes nodes: FCompoundWrite, withCallback callback: ((Error?, DatabaseReference) -> Void)?) {
         let values = nodes.valForExport(true)
         FFLog("I-RDB038004", "Updating: \(path) with \(values)")
         let serverValues = FServerValues.generateServerValues(serverClock)
@@ -561,6 +560,7 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
 #endif
     }
 
+#if canImport(UIKit)
     @objc public func didEnterBackground() {
         guard config.persistenceEnabled else {
             return
@@ -568,7 +568,6 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
 
 // Targetted compilation is ONLY for testing. UIKit is weak-linked in actual
 // release build.
-#if canImport(UIKit)
         // The idea is to wait until any outstanding sets get written to disk. Since
         // the sets might still be in our dispatch queue, we wait for the dispatch
         // queue to catch up and for persistence to catch up. This may be
@@ -593,8 +592,8 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
                 UIApplication.shared.endBackgroundTask(bgTask)
             }
         }
-    #endif
     }
+#endif
 
     // MARK: -
     // MARK: Internal methods
@@ -622,7 +621,7 @@ let kFirebaseCoreErrorDomain = "com.firebase.core"
         eventRaiser.raiseEvents(events)
     }
 
-    @objc public func dumpListens() -> [FQuerySpec : FOutstandingQuery] {
+    public func dumpListens() -> [FQuerySpec : FOutstandingQuery] {
         connection.dumpListens()
     }
 

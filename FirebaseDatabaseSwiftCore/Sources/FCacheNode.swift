@@ -8,14 +8,14 @@
 import Foundation
 
 
-@objc public class FCacheNode: NSObject {
-  @objc public var isFullyInitialized: Bool
-  @objc public var isFiltered: Bool
+public class FCacheNode {
+  public var isFullyInitialized: Bool
+  public var isFiltered: Bool
   public var indexedNode: FIndexedNode
-    @objc(indexedNode) public var indexedNodeObjC: FIndexedNodeObjC {
+    public var indexedNodeObjC: FIndexedNodeObjC {
         .init(wrapped: indexedNode)
     }
-  @objc public var node: FNode {
+  public var node: FNode {
     indexedNode.node
   }
   public init(indexedNode: FIndexedNode, isFullyInitialized: Bool, isFiltered: Bool) {
@@ -24,7 +24,7 @@ import Foundation
     self.isFullyInitialized = isFullyInitialized
   }
 
-  @objc public func isComplete(forPath path: FPath) -> Bool {
+  public func isComplete(forPath path: FPath) -> Bool {
     if let childKey = path.getFront() {
       return isComplete(forChild: childKey)
     } else { // path is empty
@@ -32,7 +32,7 @@ import Foundation
     }
   }
 
-  @objc public func isComplete(forChild childKey: String) -> Bool {
+  public func isComplete(forChild childKey: String) -> Bool {
     (isFullyInitialized && !isFiltered) || node.hasChild(childKey)
   }
 }

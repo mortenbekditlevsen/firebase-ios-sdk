@@ -22,7 +22,7 @@ public typealias DatabaseHandle = Int
  * queryStartingAtValue:, etc.) on a FIRDatabaseReference. The query methods can
  * be chained to further specify the data you are interested in observing
  */
-@objc(FIRDatabaseQuery) public class DatabaseQuery: NSObject {
+public class DatabaseQuery {
 
     // MARK: - Attach observers to read data
 
@@ -40,7 +40,7 @@ public typealias DatabaseHandle = Int
      * @return A handle used to unregister this block later using
      * removeObserverWithHandle:
      */
-    @objc public func observeEventType(_ eventType: DataEventType,
+    public func observeEventType(_ eventType: DataEventType,
                                        withBlock block: @escaping (DataSnapshot) -> Void) -> DatabaseHandle {
         FValidationSwift.validateFrom("observeEventType:withBlock:", knownEventType: eventType)
         return observeEventType(eventType, withBlock: block, withCancelBlock: nil)
@@ -61,7 +61,7 @@ public typealias DatabaseHandle = Int
      * @return A handle used to unregister this block later using
      * removeObserverWithHandle:
      */
-    @objc public func observeEventType(_ eventType: DataEventType,
+    public func observeEventType(_ eventType: DataEventType,
                                        andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void) -> DatabaseHandle {
         FValidationSwift.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:", knownEventType: eventType)
         return observeEventType(eventType, andPreviousSiblingKeyWithBlock: block, withCancelBlock: nil)
@@ -86,7 +86,7 @@ public typealias DatabaseHandle = Int
      * @return A handle used to unregister this block later using
      * removeObserverWithHandle:
      */
-    @objc public func observeEventType(_ eventType: DataEventType,
+    public func observeEventType(_ eventType: DataEventType,
                                        withBlock block: @escaping (_ snapshot: DataSnapshot) -> Void,
                                        withCancelBlock cancelBlock: ((Error) -> Void)?) -> DatabaseHandle {
         FValidationSwift.validateFrom("observeEventType:withBlock:withCancelBlock:",
@@ -130,7 +130,7 @@ public typealias DatabaseHandle = Int
      * @return A handle used to unregister this block later using
      * removeObserverWithHandle:
      */
-    @objc public func observeEventType(_ eventType: DataEventType,
+    public func observeEventType(_ eventType: DataEventType,
                                        andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void, withCancelBlock cancelBlock: ((Error) -> Void)?) -> DatabaseHandle {
         FValidationSwift.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:withCancelBlock:", knownEventType: eventType)
         if eventType == .value {
@@ -183,7 +183,7 @@ public typealias DatabaseHandle = Int
      * @param block The block that should be called with the most up-to-date value
      * of this query, or an error if no such value could be retrieved.
      */
-    @objc(getDataWithCompletionBlock:) public func getData(completion block: @escaping (_ error: Error?, _ snapshot: DataSnapshot?) -> Void) {
+    public func getData(completion block: @escaping (_ error: Error?, _ snapshot: DataSnapshot?) -> Void) {
         DatabaseQuery.sharedQueue.async {
             self.repo.getData(self, withCompletionBlock: block)
         }
@@ -197,7 +197,7 @@ public typealias DatabaseHandle = Int
      * @param block The block that should be called.  It is passed the data as a
      * FIRDataSnapshot.
      */
-    @objc public func observeSingleEventOfType(_ eventType: DataEventType,
+    public func observeSingleEventOfType(_ eventType: DataEventType,
                                                withBlock block: @escaping (_ snapshot: DataSnapshot) -> Void) {
         observeSingleEventOfType(eventType,
                                  withBlock:block,
@@ -216,7 +216,7 @@ public typealias DatabaseHandle = Int
      * @param block The block that should be called.  It is passed the data as a
      * FIRDataSnapshot and the previous child's key.
      */
-    @objc public func observeSingleEventOfType(_ eventType: DataEventType,
+    public func observeSingleEventOfType(_ eventType: DataEventType,
                                                andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void) {
         observeSingleEventOfType(eventType,
                                  andPreviousSiblingKeyWithBlock: block,
@@ -236,7 +236,7 @@ public typealias DatabaseHandle = Int
      * @param cancelBlock The block that will be called if you don't have permission
      * to access this data
      */
-    @objc public func observeSingleEventOfType(_ eventType: DataEventType,
+    public func observeSingleEventOfType(_ eventType: DataEventType,
                                                withBlock block: @escaping (_ snapshot: DataSnapshot) -> Void,
                                                withCancelBlock cancelBlock: ((Error) -> Void)?) {
         // XXX: user reported memory leak in method
@@ -271,7 +271,7 @@ public typealias DatabaseHandle = Int
      * @param cancelBlock The block that will be called if you don't have permission
      * to access this data
      */
-    @objc public func observeSingleEventOfType(_ eventType: DataEventType,
+    public func observeSingleEventOfType(_ eventType: DataEventType,
                                                andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void,
                                                withCancelBlock cancelBlock: ((Error) -> Void)?) {
         // XXX: user reported memory leak in method
@@ -309,7 +309,7 @@ public typealias DatabaseHandle = Int
      * @param handle The handle returned by the call to observeEventType:withBlock:
      * which we are trying to remove.
      */
-    @objc public func removeObserverWithHandle(_ handle: DatabaseHandle) {
+    public func removeObserverWithHandle(_ handle: DatabaseHandle) {
         let event = FValueEventRegistration(repo: repo, handle: handle, callback: nil, cancelCallback: nil)
         DatabaseQuery.sharedQueue.async {
             self.repo.removeEventRegistration(event, forQuery: self.querySpec)
@@ -320,7 +320,7 @@ public typealias DatabaseHandle = Int
      * Detach all blocks previously attached to this Firebase Database location with
      * observeEventType:withBlock:
      */
-    @objc public func removeAllObservers() {
+    public func removeAllObservers() {
         //  XXX TODO: Use optionality instead? Or something completely different?
         removeObserverWithHandle(NSNotFound)
     }
@@ -334,7 +334,7 @@ public typealias DatabaseHandle = Int
      * @param keepSynced Pass YES to keep this location synchronized, pass NO to
      * stop synchronization.
      */
-    @objc public func keepSynced(_ keepSynced: Bool) {
+    public func keepSynced(_ keepSynced: Bool) {
         if path.getFront() == kDotInfoPrefix {
             fatalError("Can't keep query on .info tree synced (this already is the case).")
         }
@@ -354,7 +354,7 @@ public typealias DatabaseHandle = Int
      * receive events for
      * @return A FIRDatabaseQuery instance, limited to at most limit child nodes.
      */
-    @objc public func queryLimitedToFirst(_ limit: Int) -> DatabaseQuery {
+    public func queryLimitedToFirst(_ limit: Int) -> DatabaseQuery {
         if queryParams.limitSet {
             fatalError("Can't call queryLimitedToFirst: if a limit was previously set")
         }
@@ -376,7 +376,7 @@ public typealias DatabaseHandle = Int
      * receive events for
      * @return A FIRDatabaseQuery instance, limited to at most limit child nodes.
      */
-    @objc public func queryLimitedToLast(_ limit: Int) -> DatabaseQuery {
+    public func queryLimitedToLast(_ limit: Int) -> DatabaseQuery {
         if queryParams.limitSet {
             fatalError("Can't call queryLimitedToLast: if a limit was previously set")
         }
@@ -400,7 +400,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, ordered by the values of the specified
      * child key.
      */
-    @objc public func queryOrderedByChild(_ indexPathString: String) -> DatabaseQuery {
+    public func queryOrderedByChild(_ indexPathString: String) -> DatabaseQuery {
         if indexPathString  == "$key" || indexPathString == ".key" {
             fatalError("(queryOrderedByChild:) \(indexPathString) is invalid. Use queryOrderedByKey: instead.")
         } else if indexPathString == "$priority" || indexPathString == ".priority" {
@@ -432,7 +432,7 @@ public typealias DatabaseHandle = Int
      *
      * @return A FIRDatabaseQuery instance, ordered by child keys.
      */
-    @objc public func queryOrderedByKey() -> DatabaseQuery {
+    public func queryOrderedByKey() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
         let params = queryParams.orderBy(FKeyIndex.keyIndex)
         validateQueryEndpointsForParams(params)
@@ -451,7 +451,7 @@ public typealias DatabaseHandle = Int
      *
      * @return A FIRDatabaseQuery instance, ordered by child value.
      */
-    @objc public func queryOrderedByValue() -> DatabaseQuery {
+    public func queryOrderedByValue() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
         let params = queryParams.orderBy(FValueIndex.valueIndex)
         validateQueryEndpointsForParams(params)
@@ -470,7 +470,7 @@ public typealias DatabaseHandle = Int
      *
      * @return A FIRDatabaseQuery instance, ordered by child priorities.
      */
-    @objc public func queryOrderedByPriority() -> DatabaseQuery {
+    public func queryOrderedByPriority() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
         let params = queryParams.orderBy(FPriorityIndex.priorityIndex)
         validateQueryEndpointsForParams(params)
@@ -492,7 +492,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * or equal to startValue
      */
-    @objc public func queryStartingAtValue(_ startValue: Any?) -> DatabaseQuery {
+    public func queryStartingAtValue(_ startValue: Any?) -> DatabaseQuery {
         queryStartingAtInternal(startValue, childKey: nil, from: "queryStartingAtValue:", priorityMethod: false)
     }
 
@@ -511,7 +511,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * or equal to startValue
      */
-    @objc public func queryStartingAtValue(_ startValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryStartingAtValue(_ startValue: Any?, childKey: String?) -> DatabaseQuery {
         if queryParams.index === FKeyIndex.keyIndex {
             fatalError("You must use queryStartingAtValue: instead of queryStartingAtValue:childKey: when using queryOrderedByKey:")
         }
@@ -534,7 +534,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value greater
      * startAfterValue
      */
-    @objc public func queryStartingAfterValue(_ startAfterValue: Any?) -> DatabaseQuery {
+    public func queryStartingAfterValue(_ startAfterValue: Any?) -> DatabaseQuery {
         queryStartingAfterValue(startAfterValue, childKey: nil)
     }
 
@@ -553,7 +553,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * startAfterValue, or equal to startAfterValue with a key greater than childKey
      */
-    @objc public func queryStartingAfterValue(_ startAfterValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryStartingAfterValue(_ startAfterValue: Any?, childKey: String?) -> DatabaseQuery {
         var startAfterValue = startAfterValue
         var childKey = childKey
         if self.queryParams.index === FKeyIndex.keyIndex {
@@ -595,7 +595,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    @objc public func queryEndingAtValue(_ endValue: Any?) -> DatabaseQuery {
+    public func queryEndingAtValue(_ endValue: Any?) -> DatabaseQuery {
         queryEndingAtInternal(endValue, childKey: nil, from: "queryEndingAtValue:", priorityMethod: false)
     }
 
@@ -614,7 +614,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    @objc public func queryEndingAtValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEndingAtValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
         if queryParams.index === FKeyIndex.keyIndex {
             fatalError("You must use queryEndingAtValue: instead of queryEndingAtValue:childKey: when using queryOrderedByKey:")
         }
@@ -636,7 +636,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value less than
      * endValue
      */
-    @objc public func queryEndingBeforeValue(_ endValue: Any?) -> DatabaseQuery {
+    public func queryEndingBeforeValue(_ endValue: Any?) -> DatabaseQuery {
         queryEndingBeforeValue(endValue, childKey: nil)
     }
 
@@ -653,7 +653,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    @objc public func queryEndingBeforeValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEndingBeforeValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
         var endValue = endValue
         var childKey = childKey
         if queryParams.index === FKeyIndex.keyIndex {
@@ -698,7 +698,7 @@ public typealias DatabaseHandle = Int
      * have
      * @return A FIRDatabaseQuery instance, limited to data with the supplied value.
      */
-    @objc public func queryEqualToValue(_ value: Any?) -> DatabaseQuery {
+    public func queryEqualToValue(_ value: Any?) -> DatabaseQuery {
         queryEqualToInternal(value, childKey: nil, from: "queryEqualToValue:", priorityMethod: false)
     }
 
@@ -715,7 +715,7 @@ public typealias DatabaseHandle = Int
      * @return A FIRDatabaseQuery instance, limited to data with the supplied value
      * and the key.
      */
-    @objc public func queryEqualToValue(_ value: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEqualToValue(_ value: Any?, childKey: String?) -> DatabaseQuery {
         if queryParams.index === FKeyIndex.keyIndex {
             fatalError("You must use queryEqualToValue: instead of queryEqualTo:childKey: when using queryOrderedByKey:")
         }
@@ -761,7 +761,7 @@ public typealias DatabaseHandle = Int
     // Needs to be marked public due to tests...
     // We use this shared queue across all of the FQueries so things happen FIFO
     // (as opposed to dispatch_get_global_queue(0, 0) which is concurrent)
-    @objc public static var sharedQueue: DispatchQueue = .init(label: "FirebaseWorker")
+    public static var sharedQueue: DispatchQueue = .init(label: "FirebaseWorker")
 
     convenience init(repo: FRepo, path: FPath) {
         self.init(repo: repo, path: path, params: nil, orderByCalled: false, priorityMethodCalled: false)
@@ -837,7 +837,7 @@ public typealias DatabaseHandle = Int
         }
     }
 
-    public override var description: String {
+    public var description: String {
         "(\(path) \(queryParams.description)"
     }
 }

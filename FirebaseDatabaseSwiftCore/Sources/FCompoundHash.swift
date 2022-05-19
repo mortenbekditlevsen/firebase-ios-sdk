@@ -18,33 +18,31 @@ import Foundation
 
 typealias FCompoundHashSplitStrategy = (FCompoundHashBuilder) -> Bool
 
-@objc(FCompoundHash)
 public
-class FCompoundHashWrapper: NSObject {
+class FCompoundHashWrapper {
     let wrapped: FCompoundHash
-    @objc public var posts: [FPath] {
+    public var posts: [FPath] {
         wrapped.posts
     }
-    @objc public var hashes: [String] {
+    public var hashes: [String] {
         wrapped.hashes
     }
 
     required init(wrapped: FCompoundHash) {
         self.wrapped = wrapped
     }
-    @objc public static func fromNode(_ node: FNode) -> FCompoundHashWrapper {
+    public static func fromNode(_ node: FNode) -> FCompoundHashWrapper {
         self.init(wrapped: FCompoundHash.fromNode(node: node))
     }
-    @objc public static func fromNode(_ node: FNode, splitStrategy: @escaping (FCompoundHashBuilderWrapper) -> Bool) -> FCompoundHashWrapper {
+    public static func fromNode(_ node: FNode, splitStrategy: @escaping (FCompoundHashBuilderWrapper) -> Bool) -> FCompoundHashWrapper {
         self.init(wrapped: FCompoundHash.fromNode(node: node, splitStrategy: { sko in splitStrategy(FCompoundHashBuilderWrapper(wrapped: sko))}))
     }
 
 }
 
-@objc(FCompoundHashBuilder)
-public class FCompoundHashBuilderWrapper: NSObject {
+public class FCompoundHashBuilderWrapper {
     let wrapped: FCompoundHashBuilder
-    @objc public var currentPath: FPath {
+    public var currentPath: FPath {
         wrapped.currentPath
     }
     init(wrapped: FCompoundHashBuilder) {

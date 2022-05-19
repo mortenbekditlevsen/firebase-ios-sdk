@@ -7,28 +7,28 @@
 
 import Foundation
 
-@objc public class FValidation: NSObject {
-    @objc public static func validatePriorityValue(_ value: Any) -> Bool {
+public class FValidation {
+    public static func validatePriorityValue(_ value: Any) -> Bool {
         FValidationSwift.validatePriorityValue(value)
     }
-    @objc public static func validateFrom(_ fn: String, validRootPathString pathString: String) {
+    public static func validateFrom(_ fn: String, validRootPathString pathString: String) {
         FValidationSwift.validateFrom(fn, validRootPathString: pathString)
     }
-    @objc public static func validateFrom(_ fn: String, validURL parsedUrl: FParsedUrl) {
+    public static func validateFrom(_ fn: String, validURL parsedUrl: FParsedUrl) {
         FValidationSwift.validateFrom(fn, validURL: parsedUrl)
     }
 
-    @objc public static func validateFrom(_ fn: String, validKey key: String) {
+    public static func validateFrom(_ fn: String, validKey key: String) {
         FValidationSwift.validateFrom(fn, validKey: key)
     }
 
-    @objc public static func validateFrom(_ fn: String, validPathString pathString: String) {
+    public static func validateFrom(_ fn: String, validPathString pathString: String) {
         FValidationSwift.validateFrom(fn, validPathString: pathString)
     }
-    @objc public static func validateFrom(_ fn: String, writablePath path: FPath) {
+    public static func validateFrom(_ fn: String, writablePath path: FPath) {
         FValidationSwift.validateFrom(fn, writablePath: path)
     }
-    @objc public static func validateFrom(_ fn: String, knownEventType event: DataEventType) {
+    public static func validateFrom(_ fn: String, knownEventType event: DataEventType) {
         FValidationSwift.validateFrom(fn, knownEventType: event)
     }
 }

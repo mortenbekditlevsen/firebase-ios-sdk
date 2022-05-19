@@ -22,7 +22,7 @@ private class FIRRetryHelperTask {
 }
 
 
-@objc public class FIRRetryHelper: NSObject {
+public class FIRRetryHelper {
     let dispatchQueue: DispatchQueue
     let minRetryDelayAfterFailure: TimeInterval
     let maxRetryDelay: TimeInterval
@@ -32,7 +32,7 @@ private class FIRRetryHelperTask {
     var currentRetryDelay: TimeInterval = 0
     fileprivate var scheduledRetry: FIRRetryHelperTask?
     
-    @objc public init(dispatchQueue: DispatchQueue,
+    public init(dispatchQueue: DispatchQueue,
                       minRetryDelayAfterFailure: TimeInterval,
                       maxRetryDelay: TimeInterval,
                       retryExponent: Double,
@@ -45,7 +45,7 @@ private class FIRRetryHelperTask {
         self.lastWasSuccess = true
 
     }
-    @objc public func retry(_ block: @escaping () -> Void) {
+    public func retry(_ block: @escaping () -> Void) {
         if let scheduledRetry = scheduledRetry {
             FFLog("I-RDB054001", "Canceling existing retry attempt")
             scheduledRetry.cancel()
@@ -75,7 +75,7 @@ private class FIRRetryHelperTask {
             }
         }
     }
-    @objc public func cancel() {
+    public func cancel() {
         if let scheduledRetry = scheduledRetry {
             FFLog("I-RDB054003", "Canceling existing retry attempt")
             scheduledRetry.cancel()
@@ -86,7 +86,7 @@ private class FIRRetryHelperTask {
         currentRetryDelay = 0
     }
 
-    @objc public func signalSuccess() {
+    public func signalSuccess() {
         lastWasSuccess = true
         currentRetryDelay = 0
     }

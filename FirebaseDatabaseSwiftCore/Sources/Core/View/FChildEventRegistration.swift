@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public class FChildEventRegistration: NSObject, FEventRegistration {
+public class FChildEventRegistration: FEventRegistration {
     private let repo: FRepo
     init(repo: FRepo, handle: DatabaseHandle, callbacks: [DataEventType: (DataSnapshot, String?) -> Void], cancelCallback: ((Error) -> Void)?) {
         self.repo = repo

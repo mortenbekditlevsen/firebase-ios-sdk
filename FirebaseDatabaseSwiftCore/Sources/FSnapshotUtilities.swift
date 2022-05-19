@@ -8,34 +8,34 @@
 import SortedCollections
 import Foundation
 
-@objc public class FSnapshotUtilities: NSObject {
-    @objc public static func nodeFrom(_ val: Any?) -> FNode {
+public class FSnapshotUtilities {
+    public static func nodeFrom(_ val: Any?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: nil)
     }
 
-    @objc public static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
+    public static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, withValidationFrom: fn)
     }
-    @objc public static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
+    public static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority)
     }
-    @objc public static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
+    public static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority, withValidationFrom: fn)
     }
 
-    @objc public static func appendHashV2Representation(for string: String, to mutableString: NSMutableString) {
+    public static func appendHashV2Representation(for string: String, to mutableString: NSMutableString) {
         var mutable: String = String(mutableString)
         FSnapshotUtilitiesSwift.appendHashV2Representation(for: string, to: &mutable)
         mutableString.setString(mutable)
     }
 
-    @objc public static func appendHashRepresentationV2ForLeafNode(_ node: FNode, to mutableString: NSMutableString) {
+    public static func appendHashRepresentationV2ForLeafNode(_ node: FNode, to mutableString: NSMutableString) {
         var mutable: String = String(mutableString)
         FSnapshotUtilitiesSwift.appendHashRepresentation(for: node, to: &mutable, hashVersion: .v2)
         mutableString.setString(mutable)
     }
 
-    @objc public static func compoundWriteFromDictionary(_ values: NSDictionary, withValidationFrom fn: String) -> FCompoundWrite {
+    public static func compoundWriteFromDictionary(_ values: NSDictionary, withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for keyId in values.allKeys {
@@ -62,7 +62,7 @@ import Foundation
 
     // Move to enum and remove this once swift conversion of usage points is done
     #warning("TODO - MOVE")
-    @objc public static func estimateSerializedNodeSize(_ node: FNode) -> Int {
+    public static func estimateSerializedNodeSize(_ node: FNode) -> Int {
         if node.isEmpty {
             return 4 // null keyword
         } else if node.isLeafNode() {

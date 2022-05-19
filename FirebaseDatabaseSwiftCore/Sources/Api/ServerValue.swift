@@ -12,12 +12,12 @@ import Foundation
  * priority that will automatically be populated by the Firebase Database
  * server.
  */
-@objc(FIRServerValue) public class ServerValue: NSObject {
+public class ServerValue {
 
     /**
      * Placeholder value for the number of milliseconds since the Unix epoch
      */
-    @objc public static var timestamp: [String: Any] = [".sv": "timestamp"]
+    public static var timestamp: [String: Any] = [".sv": "timestamp"]
 
     /**
      * Returns a placeholder value that can be used to atomically increment the
@@ -34,7 +34,7 @@ import Foundation
      * @param delta the amount to modify the current value atomically.
      * @return a placeholder value for modifying data atomically server-side.
      */
-    @objc public class func increment(_ delta: NSNumber) -> [String: Any] {
+    public class func increment(_ delta: NSNumber) -> [String: Any] {
         [".sv": ["increment": delta]]
     }
 }

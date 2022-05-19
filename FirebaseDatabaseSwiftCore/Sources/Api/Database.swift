@@ -7,8 +7,12 @@
 
 import Foundation
 
-@objc public class FIRAppThing: NSObject {
-    public struct Options {
+public class FIRAppThing: Equatable {
+    public static func == (lhs: FIRAppThing, rhs: FIRAppThing) -> Bool {
+        lhs.name == rhs.name && lhs.options == rhs.options
+    }
+
+    public struct Options: Equatable {
         public init(databaseURL: String? = nil, projectID: String? = nil, googleAppID: String) {
             self.databaseURL = databaseURL
             self.projectID = projectID
@@ -32,43 +36,22 @@ import Foundation
     static private(set) var defaultApp: FIRAppThing?
 }
 
-class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
-    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void) {
-        callback(DatabaseConnectionContext(authToken: nil, appCheckToken: nil), nil)
-    }
-
-    /// Adds a listener to the Auth token updates.
-    /// @param listener A block that will be invoked each time the Auth token is
-    /// updated.
-    func listenForAuthTokenChanges(_ listener:  @escaping (String) -> Void) {
-        
-    }
-
-    /// Adds a listener to the FAC token updates.
-    /// @param listener A block that will be invoked each time the FAC token is
-    /// updated.
-    func listenForAppCheckTokenChanges(_ listener: @escaping (String) -> Void) {
-
-    }
-
-}
-
 /**
  * The entry point for accessing a Firebase Database.  You can get an instance
  * by calling [FIRDatabase database]. To access a location in the database and
  * read or write data, use [FIRDatabase reference].
  */
-@objc(FIRDatabase) public class Database: NSObject {
+public class Database {
     private var repo: FRepo?
     private var repoInfo: FRepoInfo
-    @objc public let config: DatabaseConfig
+    public let config: DatabaseConfig
     
     /**
      * Gets the instance of FIRDatabase for the default FIRApp.
      *
      * @return A FIRDatabase instance.
      */
-    @objc public class func database() -> Database {
+    public class func database() -> Database {
 
         if !FIRAppThing.isDefaultAppConfigured {
             fatalError("The default FirebaseApp instance must be configured before the default Database instance can be initialized. One way to ensure this is to call `FirebaseApp.configure()` in the App Delegate's `application(_:didFinishLaunchingWithOptions:)` (or the `@main` struct's initializer in SwiftUI).")
@@ -82,7 +65,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * @param url The URL to the Firebase Database instance you want to access.
      * @return A FIRDatabase instance.
      */
-    @objc(databaseWithURL:) public class func database(url: String) -> Database {
+    public class func database(url: String) -> Database {
         guard let app = FIRAppThing.defaultApp else {
             fatalError("Failed to get default Firebase Database instance. Must call `[FIRApp configure]` (`FirebaseApp.configure()` in Swift) before using Firebase Database.")
         }
@@ -97,7 +80,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * @param url The URL to the Firebase Database instance you want to access.
      * @return A FIRDatabase instance.
      */
-    @objc(databaseForApp:URL:) public class func database(app: FIRAppThing, url: String) -> Database {
+    public class func database(app: FIRAppThing, url: String) -> Database {
         let provider = DatabaseComponent(app: app)
         return provider.databaseForApp(app, URL: url)
         // XXX TODO:
@@ -113,7 +96,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * @param app The FIRApp to get a FIRDatabase for.
      * @return A FIRDatabase instance.
      */
-    @objc(databaseForApp:) public class func database(app: FIRAppThing) -> Database {
+    public class func database(app: FIRAppThing) -> Database {
         let url: String
         if let dbURL = app.options.databaseURL {
             url = dbURL
@@ -128,12 +111,12 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
     }
 
     /** The FIRApp instance to which this FIRDatabase belongs. */
-    @objc public weak var app: FIRAppThing?
+    public weak var app: FIRAppThing?
 
     /**
      * Gets a FIRDatabaseReference for the root of your Firebase Database.
      */
-    @objc public func reference() -> DatabaseReference {
+    public func reference() -> DatabaseReference {
         let repo = ensureRepo()
         return DatabaseReference(repo: repo, path: .empty)
     }
@@ -144,7 +127,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * @param path Path to a location in your Firebase Database.
      * @return A FIRDatabaseReference pointing to the specified path.
      */
-    @objc public func referenceWithPath(_ path: String) -> DatabaseReference {
+    public func referenceWithPath(_ path: String) -> DatabaseReference {
         let repo = ensureRepo()
         FValidation.validateFrom("referenceWithPath", validRootPathString: path)
         let childPath = FPath(with: path)
@@ -160,7 +143,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * @param databaseUrl A URL to a path within your database.
      * @return A FIRDatabaseReference for the provided URL.
      */
-    @objc public func referenceFromURL(_ databaseUrl: String) -> DatabaseReference {
+    public func referenceFromURL(_ databaseUrl: String) -> DatabaseReference {
         let repo = ensureRepo()
         let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl)
         FValidation.validateFrom("referenceFromURL:", validURL: parsedUrl)
@@ -183,7 +166,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * affected event listeners, and the client will not (re-)send them to the
      * Firebase Database backend.
      */
-    @objc public func purgeOutstandingWrites() {
+    public func purgeOutstandingWrites() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -195,7 +178,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * Shuts down our connection to the Firebase Database backend until goOnline is
      * called.
      */
-    @objc public func goOffline() {
+    public func goOffline() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -207,7 +190,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * Resumes our connection to the Firebase Database backend after a previous
      * goOffline call.
      */
-    @objc public func goOnline() {
+    public func goOnline() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -230,7 +213,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * application.
      *
      */
-    @objc(persistenceEnabled) public var isPersistenceEnabled: Bool {
+    public var isPersistenceEnabled: Bool {
         set {
             assertUnfrozen("setPersistenceEnabled")
             config.persistenceEnabled = newValue
@@ -253,7 +236,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * disk may temporarily exceed it at times. Cache sizes smaller than 1 MB or
      * greater than 100 MB are not supported.
      */
-    @objc public var persistenceCacheSizeBytes: Int {
+    public var persistenceCacheSizeBytes: Int {
         set {
             assertUnfrozen("setPersistenceCacheSizeBytes")
             config.persistenceCacheSizeBytes = newValue
@@ -269,7 +252,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      *
      * Note that this must be set before creating your first Database reference.
      */
-    @objc public var callbackQueue: DispatchQueue {
+    public var callbackQueue: DispatchQueue {
         set {
             assertUnfrozen("setCallbackQueue")
             config.callbackQueue = newValue
@@ -302,13 +285,13 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      *
      * @param enabled YES to enable logging, NO to disable.
      */
-    @objc public class func setLoggingEnabled(_ enabled: Bool) {
+    public class func setLoggingEnabled(_ enabled: Bool) {
         FUtilitiesSwift.setLoggingEnabled(enabled)
         FFLog("I-RDB024001", "BUILD Version: \(buildVersion)")
     }
 
     /** Retrieve the Firebase Database SDK version. */
-    @objc public static var sdkVersion: String {
+    public static var sdkVersion: String {
         // XXX TODO: Firebase version should be a define!
         "8.7.0"
     }
@@ -317,7 +300,7 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
      * Configures the database to use an emulated backend instead of the default
      * remote backend.
      */
-    @objc public func useEmulator(host: String, port: Int) {
+    public func useEmulator(host: String, port: Int) {
         guard !host.isEmpty else {
             fatalError("Cannot connect to empty host.")
         }
@@ -329,19 +312,19 @@ class Mock: NSObject, DatabaseConnectionContextProviderProtocol {
         self.repoInfo = emulatorInfo
     }
 
-    @objc public init(app: FIRAppThing?, repoInfo: FRepoInfo, config: DatabaseConfig) {
+    public init(app: FIRAppThing?, repoInfo: FRepoInfo, config: DatabaseConfig) {
         self.app = app
         self.repoInfo = repoInfo
         self.config = config
     }
 
-    @objc public class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> Database {
+    public class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> Database {
         let db = Database(app: nil, repoInfo: repoInfo, config: config)
         db.ensureRepo()
         return db
     }
 
-    @objc public static var buildVersion: String {
+    public static var buildVersion: String {
         // TODO: Restore git hash when build moves back to git
         // XXX TODO: No DATE macro in Swift
         let date = "Apr 20 2022"

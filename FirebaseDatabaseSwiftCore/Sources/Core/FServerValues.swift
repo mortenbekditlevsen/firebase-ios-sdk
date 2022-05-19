@@ -62,7 +62,7 @@ class ExistingValueProvider: ValueProvider {
     var value: FNode? { snapshot }
 }
 
-@objc public class FServerValues: NSObject {
+public class FServerValues {
     private static func resolveScalarServerOp(_ op: String,
                                               withServerValues serverValues: [String: Any]) -> Any? {
         serverValues[op]
@@ -154,13 +154,13 @@ class ExistingValueProvider: ValueProvider {
         }
     }
 
-    @objc public static func generateServerValues(_ clock: FClock) -> [String: Any] {
+    public static func generateServerValues(_ clock: FClock) -> [String: Any] {
         let millis = UInt64(clock.currentTime * 1000)
         let nsnum = NSNumber(value: millis)
         return [ kTimestamp: nsnum ]
     }
 
-    @objc public static func resolveDeferredValueCompoundWrite(_ write: FCompoundWrite, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FCompoundWrite {
+    public static func resolveDeferredValueCompoundWrite(_ write: FCompoundWrite, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FCompoundWrite {
         var resolved = write
         write.enumerateWrites { subPath, node, stop in
             let existing = DeferredValueProvider(syncTree: tree, atPath: path.child(subPath))
@@ -173,12 +173,12 @@ class ExistingValueProvider: ValueProvider {
         return resolved
     }
 
-    @objc public static func resolveDeferredValueSnapshot(_ node: FNode, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FNode {
+    public static func resolveDeferredValueSnapshot(_ node: FNode, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FNode {
         let jitExisting = DeferredValueProvider(syncTree: tree, atPath: path)
         return FServerValues.resolveDeferredValueSnapshot(node, withValueProvider: jitExisting, serverValues: serverValues)
     }
 
-    @objc public static func resolveDeferredValueSnapshot(_ node: FNode, withExisting existing: FNode?, serverValues: [String: Any]) -> FNode {
+    public static func resolveDeferredValueSnapshot(_ node: FNode, withExisting existing: FNode?, serverValues: [String: Any]) -> FNode {
         let jitExisting = ExistingValueProvider(snapshot: existing)
         return FServerValues.resolveDeferredValueSnapshot(node, withValueProvider: jitExisting, serverValues: serverValues)
     }

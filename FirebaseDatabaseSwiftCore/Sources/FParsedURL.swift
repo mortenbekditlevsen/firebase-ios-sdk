@@ -7,10 +7,10 @@
 
 import Foundation
 
-@objc public class FParsedUrl: NSObject {
-    @objc public var repoInfo: FRepoInfo
-    @objc public var path: FPath
-    @objc public init(repoInfo: FRepoInfo, path: FPath) {
+public class FParsedUrl {
+    public var repoInfo: FRepoInfo
+    public var path: FPath
+    public init(repoInfo: FRepoInfo, path: FPath) {
         self.repoInfo = repoInfo
         self.path = path
     }

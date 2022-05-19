@@ -11,16 +11,16 @@ private let kFServerUpdatesBetweenCacheSizeChecks = 1000
 private let kFMaxNumberOfPrunableQueriesToKeep = 1000
 private let kFPercentOfQueriesToPruneAtOnce = 0.2
 
-@objc public protocol FCachePolicy: NSObjectProtocol {
+public protocol FCachePolicy {
     func shouldPruneCache(size cacheSize: Int, numberOfTrackedQueries numTrackedQueries: Int) -> Bool
     func shouldCheckCacheSize(_ serverUpdatesSinceLastCheck: Int) -> Bool
     var percentOfQueriesToPruneAtOnce: Double { get }
     var maxNumberOfQueriesToKeep: Int { get }
 }
 
-@objc public class FLRUCachePolicy: NSObject, FCachePolicy {
-    @objc public let maxSize: Int
-    @objc public init(maxSize: Int) {
+public class FLRUCachePolicy: FCachePolicy {
+    public let maxSize: Int
+    public init(maxSize: Int) {
         self.maxSize = maxSize
     }
     public func shouldPruneCache(size cacheSize: Int, numberOfTrackedQueries numTrackedQueries: Int) -> Bool {
@@ -36,8 +36,8 @@ private let kFPercentOfQueriesToPruneAtOnce = 0.2
     public var maxNumberOfQueriesToKeep: Int { kFMaxNumberOfPrunableQueriesToKeep }
 }
 
-@objc public class FNoCachePolicy: NSObject, FCachePolicy {
-    @objc public static var noCachePolicy: FNoCachePolicy = FNoCachePolicy()
+public class FNoCachePolicy: FCachePolicy {
+    public static var noCachePolicy: FNoCachePolicy = FNoCachePolicy()
     public func shouldCheckCacheSize(_ serverUpdatesSinceLastCheck: Int) -> Bool {
         false
     }

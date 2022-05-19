@@ -31,19 +31,19 @@ extension Data {
 
 import Foundation
 
-@objc public class FStringUtilities: NSObject {
-    @objc public static func base64EncodedSha1(_ input: String) -> String {
+public class FStringUtilities {
+    public static func base64EncodedSha1(_ input: String) -> String {
         FStringUtilitiesSwift.base64EncodedSha1(input)
     }
 
-    @objc public static func urlDecoded(_ url: String) -> String {
+    public static func urlDecoded(_ url: String) -> String {
         FStringUtilitiesSwift.urlDecoded(url)
     }
 
-    @objc public static func urlEncoded(_ input: String) -> String {
+    public static func urlEncoded(_ input: String) -> String {
         FStringUtilitiesSwift.urlEncoded(input)
     }
-    @objc public static func sanitizedForUserAgent(_ str: String) -> String {
+    public static func sanitizedForUserAgent(_ str: String) -> String {
         FStringUtilitiesSwift.sanitizedForUserAgent(str)
     }
 }

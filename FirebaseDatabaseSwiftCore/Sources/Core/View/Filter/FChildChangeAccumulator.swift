@@ -7,11 +7,11 @@
 
 import Foundation
 
-@objc public class FChildChangeAccumulator: NSObject {
+public class FChildChangeAccumulator {
     private var changeMap: [String: FChange] = [:]
-    @objc public var changes: [FChange] { Array(changeMap.values) }
-    @objc public override init() {}
-    @objc public func trackChildChange(_ change: FChange) {
+    public var changes: [FChange] { Array(changeMap.values) }
+    public init() {}
+    public func trackChildChange(_ change: FChange) {
         let type = change.type
         guard let childKey = change.childKey else { return }
         assert(type == .childAdded || type == .childChanged || type == .childRemoved, "Only child changes supported for tracking.")

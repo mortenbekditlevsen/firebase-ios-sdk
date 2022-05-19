@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public protocol FSyncTreeHash: NSObjectProtocol {
+public protocol FSyncTreeHash {
     var simpleHash: String { get }
     var compoundHash: FCompoundHashWrapper { get }
     var includeCompoundHash: Bool { get }
@@ -16,11 +16,11 @@ import Foundation
 // Size after which we start including the compound hash
 let kFSizeThresholdForCompoundHash = 1024
 
-@objc public class FListenContainer: NSObject, FSyncTreeHash {
-    @objc public var view: FView
-    @objc public var onComplete: (String) -> [FEvent]
+public class FListenContainer: FSyncTreeHash {
+    public var view: FView
+    public var onComplete: (String) -> [FEvent]
 
-    @objc public init(view: FView, onComplete: @escaping (String) -> [FEvent]) {
+    public init(view: FView, onComplete: @escaping (String) -> [FEvent]) {
         self.view = view
         self.onComplete = onComplete
     }
@@ -67,7 +67,7 @@ let kFSizeThresholdForCompoundHash = 1024
  * raise, the actual events are returned to the caller rather than raised
  * synchronously.
  */
-@objc public class FSyncTree: NSObject {
+public class FSyncTree {
     /**
      * Tree of SyncPoints. There's a SyncPoint at any location that has 1 or more
      * views.
@@ -96,19 +96,8 @@ let kFSizeThresholdForCompoundHash = 1024
         self.persistenceManager = nil
     }
 
-    @objc public init(listenProvider: FListenProviderObjC) {
-        self.listenProvider = FListenProvider(listenProvider)
-        self.persistenceManager = nil
-    }
-
     public init(persistenceManager: FPersistenceManager?, listenProvider: FListenProvider) {
         self.listenProvider = listenProvider
-        self.persistenceManager = persistenceManager
-    }
-
-
-    @objc public init(persistenceManager: FPersistenceManager?, listenProvider: FListenProviderObjC) {
-        self.listenProvider = FListenProvider(listenProvider)
         self.persistenceManager = persistenceManager
     }
 
@@ -120,7 +109,7 @@ let kFSizeThresholdForCompoundHash = 1024
      * updateChildValues:, etc.
      * @return NSArray of FEvent to raise.
      */
-    @objc public func applyUserOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) -> [FEvent] {
+    public func applyUserOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) -> [FEvent] {
         // Record pending write
         pendingWriteTree.addOverwriteAtPath(path, newData: newData, writeId: writeId, isVisible: isVisible)
         if !isVisible {
@@ -135,7 +124,7 @@ let kFSizeThresholdForCompoundHash = 1024
      * Apply the data from a user-generated updateChildValues: call
      * @return NSArray of FEvent to raise.
      */
-    @objc public func applyUserMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) -> [FEvent] {
+    public func applyUserMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) -> [FEvent] {
         // Record pending merge
         pendingWriteTree.addMergeAtPath(path, changedChildren: changedChildren, writeId: writeId)
         let operation = FMerge(source: .userInstance, path: path, children: changedChildren)
@@ -148,7 +137,7 @@ let kFSizeThresholdForCompoundHash = 1024
      * TODO[offline]: Taking a serverClock here is awkward, but server values are
      * awkward. :-(
      */
-    @objc public func ackUserWriteWithWriteId(_ writeId: Int, revert: Bool, persist: Bool, clock: FClock) -> [FEvent] {
+    public func ackUserWriteWithWriteId(_ writeId: Int, revert: Bool, persist: Bool, clock: FClock) -> [FEvent] {
         let write = pendingWriteTree.writeForId(writeId)
         let needToReevaluate = pendingWriteTree.removeWriteId(writeId)
         if let write = write, write.visible {
@@ -183,19 +172,19 @@ let kFSizeThresholdForCompoundHash = 1024
         return []
     }
 
-    @objc public func applyServerOverwriteAtPath(_ path: FPath, newData: FNode) -> [FEvent] {
+    public func applyServerOverwriteAtPath(_ path: FPath, newData: FNode) -> [FEvent] {
         persistenceManager?.updateServerCache(node: newData, forQuery: .defaultQueryAtPath(path))
         let operation = FOverwrite(source: .serverInstance, path: path, snap: newData)
         return applyOperationToSyncPoints(operation)
     }
 
-    @objc public func applyServerMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite) -> [FEvent] {
+    public func applyServerMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite) -> [FEvent] {
         persistenceManager?.updateServerCache(merge: changedChildren, atPath: path)
         let operation = FMerge(source: .serverInstance, path: path, children: changedChildren)
         return applyOperationToSyncPoints(operation)
     }
 
-    @objc public func applyServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge]) -> [FEvent] {
+    public func applyServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge]) -> [FEvent] {
         guard let syncPoint = syncPointTree.value(atPath: path) else {
             // Removed view, so it's safe to just ignore this update
             return []
@@ -245,7 +234,7 @@ let kFSizeThresholdForCompoundHash = 1024
         return syncPoint.applyOperation(operation, writesCache: writesCache, serverCache: nil)
     }
 
-    @objc public func applyTaggedQueryOverwriteAtPath(_ path: FPath, newData: FNode, tagId: Int) -> [FEvent] {
+    public func applyTaggedQueryOverwriteAtPath(_ path: FPath, newData: FNode, tagId: Int) -> [FEvent] {
         if let query = query(for: tagId) {
             let relativePath = FPath.relativePath(from: query.path, to: path)
             let queryToOverwrite = relativePath.isEmpty ? query : FQuerySpec.defaultQueryAtPath(path)
@@ -257,7 +246,7 @@ let kFSizeThresholdForCompoundHash = 1024
             return []
         }
     }
-    @objc public func applyTaggedQueryMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, tagId: Int) -> [FEvent] {
+    public func applyTaggedQueryMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, tagId: Int) -> [FEvent] {
         guard let query = query(for: tagId) else {
             // We've already removed the query. No big deal, ignore the update.
             return []
@@ -276,7 +265,7 @@ let kFSizeThresholdForCompoundHash = 1024
         queryToTagMap[query]
     }
 
-    @objc public func applyTaggedServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge], tagId: Int) -> [FEvent] {
+    public func applyTaggedServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge], tagId: Int) -> [FEvent] {
         guard let query = query(for: tagId) else {
             // We've already removed the query. No big deal, ignore the update.
             return []
@@ -297,7 +286,7 @@ let kFSizeThresholdForCompoundHash = 1024
         return applyTaggedQueryOverwriteAtPath(path, newData: serverNode, tagId: tagId)
     }
 
-    @objc public func addEventRegistration(_ eventRegistration: FEventRegistration, forQuery query: FQuerySpec) -> [FEvent] {
+    public func addEventRegistration(_ eventRegistration: FEventRegistration, forQuery query: FQuerySpec) -> [FEvent] {
         let path = query.path
         var foundAncestorDefaultView = false
 
@@ -387,7 +376,7 @@ let kFSizeThresholdForCompoundHash = 1024
      * @param cancelError If provided, appropriate cancel events will be returned
      * @return NSArray of FEvent to raise.
      */
-    @objc public func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
+    public func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
         // Find the syncPoint first. Then deal with whether or not it has matching
         // listeners
         let path = query.path
@@ -468,7 +457,7 @@ let kFSizeThresholdForCompoundHash = 1024
         return cancelEvents
     }
 
-    @objc public func keepQuery(_ query: FQuerySpec, synced keepSynced: Bool) {
+    public func keepQuery(_ query: FQuerySpec, synced keepSynced: Bool) {
         // Only do something if we actually need to add/remove an event registration
         if keepSynced && !keepSyncedQueries.contains(query) {
             _ = addEventRegistration(FKeepSyncedEventRegistration.instance, forQuery: query)
@@ -479,7 +468,7 @@ let kFSizeThresholdForCompoundHash = 1024
         }
     }
 
-    @objc public func removeAllWrites() -> [FEvent] {
+    public func removeAllWrites() -> [FEvent] {
         persistenceManager?.removeAllUserWrites()
         let removedWrites = pendingWriteTree.removeAllWrites()
         if !removedWrites.isEmpty {
@@ -501,7 +490,7 @@ let kFSizeThresholdForCompoundHash = 1024
         return cacheNode.indexedNode
     }
 
-    @objc public func getServerValue(_ query: FQuerySpec) -> FNode? {
+    public func getServerValue(_ query: FQuerySpec) -> FNode? {
         var serverCacheNode: FNode? = nil
         var targetSyncPoint: FSyncPoint? = nil
         _ = syncPointTree.forEachOn(path: query.path) { pathToSyncPoint, syncPoint in
@@ -535,7 +524,7 @@ let kFSizeThresholdForCompoundHash = 1024
      * @param path The path to the data we want
      * @param writeIdsToExclude A specific set to be excluded
      */
-    @objc public func calcCompleteEventCacheAtPath(_ path: FPath, excludeWriteIds: [Int]) -> FNode? {
+    public func calcCompleteEventCacheAtPath(_ path: FPath, excludeWriteIds: [Int]) -> FNode? {
         let includeHiddenSets = true
         let writeTree = pendingWriteTree
         let serverCache: FNode? = syncPointTree.find(onPath: path) { pathSoFar, syncPoint in

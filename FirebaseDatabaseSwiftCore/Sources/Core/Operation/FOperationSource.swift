@@ -7,11 +7,11 @@
 
 import Foundation
 
-@objc public class FOperationSource: NSObject {
-    @objc public let fromUser: Bool
-    @objc public let fromServer: Bool
-    @objc public let isTagged: Bool
-    @objc public let queryParams: FQueryParams?
+public class FOperationSource {
+    public let fromUser: Bool
+    public let fromServer: Bool
+    public let isTagged: Bool
+    public let queryParams: FQueryParams?
     public init(fromUser isFromUser: Bool, fromServer isFromServer: Bool, queryParams: FQueryParams?, tagged isTagged: Bool) {
         self.isTagged = isTagged
         self.fromUser = isFromUser
@@ -19,21 +19,21 @@ import Foundation
         self.queryParams = queryParams
     }
 
-    @objc public static var userInstance: FOperationSource = .init(fromUser: true,
+    public static var userInstance: FOperationSource = .init(fromUser: true,
                                                                    fromServer: false,
                                                                    queryParams: nil,
                                                                    tagged: false)
 
-    @objc public static var serverInstance: FOperationSource = .init(fromUser: false,
+    public static var serverInstance: FOperationSource = .init(fromUser: false,
                                                                    fromServer: true,
                                                                    queryParams: nil,
                                                                    tagged: false)
 
-    @objc public static func forServerTaggedQuery(_ params: FQueryParams) -> FOperationSource {
+    public static func forServerTaggedQuery(_ params: FQueryParams) -> FOperationSource {
         .init(fromUser: false, fromServer: true, queryParams: params, tagged: true)
     }
 
-    public override var description: String {
+    public var description: String {
         "FOperationSource { fromUser=\(fromUser), fromServer=\(fromServer), queryParams=\(String(describing: queryParams)), tagged=\(isTagged) }"
     }
 }

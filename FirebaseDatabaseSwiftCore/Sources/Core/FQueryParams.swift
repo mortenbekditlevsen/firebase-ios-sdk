@@ -67,7 +67,7 @@ private struct QueryParams: Hashable, Equatable {
     public var index: FIndex
 
 //
-//    @objc public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
+//    public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
 //        guard dict.count > 0 else {
 //            return .defaultInstance
 //        }
@@ -97,33 +97,29 @@ private struct QueryParams: Hashable, Equatable {
 
 }
 
-// TODO: Should be a struct
-@objc public class FQueryParams: NSObject, NSCopying {
-    public func copy(with zone: NSZone? = nil) -> Any {
-        FQueryParams(params: params)
-    }
+public struct FQueryParams: Hashable {
 
     private var params: QueryParams
-    @objc public var limitSet: Bool { params.limitSet }
-    @objc public var viewFrom: String? { params.viewFrom }
-    @objc public var index: FIndex { params.index }
+    public var limitSet: Bool { params.limitSet }
+    public var viewFrom: String? { params.viewFrom }
+    public var index: FIndex { params.index }
 
-    @objc public var loadsAllData: Bool {
+    public var loadsAllData: Bool {
         !(hasStart || hasEnd || limitSet)
     }
 
-    @objc public var isDefault: Bool {
+    public var isDefault: Bool {
         loadsAllData && index.isEqual(FPriorityIndex.priorityIndex)
     }
 
-    @objc public var isValid: Bool {
+    public var isValid: Bool {
         !(hasStart && hasEnd && limitSet && !hasAnchoredLimit)
     }
 
     /**
      * @return true if a limit has been set and has been explicitly anchored
      */
-    @objc public var hasAnchoredLimit: Bool {
+    public var hasAnchoredLimit: Bool {
         limitSet && viewFrom != nil
     }
 
@@ -131,7 +127,7 @@ private struct QueryParams: Hashable, Equatable {
      * Only valid if hasEnd is true.
      * @return The end key name for the range defined by these query parameters
      */
-    @objc public var indexEndKey: String {
+    public var indexEndKey: String {
         assert(hasEnd, "Only valid if end has been set")
         return params.indexEndKey ?? FUtilities.maxName
     }
@@ -139,7 +135,7 @@ private struct QueryParams: Hashable, Equatable {
     /**
      * Only valid if hasEnd is true.
      */
-    @objc public var indexEndValue: FNode {
+    public var indexEndValue: FNode {
         assert(hasEnd, "Only valid if end has been set")
         return params.indexEndValue!
     }
@@ -147,7 +143,7 @@ private struct QueryParams: Hashable, Equatable {
     /**
      * Only valid if hasStart is true
      */
-    @objc public var indexStartValue: FNode {
+    public var indexStartValue: FNode {
         assert(hasStart, "Only valid if start has been set")
         return params.indexStartValue!
     }
@@ -156,12 +152,12 @@ private struct QueryParams: Hashable, Equatable {
      * Only valid if hasStart is true.
      * @return The starting key name for the range defined by these query parameters
      */
-    @objc public var indexStartKey: String {
+    public var indexStartKey: String {
         assert(hasStart, "Only valid if start has been set")
         return params.indexStartKey ?? FUtilities.minName
     }
 
-    @objc public override init() {
+    public init() {
         self.params = QueryParams(limitSet: false,
                                   limit: 0,
                                   index: FPriorityIndex.priorityIndex)
@@ -170,12 +166,12 @@ private struct QueryParams: Hashable, Equatable {
     /**
      * Only valid to call if limitSet returns true
      */
-    @objc public var limit: Int {
+    public var limit: Int {
         assert(self.limitSet, "Only valid if limit has been set")
         return params.limit
     }
 
-    @objc public func limitTo(_ limit: Int) -> FQueryParams {
+    public func limitTo(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -184,7 +180,7 @@ private struct QueryParams: Hashable, Equatable {
     }
 
 
-    @objc public func limitToFirst(_ limit: Int) -> FQueryParams {
+    public func limitToFirst(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -192,7 +188,7 @@ private struct QueryParams: Hashable, Equatable {
         return FQueryParams(params: params)
     }
 
-    @objc public func limitToLast(_ limit: Int) -> FQueryParams {
+    public func limitToLast(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -200,7 +196,7 @@ private struct QueryParams: Hashable, Equatable {
         return FQueryParams(params: params)
     }
 
-    @objc public func startAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
+    public func startAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
         assert(indexValue.isLeafNode() || indexValue.isEmpty)
         var params = params
         params.indexStartValue = indexValue
@@ -208,11 +204,11 @@ private struct QueryParams: Hashable, Equatable {
         return FQueryParams(params: params)
     }
 
-    @objc public func startAt(_ indexValue: FNode) -> FQueryParams {
+    public func startAt(_ indexValue: FNode) -> FQueryParams {
         startAt(indexValue, childKey: nil)
     }
 
-    @objc public func endAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
+    public func endAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
         assert(indexValue.isLeafNode() || indexValue.isEmpty)
         var params = params
         params.indexEndValue = indexValue
@@ -220,23 +216,23 @@ private struct QueryParams: Hashable, Equatable {
         return FQueryParams(params: params)
     }
 
-    @objc public func endAt(_ indexValue: FNode) -> FQueryParams {
+    public func endAt(_ indexValue: FNode) -> FQueryParams {
         endAt(indexValue, childKey: nil)
     }
 
-    @objc public func orderBy(_ index: FIndex) -> FQueryParams {
+    public func orderBy(_ index: FIndex) -> FQueryParams {
         var params = params
         params.index = index
         return FQueryParams(params: params)
     }
 
-    @objc public static var defaultInstance: FQueryParams = FQueryParams()
+    public static var defaultInstance: FQueryParams = FQueryParams()
 
     private init(params: QueryParams) {
         self.params = params
     }
 
-    @objc public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
+    public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
         guard dict.count > 0 else {
             return .defaultInstance
         }
@@ -269,15 +265,15 @@ private struct QueryParams: Hashable, Equatable {
         return FQueryParams(params: params)
     }
 
-    @objc public var hasStart: Bool {
+    public var hasStart: Bool {
         params.hasStart
     }
 
-    @objc public var hasEnd: Bool {
+    public var hasEnd: Bool {
         params.hasEnd
     }
 
-    @objc public var wireProtocolParams: [String: Any] {
+    public var wireProtocolParams: [String: Any] {
         var dict: [String: Any] = [:]
         if let value = params.indexStartValue {
             dict[kFQPIndexStartValue] = value.val(forExport: true)
@@ -316,25 +312,25 @@ private struct QueryParams: Hashable, Equatable {
         return dict
     }
 
-    @objc public override var description: String {
+    public var description: String {
         // Ensure that description is always in same order, as it is (apparently) used
         // to generate keys - at least in test cases.
         let sortedParams = wireProtocolParams.map { ($0, $1) }.sorted(by: { $0.0 < $1.0 })
         return "[\(sortedParams.map { "\"\($0.0)\": \($0.1)" }.joined(separator: ", "))]"
     }
 
-    @objc public override func isEqual(_ object: Any?) -> Bool {
+    public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FQueryParams else { return false }
         return other.params == self.params
     }
 
-    @objc public override var hash: Int {
+    public var hash: Int {
         var hasher = Hasher()
         params.hash(into: &hasher)
         return hasher.finalize()
     }
 
-    @objc public var isViewFromLeft: Bool {
+    public var isViewFromLeft: Bool {
         params.isViewFromLeft
     }
 

@@ -7,13 +7,13 @@
 
 import Foundation
 
-@objc public class FOverwrite: NSObject, FOperation {
+public class FOverwrite: FOperation {
     public var source: FOperationSource
     public var type: FOperationType
     public var path: FPath
-    @objc public let snap: FNode
+    public let snap: FNode
 
-    @objc public init(source: FOperationSource, path: FPath, snap: FNode) {
+    public init(source: FOperationSource, path: FPath, snap: FNode) {
         self.source = source
         self.type = .overwrite
         self.path = path
@@ -27,7 +27,7 @@ import Foundation
         }
     }
 
-    public override var description: String {
+    public var description: String {
         "FOverwrite { path=\(path), source=\(source), snapshot=\(snap) }"
     }
 }

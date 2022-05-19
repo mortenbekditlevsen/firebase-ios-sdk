@@ -7,13 +7,13 @@
 
 import Foundation
 
-@objc public class FMerge: NSObject, FOperation {
+public class FMerge: FOperation {
     public var source: FOperationSource
     public var type: FOperationType
     public var path: FPath
-    @objc public var children: FCompoundWrite
+    public var children: FCompoundWrite
 
-    @objc public init(source: FOperationSource, path: FPath, children: FCompoundWrite) {
+    public init(source: FOperationSource, path: FPath, children: FCompoundWrite) {
         self.source = source
         self.type = .merge
         self.path = path
@@ -40,7 +40,7 @@ import Foundation
         }
     }
 
-    public override var description: String {
+    public var description: String {
         "FMerge { path=\(path), source=\(source) children=\(children)}"
     }
 }

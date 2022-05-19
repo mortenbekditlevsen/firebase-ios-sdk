@@ -7,18 +7,18 @@
 
 import Foundation
 
-@objc public class FEventRaiser: NSObject {
-    @objc public let queue: DispatchQueue
-    @objc public init(queue: DispatchQueue) {
+public class FEventRaiser {
+    public let queue: DispatchQueue
+    public init(queue: DispatchQueue) {
         self.queue = queue
     }
-    @objc public func raiseEvents(_ eventDataList: [FEvent]) {
+    public func raiseEvents(_ eventDataList: [FEvent]) {
         for event in eventDataList {
             event.fireEventOnQueue(queue)
         }
     }
 
-    @objc public func raiseCallback(_ callback: @escaping () -> Void) {
+    public func raiseCallback(_ callback: @escaping () -> Void) {
         queue.async {
             callback()
         }

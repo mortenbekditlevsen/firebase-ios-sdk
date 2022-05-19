@@ -8,9 +8,9 @@
 import Foundation
 import NIOHTTP1
 
-@objc public protocol FWebSocketDelegate: NSObjectProtocol {
-    @objc func onMessage(_ fwebSocket: AnyObject, withMessage message: [String: Any])
-    @objc func onDisconnect(_ fwebSocket: AnyObject, wasEverConnected: Bool)
+public protocol FWebSocketDelegate: AnyObject {
+    func onMessage(_ fwebSocket: AnyObject, withMessage message: [String: Any])
+    func onDisconnect(_ fwebSocket: AnyObject, wasEverConnected: Bool)
 }
 
 private let kAppCheckTokenHeader = "X-Firebase-AppCheck"
@@ -246,7 +246,7 @@ private  func createHeaders(with url: String,
     return headers
 }
 
-@objc public enum FDisconnectReason: Int {
+public enum FDisconnectReason: Int {
     case DISCONNECT_REASON_SERVER_RESET = 0
     case DISCONNECT_REASON_OTHER = 1
 
@@ -260,12 +260,12 @@ private  func createHeaders(with url: String,
     }
 }
 
-@objc public protocol FConnectionDelegate: NSObjectProtocol {
-    @objc func onReady(_ fconnection: AnyObject,
+public protocol FConnectionDelegate: AnyObject {
+    func onReady(_ fconnection: AnyObject,
                        atTime timestamp: NSNumber,
                        sessionID: String)
 
-    @objc func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary)
-    @objc func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason)
-    @objc func onKill(_ fconnection: AnyObject, withReason: String)
+    func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary)
+    func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason)
+    func onKill(_ fconnection: AnyObject, withReason: String)
 }

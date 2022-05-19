@@ -7,16 +7,16 @@
 
 import Foundation
 
-@objc public class FTupleRemovedQueriesEvents: NSObject {
+public class FTupleRemovedQueriesEvents {
     /**
      * `FQuerySpec`s removed with [SyncPoint removeEventRegistration:]
      */
-    @objc public let removedQueries: [FQuerySpec]
+    public let removedQueries: [FQuerySpec]
     /**
      * cancel events as FEvent
      */
-    @objc public let cancelEvents: [FEvent]
-    @objc public init(removedQueries: [FQuerySpec], cancelEvents: [FEvent]) {
+    public let cancelEvents: [FEvent]
+    public init(removedQueries: [FQuerySpec], cancelEvents: [FEvent]) {
         self.removedQueries = removedQueries
         self.cancelEvents = cancelEvents
     }

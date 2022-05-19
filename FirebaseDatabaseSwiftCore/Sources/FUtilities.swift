@@ -9,12 +9,12 @@ import Foundation
 
 var logLevel: FLogLevel = .info
 
-@objc public enum FLogLevel: Int {
-    @objc(FLogLevelDebug) case debug = 1
-    @objc(FLogLevelInfo) case info = 2
-    @objc(FLogLevelWarn) case warn = 3
-    @objc(FLogLevelError) case error = 4
-    @objc(FLogLevelNone) case none = 5
+public enum FLogLevel: Int {
+    case debug = 1
+    case info = 2
+    case warn = 3
+    case error = 4
+    case none = 5
 }
 
 
@@ -77,37 +77,37 @@ func tryParseStringToInt(_ str: String, integer: inout Int) -> Bool {
 }
 
 // Temporary obj-c wrapper - remove after migration.
-@objc public class FUtilities: NSObject {
-    @objc public static func LUIDGenerator() -> Int {
+public class FUtilities {
+    public static func LUIDGenerator() -> Int {
         FUtilitiesSwift.LUIDGenerator()
     }
-    @objc public static func setLoggingEnabled(_ enabled: Bool) {
+    public static func setLoggingEnabled(_ enabled: Bool) {
         FUtilitiesSwift.setLoggingEnabled(enabled)
     }
-    @objc public static var int32min: Int { Int(Int32.min) }
-    @objc public static var int32max: Int { Int(Int32.max) }
+    public static var int32min: Int { Int(Int32.min) }
+    public static var int32max: Int { Int(Int32.max) }
 
-    @objc public static var minName: String { FUtilitiesSwift.minName }
-    @objc public static var maxName: String { FUtilitiesSwift.maxName }
+    public static var minName: String { FUtilitiesSwift.minName }
+    public static var maxName: String { FUtilitiesSwift.maxName }
 
-    @objc public static func getJavascriptType(_ obj: Any) -> String {
+    public static func getJavascriptType(_ obj: Any) -> String {
         FUtilitiesSwift.getJavascriptType(obj).rawValue
     }
 
     // Only used for testing
-    @objc public static func keyComparator() -> Comparator {
+    public static func keyComparator() -> Comparator {
         { a, b in FUtilitiesSwift.compareKey(a as! String, b as! String) }
     }
-    @objc public static func compareKey(_ a: String, toKey b: String) -> ComparisonResult {
+    public static func compareKey(_ a: String, toKey b: String) -> ComparisonResult {
         FUtilitiesSwift.compareKey(a, b)
     }
-    @objc public static func randomDouble() -> Double {
+    public static func randomDouble() -> Double {
         FUtilitiesSwift.randomDouble()
     }
-    @objc public static func errorForStatus(_ status: String, andReason reason: String?) -> Error? {
+    public static func errorForStatus(_ status: String, andReason reason: String?) -> Error? {
         FUtilitiesSwift.error(for: status, reason: reason)
     }
-    @objc public static func parseUrl(_ input: String) -> FParsedUrl {
+    public static func parseUrl(_ input: String) -> FParsedUrl {
         FUtilitiesSwift.parseUrl(input)
     }
 }

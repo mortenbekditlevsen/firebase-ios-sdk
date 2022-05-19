@@ -8,20 +8,20 @@
 import Foundation
 
 
-@objc(FIRDatabaseConnectionContext) public class DatabaseConnectionContext: NSObject {
+public class DatabaseConnectionContext {
     /// Auth token if available.
-    @objc public var authToken: String?
+    public var authToken: String?
 
     /// App check token if available.
-    @objc public var appCheckToken: String?
+    public var appCheckToken: String?
 
-    @objc public init(authToken: String?, appCheckToken: String?) {
+    public init(authToken: String?, appCheckToken: String?) {
         self.authToken = authToken
         self.appCheckToken = appCheckToken
     }
 }
 
-@objc(FIRDatabaseConnectionContextProvider) public protocol DatabaseConnectionContextProviderProtocol: NSObjectProtocol {
+public protocol DatabaseConnectionContextProviderProtocol {
     func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void)
 
     /// Adds a listener to the Auth token updates.
@@ -50,36 +50,45 @@ private class FAuthStateListenerWrapper {
         self.listener = listener
         self.auth = auth
         self.queue = queue
-        NotificationCenter
-            .default
-            .addObserver(self,
-                         selector: #selector(authStateDidChangeNotification),
-                         name: .FIRAuthStateDidChangeInternalNotification,
-                         object: nil)
-    }
-    @objc func authStateDidChangeNotification(_ notification: Notification) {
-        let userInfo = notification.userInfo
-        guard (notification.object as? AnyObject) === self.auth else { return }
-        guard let token = userInfo?[FIRAuthStateDidChangeInternalNotificationTokenKey] as? String else { return }
-        queue.async {
-            self.listener(token)
+        NotificationCenter.default.addObserver(forName: .FIRAuthStateDidChangeInternalNotification, object: nil, queue: nil) { [weak self] notification in
+            let userInfo = notification.userInfo
+            guard (notification.object as? AnyObject) === self?.auth else { return }
+            guard let token = userInfo?[FIRAuthStateDidChangeInternalNotificationTokenKey] as? String else { return }
+            queue.async {
+                self?.listener(token)
+            }
         }
+//        NotificationCenter
+//            .default
+//            .addObserver(self,
+//                         selector: #selector(authStateDidChangeNotification),
+//                         name: .FIRAuthStateDidChangeInternalNotification,
+//                         object: nil)
     }
+
+//    func authStateDidChangeNotification(_ notification: Notification) {
+//        let userInfo = notification.userInfo
+//        guard (notification.object as? AnyObject) === self.auth else { return }
+//        guard let token = userInfo?[FIRAuthStateDidChangeInternalNotificationTokenKey] as? String else { return }
+//        queue.async {
+//            self.listener(token)
+//        }
+//    }
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 }
 
-@objc(FIRDatabaseAuthInterop) public protocol DatabaseAuthInterop: NSObjectProtocol {
+public protocol DatabaseAuthInterop: AnyObject {
     func getTokenForcingRefresh(_ forceRefresh: Bool, withCallback callback: (String?, Error?) -> Void)
 }
 
-@objc(FIRDatabaseAppCheckTokenResultInterop) public protocol DatabaseAppCheckTokenResultInterop: NSObjectProtocol {
+public protocol DatabaseAppCheckTokenResultInterop {
     var token: String? { get }
     var error: Error? { get }
 }
 
-@objc(FIRDatabaseAppCheckInterop) public protocol DatabaseAppCheckInterop: NSObjectProtocol {
+public protocol DatabaseAppCheckInterop {
     func getTokenForcingRefresh(_ forceRefresh: Bool, completion: @escaping (DatabaseAppCheckTokenResultInterop) -> Void)
     var notificationTokenKey: String { get }
     var tokenDidChangeNotificationName: Notification.Name { get }
@@ -89,7 +98,7 @@ private class FAuthStateListenerWrapper {
 // TODO: Make FIRAppCheckTokenResultInterop conform to FIRDatabaseAppCheckTokenResultInterop
 // TODO: Make FIRAuthInterop conform to FIRDatabaseAuthInterop
 
-@objc(FIRDatabaseConnectionContextProvider) public class DatabaseConnectionContextProvider: NSObject, DatabaseConnectionContextProviderProtocol {
+public class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtocol {
 
     var appCheck: DatabaseAppCheckInterop? // FIRAppCheckInterop
     var auth: DatabaseAuthInterop? // FIRAuthInterop
@@ -200,7 +209,7 @@ private class FAuthStateListenerWrapper {
         self.appCheckNotificationObservers.append(observer)
     }
 
-    @objc public class func contextProvider(auth: DatabaseAuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
+    public class func contextProvider(auth: DatabaseAuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
         DatabaseConnectionContextProvider(auth: auth, appCheck: appCheck, dispatchQueue: dispatchQueue)
     }
 }
