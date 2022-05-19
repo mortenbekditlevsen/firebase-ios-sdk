@@ -96,7 +96,7 @@ public class FPersistentConnection: FConnectionDelegate {
     var lastConnectionAttemptTime: TimeInterval
     var lastConnectionEstablishedTime: TimeInterval
 
-#if !os(watchOS)
+#if os(iOS) || os(tvOS) || os(macOS)
     var reachability: SCNetworkReachability?
 #endif
 
@@ -169,7 +169,7 @@ public class FPersistentConnection: FConnectionDelegate {
     }
 
     deinit {
-#if !os(watchOS)
+#if os(iOS) || os(tvOS) || os(macOS)
         if let reachability = reachability {
             // Unschedule the notifications
             SCNetworkReachabilitySetDispatchQueue(reachability, nil)
@@ -543,7 +543,7 @@ public class FPersistentConnection: FConnectionDelegate {
         realtime = connection
     }
 
-#if !os(watchOS)
+#if os(iOS) || os(tvOS) || os(macOS)
     static func reachabilityCallback(_ ref: SCNetworkReachability, _ flags: SCNetworkReachabilityFlags, _ info: UnsafeRawPointer) {
 
 //        if flags.contains(.reachable) {
