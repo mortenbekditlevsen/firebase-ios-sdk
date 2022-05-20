@@ -74,7 +74,7 @@ public class FRepo: FPersistentConnectionDelegate {
     private var interceptServerDataCallback: ((String, Any) -> Any)?
 
     private func deferredInit() {
-        print("DEFERRED INIT")
+//        print("DEFERRED INIT")
         // TODO: cleanup on dealloc
         config.contextProvider.listenForAuthTokenChanges { [weak self] token in
             self?.connection.refreshAuthToken(token)

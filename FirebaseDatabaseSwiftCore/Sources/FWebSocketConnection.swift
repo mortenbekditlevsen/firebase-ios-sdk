@@ -74,7 +74,7 @@ public class FWebSocketConnection {
     }
 
     public func start() {
-        print("START")
+//        print("START")
     }
 
     private func resetKeepAlive() {
