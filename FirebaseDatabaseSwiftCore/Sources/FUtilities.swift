@@ -23,19 +23,19 @@ public func FFIsLoggingEnabled(_ level: Int) -> Bool { level >= logLevel.rawValu
 
 #warning("TODO: Use actual logging. Perhaps through swift-log.")
 internal func FFLog(_ id: String, _ log: String) {
-    print(id, log)
+//    print(id, log)
 }
 
 internal func FFInfo(_ id: String, _ log: String) {
-    print(id, log)
+//    print(id, log)
 }
 
 internal func FFWarn(_ id: String, _ log: String) {
-    print(id, log)
+//    print(id, log)
 }
 
 internal func FFDebug(_ id: String, _ log: String) {
-    print(id, log)
+//    print(id, log)
 }
 
 

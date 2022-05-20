@@ -189,7 +189,7 @@ public class FWebSocketConnection {
             // Call delegate and pass an immutable version of the frame
             let data = Data(combined.utf8)
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                print("Websocket: Received \(json)")
+//                print("Websocket: Received \(json)")
                 #warning("TEMPORARY WORKAROUND FOR GETTING CALLBACK ON MAIN QUEUE")
                 DispatchQueue.main.async {
                     self.delegate?.onMessage(self, withMessage: json)

@@ -194,12 +194,12 @@ private final class WebSocketHandler: ChannelInboundHandler {
     }
 
     func send(string: Substring) {
-        print("SENDING", string)
+//        print("SENDING", string)
         self.send(stringData: string, x: { $0.channel.allocator.buffer(substring: $1) })
     }
 
     func send(string: String) {
-        print("SENDING", string)
+//        print("SENDING", string)
         self.send(stringData: string, x: { $0.channel.allocator.buffer(string: $1) })
     }
 
