@@ -8,6 +8,7 @@
 import Foundation
 
 public class FRepoManager {
+    private static var lock = NSLock()
     private static var configs: [String: [FRepoInfo: FRepo]] = [:]
 
     /**
@@ -21,6 +22,8 @@ public class FRepoManager {
 //        defer {
 //            objc_sync_exit(configs)
 //        }
+        lock.lock()
+        defer { lock.unlock() }
         let repos = configs[config.sessionIdentifier]
         if let repo = repos?[repoInfo] {
             return repo
@@ -39,6 +42,8 @@ public class FRepoManager {
 //        defer {
 //            objc_sync_exit(configs)
 //        }
+        lock.lock()
+        defer { lock.unlock() }
         var repos = configs[config.sessionIdentifier, default: [:]]
         if repos[repoInfo] != nil {
             fatalError("createRepo called for Repo that already exists.")

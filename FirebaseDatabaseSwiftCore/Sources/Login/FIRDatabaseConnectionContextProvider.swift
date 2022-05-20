@@ -127,6 +127,8 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         self.listenerQueue.underlyingQueue = dispatchQueue
     }
 
+    var lock = NSLock()
+
     deinit {
         // TODO: Will this work on Linux?
         // NOTE: Maybe it doesn't need to. Auth will be likely be bridged
@@ -135,6 +137,8 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         // XXX TODO: NO objc_sync on non-Darwin
 //        objc_sync_enter(self)
 //        defer { objc_sync_exit(self) }
+        lock.lock()
+        defer { lock.unlock() }
         for observer in self.appCheckNotificationObservers {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -208,6 +212,8 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         // XXX TODO: NO objc_sync on non-Darwin
 //        objc_sync_enter(self)
 //        defer { objc_sync_exit(self) }
+        lock.lock()
+        defer { lock.unlock() }
         self.appCheckNotificationObservers.append(observer)
     }
 

@@ -18,6 +18,7 @@ public protocol DatabaseProvider {
 /// A concrete implementation for FIRDatabaseProvider to create Database
 /// instances.
 public class DatabaseComponent: DatabaseProvider {
+    var lock: NSLock = NSLock()
     internal init(app: FIRAppThing) {
         self.app = app
     }
@@ -34,6 +35,9 @@ public class DatabaseComponent: DatabaseProvider {
 //        defer {
 //            objc_sync_exit(instances)
 //        }
+        lock.lock()
+        defer { lock.unlock() }
+
         let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl.absoluteString)
         let urlIndex = "\(parsedUrl.repoInfo.host):\(parsedUrl.path)"
         if let database = instances[urlIndex] {
@@ -65,6 +69,8 @@ public class DatabaseComponent: DatabaseProvider {
 //        defer {
 //            objc_sync_exit(instances)
 //        }
+        lock.lock()
+        defer { lock.unlock() }
         // Clean up the deleted instance in an effort to remove any resources
         // still in use. Note: Any leftover instances of this exact database
         // will be invalid.
