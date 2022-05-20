@@ -482,9 +482,7 @@ public class FPersistentConnection: FConnectionDelegate {
     // MARK: -
     // MARK: Private methods
     private func tryScheduleReconnect() {
-        print("A")
         guard shouldReconnect else { return }
-        print("B")
         assert(connectionState == .disconnected, "Not in disconnected state: \(connectionState)")
         let forceRefresh = forceTokenRefreshes
         forceTokenRefreshes = false
@@ -496,7 +494,6 @@ public class FPersistentConnection: FConnectionDelegate {
             self.currentFetchTokenAttempt += 1
             let thisFetchTokenAttempt = self.currentFetchTokenAttempt
             self.contextProvider.fetchContextForcingRefresh(forceRefresh) { context, error in
-                print("C")
                 if thisFetchTokenAttempt == self.currentFetchTokenAttempt {
                     if let error = error {
                         self.connectionState = .disconnected
@@ -504,7 +501,6 @@ public class FPersistentConnection: FConnectionDelegate {
                               "Error fetching token: \(error)")
                         self.tryScheduleReconnect()
                     } else {
-                        print("D")
                         // XXX TODO: Model Result explicitly - or async call
                         let context = context!
                         // Someone could have interrupted us while

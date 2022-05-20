@@ -87,7 +87,7 @@ final class WebSocketClient {
         }
         self.openClosure = {
             let channel = try bootstrap.connect(host: url.host!, port: url.port ?? 443).wait()
-            print("CHANNEL", channel)
+//            print("CHANNEL", channel)
         }
     }
 }
@@ -148,7 +148,7 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
     }
 
     public func handlerRemoved(context: ChannelHandlerContext) {
-        print("HTTP handler removed.")
+//        print("HTTP handler removed.")
     }
 
     public func errorCaught(context: ChannelHandlerContext, error: Error) {
@@ -184,7 +184,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
     // This is being hit, channel active won't be called as it is already added.
     public func handlerAdded(context: ChannelHandlerContext) {
         self.context = context
-        print("WebSocket handler added.")
+//        print("WebSocket handler added.")
         onOpen()
     }
 
@@ -226,7 +226,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
             var byteBuffer = frame.unmaskedData
             let string = byteBuffer.readString(length: byteBuffer.readableBytes) ?? ""
 
-            print("Websocket: Received \(string)")
+//            print("Websocket: Received \(string)")
             onMessage(string)
 
         case .connectionClose:
