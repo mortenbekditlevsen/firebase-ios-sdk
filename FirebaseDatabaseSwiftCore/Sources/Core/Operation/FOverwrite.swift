@@ -7,19 +7,19 @@
 
 import Foundation
 
-public class FOverwrite: FOperation {
-    public var source: FOperationSource
-    public var type: FOperationType
-    public var path: FPath
+class FOverwrite: FOperation {
+    var source: FOperationSource
+    var type: FOperationType
+    var path: FPath
     public let snap: FNode
 
-    public init(source: FOperationSource, path: FPath, snap: FNode) {
+    init(source: FOperationSource, path: FPath, snap: FNode) {
         self.source = source
         self.type = .overwrite
         self.path = path
         self.snap = snap
     }
-    public func operationForChild(_ childKey: String) -> FOperation? {
+    func operationForChild(_ childKey: String) -> FOperation? {
         if path.isEmpty {
             return FOverwrite(source: source, path: .empty, snap: snap.getImmediateChild(childKey))
         } else {
@@ -27,7 +27,7 @@ public class FOverwrite: FOperation {
         }
     }
 
-    public var description: String {
+    var description: String {
         "FOverwrite { path=\(path), source=\(source), snapshot=\(snap) }"
     }
 }

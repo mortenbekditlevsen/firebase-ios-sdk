@@ -18,17 +18,9 @@ import Foundation
  * location, use a FIRDatabaseReference (e.g. with setValue:).
  */
 public class DataSnapshot {
-    public let node: FIndexedNode
-    public var nodeObjC: FIndexedNodeObjC {
-        .init(wrapped: node)
-    }
+    let node: FIndexedNode
 
-    public init(ref: DatabaseReference, indexedNode: FIndexedNodeObjC) {
-        self.ref = ref
-        self.node = indexedNode.wrapped
-    }
-
-    public init(ref: DatabaseReference, indexedNode: FIndexedNode) {
+    init(ref: DatabaseReference, indexedNode: FIndexedNode) {
         self.ref = ref
         self.node = indexedNode
     }
@@ -44,7 +36,7 @@ public class DataSnapshot {
      * @param childPathString A relative path to the location of child data.
      * @return The FIRDataSnapshot for the child location.
      */
-    public func childSnapshotForPath(_ childPathString: String) -> DataSnapshot {
+    func childSnapshotForPath(_ childPathString: String) -> DataSnapshot {
         FValidation.validateFrom("child:", validPathString: childPathString)
         let childPath = FPath(with: childPathString)
         let childRef = self.ref.child(childPathString)
@@ -58,7 +50,7 @@ public class DataSnapshot {
      * @param childPathString A relative path to the location of a potential child.
      * @return YES if data exists at the specified childPathString, else NO.
      */
-    public func hasChild(_ childPathString: String) -> Bool {
+    func hasChild(_ childPathString: String) -> Bool {
         FValidation.validateFrom("hasChild:", validPathString: childPathString)
         let childPath = FPath(with: childPathString)
         return !node.node.getChild(childPath).isEmpty
@@ -69,7 +61,7 @@ public class DataSnapshot {
      *
      * @return YES if this snapshot has any children, else NO.
      */
-    public func hasChildren() -> Bool {
+    func hasChildren() -> Bool {
         if node.node.isLeafNode() {
             return false
         } else {
@@ -82,7 +74,7 @@ public class DataSnapshot {
      *
      * @return YES if this snapshot contains a non-null value, else NO.
      */
-    public var exists: Bool {
+    var exists: Bool {
         !node.node.isEmpty
     }
 
@@ -96,7 +88,7 @@ public class DataSnapshot {
      * instances of NSDictionary. For leaf locations with priorities, the value will
      * be under the ".value" key.
      */
-    public var valueInExportFormat: Any? {
+    var valueInExportFormat: Any? {
         node.node.val(forExport: true)
     }
 
@@ -122,7 +114,7 @@ public class DataSnapshot {
      *
      * @return An integer indicating the number of children.
      */
-    public var childrenCount: Int {
+    var childrenCount: Int {
         node.node.numChildren()
     }
 
@@ -139,7 +131,7 @@ public class DataSnapshot {
      * @return An NSString containing the key for the location of this
      * FIRDataSnapshot.
      */
-    public var key: String? {
+    var key: String? {
         ref.key
     }
 
@@ -151,7 +143,7 @@ public class DataSnapshot {
         }
     }
 
-    public var description: String {
+    var description: String {
         "Snap (\(key ?? "-")) \(node.node)"
     }
 
@@ -160,7 +152,7 @@ public class DataSnapshot {
      *
      * @return The priority as a string, or nil if no priority was set.
      */
-    public var priority: Any? {
+    var priority: Any? {
         node.node.getPriority().val()
     }
 }

@@ -7,14 +7,14 @@
 
 import Foundation
 
-public class FViewProcessorResult {
+class FViewProcessorResult {
     public let viewCache: FViewCache
     /**
      * List of FChanges.
      */
     public let changes: [FChange]
 
-    public init(viewCache: FViewCache, changes: [FChange]) {
+    init(viewCache: FViewCache, changes: [FChange]) {
         self.viewCache = viewCache
         self.changes = changes
     }

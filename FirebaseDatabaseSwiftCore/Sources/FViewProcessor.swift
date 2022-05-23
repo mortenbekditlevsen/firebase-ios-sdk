@@ -7,12 +7,12 @@
 
 import Foundation
 
-public class FNoCompleteChildSource: FCompleteChildSource {
+class FNoCompleteChildSource: FCompleteChildSource {
     public static var instance: FNoCompleteChildSource = .init()
-    public func completeChild(_ childKey: String) -> FNode? {
+    func completeChild(_ childKey: String) -> FNode? {
         nil
     }
-    public func childByIndex(_ index: FIndex, afterChild child: FNamedNode, isReverse: Bool) -> FNamedNode? {
+    func childByIndex(_ index: FIndex, afterChild child: FNamedNode, isReverse: Bool) -> FNamedNode? {
         nil
     }
 }
@@ -22,16 +22,16 @@ public class FNoCompleteChildSource: FCompleteChildSource {
  * to any other server data or old event caches available to calculate complete
  * children.
  */
-public class FWriteTreeCompleteChildSource: FCompleteChildSource {
+class FWriteTreeCompleteChildSource: FCompleteChildSource {
     public let writes: FWriteTreeRef
     public let viewCache: FViewCache
     public let completeServerCache: FNode?
-    public init(writes: FWriteTreeRef, viewCache: FViewCache, serverCache: FNode?) {
+    init(writes: FWriteTreeRef, viewCache: FViewCache, serverCache: FNode?) {
         self.writes = writes
         self.viewCache = viewCache
         self.completeServerCache = serverCache
     }
-    public func completeChild(_ childKey: String) -> FNode? {
+    func completeChild(_ childKey: String) -> FNode? {
         let node = viewCache.cachedEventSnap
         if node.isComplete(forChild: childKey) {
             return node.node.getImmediateChild(childKey)
@@ -40,7 +40,7 @@ public class FWriteTreeCompleteChildSource: FCompleteChildSource {
             if let completeServerCache = completeServerCache {
                 // Since we're only ever getting child nodes, we can use the key
                 // index here
-                let indexed = FIndexedNode(node: completeServerCache, index: FKeyIndex.keyIndex)
+                let indexed = FIndexedNode(node: completeServerCache, index: .key)
                 serverNode = FCacheNode(indexedNode: indexed, isFullyInitialized: true, isFiltered: false)
             } else {
                 serverNode = viewCache.cachedServerSnap
@@ -49,7 +49,7 @@ public class FWriteTreeCompleteChildSource: FCompleteChildSource {
         }
     }
 
-    public func childByIndex(_ index: FIndex, afterChild child: FNamedNode, isReverse: Bool) -> FNamedNode? {
+    func childByIndex(_ index: FIndex, afterChild child: FNamedNode, isReverse: Bool) -> FNamedNode? {
         let completeServerData = completeServerCache ?? viewCache.completeServerSnap
         return writes.calculateNextNodeAfterPost(child,
                                                  completeServerData: completeServerData,
@@ -59,13 +59,13 @@ public class FWriteTreeCompleteChildSource: FCompleteChildSource {
 }
 
 
-public class FViewProcessor {
+class FViewProcessor {
     public let filter: FNodeFilter
-    public init(filter: FNodeFilter) {
+    init(filter: FNodeFilter) {
         self.filter = filter
     }
 
-    public func applyOperationOn(_ oldViewCache: FViewCache,
+    func applyOperationOn(_ oldViewCache: FViewCache,
                                        operation: FOperation,
                                        writesCache: FWriteTreeRef,
                                        completeCache: FNode?) -> FViewProcessorResult {

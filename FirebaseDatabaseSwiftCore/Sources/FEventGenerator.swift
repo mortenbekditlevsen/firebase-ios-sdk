@@ -7,9 +7,9 @@
 
 import Foundation
 
-public class FEventGenerator {
+class FEventGenerator {
     let query: FQuerySpec
-    public init(query: FQuerySpec) {
+    init(query: FQuerySpec) {
         self.query = query
     }
 
@@ -27,7 +27,7 @@ public class FEventGenerator {
      * @param registrations is NSArray of FEventRegistration.
      * @return NSArray of FEvent.
      */
-    public func generateEventsForChanges(_ changes: [FChange],
+    func generateEventsForChanges(_ changes: [FChange],
                                           eventCache: FIndexedNode,
                                           eventRegistrations: [FEventRegistration]) -> [FEvent] {
         var events: [FEvent] = []
@@ -37,7 +37,7 @@ public class FEventGenerator {
         for change in changes {
             if change.type == .childChanged &&
 /* XXX TODO AAARGH, YET ANOTHER FORCE UNWRAP I CAN'T EXPLAIN */
-                query.index.indexedValueChangedBetween(change.oldIndexedNode!.node, and: change.indexedNode.node) {
+                query.index.indexedValueChanged(between: change.oldIndexedNode!.node, and: change.indexedNode.node) {
                 let moveChange = FChange(type: .childMoved,
                                          indexedNode: change.indexedNode,
                                          childKey: change.childKey,
@@ -84,7 +84,7 @@ public class FEventGenerator {
             guard let childKeyOne = one.childKey, let childKeyTwo = two.childKey else {
                 fatalError("Should only compare child_ events")
             }
-            return index.compareKey(childKeyOne, andNode: one.indexedNode.node, toOtherKey: childKeyTwo, andNode: two.indexedNode.node) == .orderedAscending
+            return index.compare(lhs: (key: childKeyOne, node: one.indexedNode.node), rhs: (key: childKeyTwo, node: two.indexedNode.node)) == .orderedAscending
         }
         for change in filteredChanges {
             for registration in eventRegistrations {

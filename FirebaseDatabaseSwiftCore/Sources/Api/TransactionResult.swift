@@ -11,7 +11,7 @@ import Foundation
  * Used for runTransactionBlock:. An FIRTransactionResult instance is a
  * container for the results of the transaction.
  */
-public class TransactionResult {
+class TransactionResult {
     internal init(isSuccess: Bool, update: MutableData?) {
         self.isSuccess = isSuccess
         self.update = update

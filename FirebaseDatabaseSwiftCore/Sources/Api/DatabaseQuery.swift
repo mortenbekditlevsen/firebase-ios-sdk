@@ -414,7 +414,7 @@ public class DatabaseQuery {
         if indexPathString.isEmpty {
             fatalError("(queryOrderedByChild:) with an empty path is invalid. Use queryOrderedByValue: instead.")
         }
-        let index = FPathIndex(path: indexPath)
+        let index = FIndex.path(indexPath)
         let params = queryParams.orderBy(index)
         validateQueryEndpointsForParams(params)
         return DatabaseQuery(repo: repo,
@@ -434,7 +434,7 @@ public class DatabaseQuery {
      */
     public func queryOrderedByKey() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
-        let params = queryParams.orderBy(FKeyIndex.keyIndex)
+        let params = queryParams.orderBy(.key)
         validateQueryEndpointsForParams(params)
         return DatabaseQuery(repo: repo,
                              path: path,
@@ -453,7 +453,7 @@ public class DatabaseQuery {
      */
     public func queryOrderedByValue() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
-        let params = queryParams.orderBy(FValueIndex.valueIndex)
+        let params = queryParams.orderBy(.value)
         validateQueryEndpointsForParams(params)
         return DatabaseQuery(repo: repo,
                              path: path,
@@ -472,7 +472,7 @@ public class DatabaseQuery {
      */
     public func queryOrderedByPriority() -> DatabaseQuery {
         validateNoPreviousOrderByCalled()
-        let params = queryParams.orderBy(FPriorityIndex.priorityIndex)
+        let params = queryParams.orderBy(.priority)
         validateQueryEndpointsForParams(params)
         return DatabaseQuery(repo: repo,
                              path: path,
@@ -512,7 +512,7 @@ public class DatabaseQuery {
      * or equal to startValue
      */
     public func queryStartingAtValue(_ startValue: Any?, childKey: String?) -> DatabaseQuery {
-        if queryParams.index === FKeyIndex.keyIndex {
+        if queryParams.index == .key {
             fatalError("You must use queryStartingAtValue: instead of queryStartingAtValue:childKey: when using queryOrderedByKey:")
         }
         let methodName = "queryStartingAtValue:childKey:"
@@ -556,7 +556,7 @@ public class DatabaseQuery {
     public func queryStartingAfterValue(_ startAfterValue: Any?, childKey: String?) -> DatabaseQuery {
         var startAfterValue = startAfterValue
         var childKey = childKey
-        if self.queryParams.index === FKeyIndex.keyIndex {
+        if self.queryParams.index == .key {
             if childKey != nil {
                 fatalError("You must use queryStartingAfterValue: instead of queryStartingAfterValue:childKey: when using queryOrderedByKey:")
             }
@@ -615,7 +615,7 @@ public class DatabaseQuery {
      * equal to endValue
      */
     public func queryEndingAtValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
-        if queryParams.index === FKeyIndex.keyIndex {
+        if queryParams.index == .key {
             fatalError("You must use queryEndingAtValue: instead of queryEndingAtValue:childKey: when using queryOrderedByKey:")
         }
         let methodName = "queryEndingAtValue:childKey:"
@@ -656,7 +656,7 @@ public class DatabaseQuery {
     public func queryEndingBeforeValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
         var endValue = endValue
         var childKey = childKey
-        if queryParams.index === FKeyIndex.keyIndex {
+        if queryParams.index == .key {
             if childKey != nil {
                 fatalError("You must use queryEndingBeforeValue: instead of queryEndingBeforeValue:childKey: when using queryOrderedByKey:")
             }
@@ -716,7 +716,7 @@ public class DatabaseQuery {
      * and the key.
      */
     public func queryEqualToValue(_ value: Any?, childKey: String?) -> DatabaseQuery {
-        if queryParams.index === FKeyIndex.keyIndex {
+        if queryParams.index == .key {
             fatalError("You must use queryEqualToValue: instead of queryEqualTo:childKey: when using queryOrderedByKey:")
         }
         return queryEqualToInternal(value, childKey: childKey, from: "queryEqualToValue:childKey:", priorityMethod: false)
@@ -752,7 +752,7 @@ public class DatabaseQuery {
      *
      * @return A FIRDatabaseReference for the location of this query.
      */
-    var ref: DatabaseReference {
+    public var ref: DatabaseReference {
         .init(repo: repo, path: path)
     }
 
@@ -790,7 +790,7 @@ public class DatabaseQuery {
     }
 
     private func validateQueryEndpointsForParams(_ params: FQueryParams) {
-        if params.index === FKeyIndex.keyIndex {
+        if params.index == .key {
             if params.hasStart {
                 if params.indexStartKey != FUtilitiesSwift.minName && params.indexStartKey != FUtilitiesSwift.maxName {
                     fatalError("Can't use queryStartingAtValue:childKey:, queryStartingAfterValue:childKey:, or queryEqualTo:andChildKey: in combination with queryOrderedByKey")
@@ -807,7 +807,7 @@ public class DatabaseQuery {
                     fatalError("Can't use queryEndingAtValue: or queryEndingBeforeValue: with non-string types when used with queryOrderedByKey")
                 }
             }
-        } else if params.index === FPriorityIndex.priorityIndex {
+        } else if params.index == .priority {
             if (params.hasStart && !FValidationSwift.validatePriorityValue(params.indexStartValue.val())) ||
                 (params.hasEnd && !FValidationSwift.validatePriorityValue(params.indexEndValue.val())) {
                 fatalError("When using queryOrderedByPriority, values provided to queryStartingAtValue:, queryStartingAfterValue:, queryEndingAtValue:, queryEndingBeforeValue:, or queryEqualToValue: must be valid priorities.")
@@ -837,7 +837,7 @@ public class DatabaseQuery {
         }
     }
 
-    public var description: String {
+    var description: String {
         "(\(path) \(queryParams.description)"
     }
 }

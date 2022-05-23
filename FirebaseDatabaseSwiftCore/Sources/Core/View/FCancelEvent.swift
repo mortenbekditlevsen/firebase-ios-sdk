@@ -8,22 +8,22 @@
 import Foundation
 
 
-public class FCancelEvent: FEvent {
-    public var eventRegistration: FEventRegistration
-    public var error: Error
-    public var path: FPath
+class FCancelEvent: FEvent {
+    var eventRegistration: FEventRegistration
+    var error: Error
+    var path: FPath
 
-    public init(eventRegistration: FEventRegistration, error: Error, path: FPath) {
+    init(eventRegistration: FEventRegistration, error: Error, path: FPath) {
         self.eventRegistration = eventRegistration
         self.error = error
         self.path = path
     }
 
-    public func fireEventOnQueue(_ queue: DispatchQueue) {
+    func fireEventOnQueue(_ queue: DispatchQueue) {
         eventRegistration.fireEvent(self, queue: queue)
     }
-    public var isCancelEvent: Bool { true }
-    public var description: String {
+    var isCancelEvent: Bool { true }
+    var description: String {
         "\(path): cancel"
     }
 }

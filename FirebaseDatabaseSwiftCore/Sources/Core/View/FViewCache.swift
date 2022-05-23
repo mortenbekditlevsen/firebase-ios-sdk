@@ -7,24 +7,24 @@
 
 import Foundation
 
-public class FViewCache {
+class FViewCache {
     public let cachedEventSnap: FCacheNode
-    public var completeEventSnap: FNode? {
+    var completeEventSnap: FNode? {
         cachedEventSnap.isFullyInitialized ? cachedEventSnap.node : nil
     }
 
     public let cachedServerSnap: FCacheNode
-    public var completeServerSnap: FNode? {
+    var completeServerSnap: FNode? {
         cachedServerSnap.isFullyInitialized
                    ? cachedServerSnap.node
                    : nil
     }
 
-    public init(eventCache: FCacheNode, serverCache: FCacheNode) {
+    init(eventCache: FCacheNode, serverCache: FCacheNode) {
         self.cachedEventSnap = eventCache
         self.cachedServerSnap = serverCache
     }
-    public func updateEventSnap(_ eventSnap: FIndexedNode, isComplete: Bool, isFiltered: Bool) -> FViewCache {
+    func updateEventSnap(_ eventSnap: FIndexedNode, isComplete: Bool, isFiltered: Bool) -> FViewCache {
         let updatedEventCache = FCacheNode(indexedNode: eventSnap,
                                            isFullyInitialized: isComplete,
                                            isFiltered: isFiltered)
@@ -32,7 +32,7 @@ public class FViewCache {
                           serverCache: cachedServerSnap)
 
     }
-    public func updateServerSnap(_ serverSnap: FIndexedNode, isComplete: Bool, isFiltered: Bool) -> FViewCache {
+    func updateServerSnap(_ serverSnap: FIndexedNode, isComplete: Bool, isFiltered: Bool) -> FViewCache {
         let updatedServerCache = FCacheNode(indexedNode: serverSnap,
                                             isFullyInitialized: isComplete,
                                             isFiltered: isFiltered)

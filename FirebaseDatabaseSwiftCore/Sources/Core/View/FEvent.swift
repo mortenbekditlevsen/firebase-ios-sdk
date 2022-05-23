@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FEvent {
+protocol FEvent {
     var path: FPath { get }
     func fireEventOnQueue(_ queue: DispatchQueue)
     var isCancelEvent: Bool { get }

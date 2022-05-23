@@ -14,7 +14,7 @@ import SystemConfiguration
 import UIKit
 #endif
 
-public class FOutstandingQuery {
+class FOutstandingQuery {
     fileprivate init(query: FQuerySpec, tagId: Int?, syncTreeHash: FSyncTreeHash, onComplete: ((String) -> Void)?) {
         self.query = query
         self.tagId = tagId
@@ -62,7 +62,7 @@ enum ConnectionState {
     case connected
 }
 
-public protocol FPersistentConnectionDelegate: AnyObject {
+protocol FPersistentConnectionDelegate: AnyObject {
     func onDataUpdate(_ fpconnection: FPersistentConnection,
                       forPath pathString: String,
                       message: Any,
@@ -89,7 +89,7 @@ typealias PutToAckTuple = (block: ((String, String) -> Void),
                            status: String,
                            errorReason: String)
 
-public class FPersistentConnection: FConnectionDelegate {
+class FPersistentConnection: FConnectionDelegate {
     var connectionState: ConnectionState
     var firstConnection: Bool
     var reconnectDelay: TimeInterval
@@ -126,9 +126,9 @@ public class FPersistentConnection: FConnectionDelegate {
      PUBLIC
      */
     weak var delegate: FPersistentConnectionDelegate?
-    public var pauseWrites: Bool
+    var pauseWrites: Bool
 
-    public init(repoInfo: FRepoInfo, dispatchQueue: DispatchQueue, config: DatabaseConfig) {
+    init(repoInfo: FRepoInfo, dispatchQueue: DispatchQueue, config: DatabaseConfig) {
         self.lastConnectionEstablishedTime = 0
         self.lastConnectionAttemptTime = 0
         self.forceTokenRefreshes = false
@@ -180,7 +180,7 @@ public class FPersistentConnection: FConnectionDelegate {
     // MARK: -
     // MARK: Public methods
 
-    public func open() {
+    func open() {
         resumeForReason(kFInterruptReasonWaitingForOpen)
     }
 
@@ -217,7 +217,7 @@ public class FPersistentConnection: FConnectionDelegate {
         return ua
     }
 
-    public var userAgent: String {
+    var userAgent: String {
         FPersistentConnection.userAgent
     }
 
@@ -231,7 +231,7 @@ public class FPersistentConnection: FConnectionDelegate {
      * path since we overlap listens for a short time while adding or removing a
      * query from a location in the tree.
      */
-    public func listen(_ query: FQuerySpec,
+    func listen(_ query: FQuerySpec,
                              tagId: Int?,
                              hash: FSyncTreeHash,
                              onComplete: @escaping (String) -> Void) {
@@ -247,14 +247,14 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func listen(_ query: FQuerySpec,
+    func listen(_ query: FQuerySpec,
                              tagId: Int,
                              hash: FSyncTreeHash,
                              onComplete: @escaping (String) -> Void) {
         listen(query, tagId: tagId, hash: hash, onComplete: onComplete)
     }
 
-    public func putData(_ data: Any,
+    func putData(_ data: Any,
                               forPath pathString: String,
                               withHash hash: String?,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
@@ -265,7 +265,7 @@ public class FPersistentConnection: FConnectionDelegate {
                     withCallback: onComplete)
     }
 
-    public func mergeData(_ data: Any,
+    func mergeData(_ data: Any,
                               forPath pathString: String,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
         putInternal(data,
@@ -275,7 +275,7 @@ public class FPersistentConnection: FConnectionDelegate {
                     withCallback: onComplete)
     }
 
-    public func onDisconnectPutData(_ data: Any,
+    func onDisconnectPutData(_ data: Any,
                                           forPath path: FPath,
                                           withCallback callback: @escaping (String, String?) -> Void) {
         if canSendWrites {
@@ -294,7 +294,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func onDisconnectMergeData(_ data: Any,
+    func onDisconnectMergeData(_ data: Any,
                                             forPath path: FPath,
                                             withCallback callback: @escaping (String, String?) -> Void) {
 
@@ -314,7 +314,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func onDisconnectCancelPath(_ path: FPath,
+    func onDisconnectCancelPath(_ path: FPath,
                                              withCallback callback: @escaping (String, String?) -> Void) {
         if canSendWrites {
             sendOnDisconnectAction(kFWPRequestActionDisconnectCancel,
@@ -332,7 +332,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func unlistenObjc(_ query: FQuerySpec,
+    func unlistenObjc(_ query: FQuerySpec,
                                tagId: Int) {
         unlisten(query, tagId: tagId)
     }
@@ -347,7 +347,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func refreshAuthToken(_ token: String?) {
+    func refreshAuthToken(_ token: String?) {
         self.authToken = token
         if connected {
             if token != nil {
@@ -380,7 +380,7 @@ public class FPersistentConnection: FConnectionDelegate {
 
     // MARK: -
     // MARK: FConnection delegate methods
-    public func onReady(_ fconnection: AnyObject, atTime timestamp: NSNumber, sessionID: String) {
+    func onReady(_ fconnection: AnyObject, atTime timestamp: NSNumber, sessionID: String) {
         FFLog("I-RDB034003", "On ready");
         lastConnectionEstablishedTime = Date().timeIntervalSince1970
         handleTimestamp(timestamp)
@@ -396,7 +396,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary) {
+    func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary) {
         if let number = message[kFWPRequestNumber] as? NSNumber {
             // this is a response to a request we sent
             let rn = number.intValue
@@ -414,7 +414,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason) {
+    func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason) {
         FFLog("I-RDB034004", "Got on disconnect due to \(reason.description)")
         connectionState = .disconnected
         // Drop the realtime connection
@@ -439,7 +439,7 @@ public class FPersistentConnection: FConnectionDelegate {
         delegate?.onDisconnect(self)
     }
 
-    public func onKill(_ fconnection: AnyObject, withReason reason: String) {
+    func onKill(_ fconnection: AnyObject, withReason reason: String) {
         FFWarn("I-RDB034005",
                "Firebase Database connection was forcefully killed by the server. Will not attempt reconnect. Reason: \(reason)")
         interruptForReason(kFInterruptReasonServerKill)
@@ -448,7 +448,7 @@ public class FPersistentConnection: FConnectionDelegate {
     // MARK: -
     // MARK: Connection handling methods
 
-    public func interruptForReason(_ reason: String) {
+    func interruptForReason(_ reason: String) {
         FFLog("I-RDB034006", "Connection interrupted for: \(reason)")
         interruptReasons.insert(reason)
         if let realtime = realtime {
@@ -463,7 +463,7 @@ public class FPersistentConnection: FConnectionDelegate {
         retryHelper.signalSuccess()
     }
 
-    public func resumeForReason(_ reason: String) {
+    func resumeForReason(_ reason: String) {
         FFLog("I-RDB034007", "Connection no longer interrupted for: \(reason)")
         interruptReasons.remove(reason)
         if shouldReconnect && connectionState == .disconnected {
@@ -475,7 +475,7 @@ public class FPersistentConnection: FConnectionDelegate {
         interruptReasons.isEmpty
     }
 
-    public func isInterruptedForReason(_ reason: String) -> Bool {
+    func isInterruptedForReason(_ reason: String) -> Bool {
         interruptReasons.contains(reason)
     }
 
@@ -788,7 +788,7 @@ public class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    public func getDataAtPath(_ pathString: String,
+    func getDataAtPath(_ pathString: String,
                                withParams queryWireProtocolParams: [String: Any],
                                withCallback onComplete: @escaping (String, Any?, String?) -> Void) {
         var request: [String: Any] = [
@@ -1072,7 +1072,7 @@ better performance
         return removed
     }
 
-    public func purgeOutstandingWrites() {
+    func purgeOutstandingWrites() {
         // We might have unacked puts in our queue that we need to ack now before we
         // send out any cancels...
         ackPuts()
@@ -1146,13 +1146,13 @@ better performance
      */
 
     // Testing methods
-    public func dumpListens() -> [FQuerySpec: FOutstandingQuery] {
+    func dumpListens() -> [FQuerySpec: FOutstandingQuery] {
         listens
     }
 
     // MARK: - App Check Token update
     // TODO: Add tests!
-    public func refreshAppCheckToken(_ token: String) {
+    func refreshAppCheckToken(_ token: String) {
         if !connected {
             // A fresh FAC token will be sent as a part of initial handshake.
             return

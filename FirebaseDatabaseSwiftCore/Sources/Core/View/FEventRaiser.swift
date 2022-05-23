@@ -7,18 +7,18 @@
 
 import Foundation
 
-public class FEventRaiser {
+class FEventRaiser {
     public let queue: DispatchQueue
-    public init(queue: DispatchQueue) {
+    init(queue: DispatchQueue) {
         self.queue = queue
     }
-    public func raiseEvents(_ eventDataList: [FEvent]) {
+    func raiseEvents(_ eventDataList: [FEvent]) {
         for event in eventDataList {
             event.fireEventOnQueue(queue)
         }
     }
 
-    public func raiseCallback(_ callback: @escaping () -> Void) {
+    func raiseCallback(_ callback: @escaping () -> Void) {
         queue.async {
             callback()
         }
@@ -27,7 +27,7 @@ public class FEventRaiser {
     // XXX TODO: Can't be converted to Obj-C, so we move the iteration to the callsite
     // until ported
 
-    public func raiseCallbacks(_ callbackList: [() -> Void]) {
+    func raiseCallbacks(_ callbackList: [() -> Void]) {
         for callback in callbackList {
             queue.async {
                 callback()

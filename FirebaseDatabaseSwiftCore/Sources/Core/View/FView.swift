@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class FViewOperationResult {
+class FViewOperationResult {
     public let changes: [FChange]
     public let events: [FEvent]
     init(changes: [FChange], events: [FEvent]) {
@@ -33,22 +33,22 @@ public class FViewOperationResult {
  @property(nonatomic, strong) FEventGenerator *eventGenerator;
 
  */
-public class FView {
+class FView {
     private let processor: FViewProcessor
     private var viewCache: FViewCache
     private var eventRegistrations: [FEventRegistration]
     private let eventGenerator: FEventGenerator
     public let query: FQuerySpec
-    public var eventCache: FNode {
+    var eventCache: FNode {
         viewCache.cachedEventSnap.node
     }
-    public var serverCache: FNode {
+    var serverCache: FNode {
         viewCache.cachedServerSnap.node
     }
-    public var completeEventCache: FNode? {
+    var completeEventCache: FNode? {
         viewCache.completeEventSnap
     }
-    public init(query: FQuerySpec, initialViewCache: FViewCache) {
+    init(query: FQuerySpec, initialViewCache: FViewCache) {
         self.query = query
         let indexFilter = FIndexedFilter(index: query.index)
         let filter = query.params.nodeFilter
@@ -68,7 +68,7 @@ public class FView {
         self.eventGenerator = FEventGenerator(query: query)
     }
 
-    public func completeServerCache(for path: FPath) -> FNode? {
+    func completeServerCache(for path: FPath) -> FNode? {
         guard let cache = viewCache.completeServerSnap else { return nil }
         // If this isn't a "loadsAllData" view, then cache isn't actually a
         // complete cache and we need to see if it contains the child we're
@@ -82,7 +82,7 @@ public class FView {
         return nil
     }
 
-    public func completeEventCache(for path: FPath) -> FNode? {
+    func completeEventCache(for path: FPath) -> FNode? {
         guard let cache = viewCache.completeEventSnap else { return nil }
         // If this isn't a "loadsAllData" view, then cache isn't actually a
         // complete cache and we need to see if it contains the child we're
@@ -96,11 +96,11 @@ public class FView {
         return nil
 
     }
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         eventRegistrations.isEmpty
     }
 
-    public func addEventRegistration(_ eventRegistration: FEventRegistration) {
+    func addEventRegistration(_ eventRegistration: FEventRegistration) {
         eventRegistrations.append(eventRegistration)
     }
 
@@ -110,7 +110,7 @@ public class FView {
      * will be returned.
      * @return Cancel events, if cancelError was provided.
      */
-    public func removeEventRegistration(_ eventRegistration: FEventRegistration?, cancelError: Error?) -> [FEvent] {
+    func removeEventRegistration(_ eventRegistration: FEventRegistration?, cancelError: Error?) -> [FEvent] {
         var cancelEvents: [FEvent] = []
         if let cancelError = cancelError {
             assert(eventRegistration == nil, "A cancel should cancel all event registrations.")
@@ -135,7 +135,7 @@ public class FView {
      * Applies the given Operation, updates our cache, and returns the appropriate
      * events and changes
      */
-    public func applyOperation(_ operation: FOperation, writesCache: FWriteTreeRef, serverCache optCompleteServerCache: FNode?) -> FViewOperationResult {
+    func applyOperation(_ operation: FOperation, writesCache: FWriteTreeRef, serverCache optCompleteServerCache: FNode?) -> FViewOperationResult {
         if operation.type == .merge && operation.source.queryParams != nil {
             assert(self.viewCache.completeServerSnap != nil,
                      "We should always have a full cache before handling merges")
@@ -153,7 +153,7 @@ public class FView {
         return FViewOperationResult(changes: result.changes, events: events)
     }
 
-    public func initialEvents(_ registration: FEventRegistration) -> [FEvent] {
+    func initialEvents(_ registration: FEventRegistration) -> [FEvent] {
         let eventSnap = viewCache.cachedEventSnap
         var initialChanges: [FChange] = []
         eventSnap.indexedNode.node.enumerateChildren { key, node, stop in

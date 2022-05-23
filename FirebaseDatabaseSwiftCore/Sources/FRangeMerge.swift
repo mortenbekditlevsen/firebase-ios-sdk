@@ -17,18 +17,18 @@ import Foundation
  * includes any path). Priorities of children nodes are treated as leaf children
  * of that node.
  */
-public class FRangeMerge {
+class FRangeMerge {
     let optExclusiveStart: FPath?
     let optInclusiveEnd: FPath?
     var updates: FNode
 
-    public func applyToNode(_ node: FNode) -> FNode {
+    func applyToNode(_ node: FNode) -> FNode {
         updateRangeInNode(currentPath: .empty,
                           node: node,
                           updates: updates)
     }
 
-    public init(start: FPath?, end: FPath?, updates: FNode) {
+    init(start: FPath?, end: FPath?, updates: FNode) {
         self.optExclusiveStart = start
         self.optInclusiveEnd = end
         self.updates = updates
@@ -107,7 +107,7 @@ public class FRangeMerge {
         }
     }
 
-    public var debugDescription: String {
+    var debugDescription: String {
         "RangeMerge (optExclusiveStart = \(optExclusiveStart?.description ?? "nil"), optExclusiveEnd = \(optInclusiveEnd?.description ?? "nil"), updates = \(updates))"
     }
 }

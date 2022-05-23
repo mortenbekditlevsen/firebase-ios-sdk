@@ -21,7 +21,7 @@ enum FTransactionStatus: Int {
 
 let kFirebaseCoreErrorDomain = "com.firebase.core"
 
-public class FRepo: FPersistentConnectionDelegate {
+class FRepo: FPersistentConnectionDelegate {
     var config: DatabaseConfig
 
     private var repoInfo: FRepoInfo
@@ -48,7 +48,7 @@ public class FRepo: FPersistentConnectionDelegate {
     private let dispatchQueue: DispatchQueue = DatabaseQuery.sharedQueue
 
 
-    public init(repoInfo info: FRepoInfo, config: DatabaseConfig, database: Database) {
+    init(repoInfo info: FRepoInfo, config: DatabaseConfig, database: Database) {
         print("FREPO INIT", config, info, database)
         self.config = config
         self.repoInfo = info
@@ -194,18 +194,18 @@ public class FRepo: FPersistentConnectionDelegate {
     }
 
     var name: String { repoInfo.namespace }
-    public var description: String { repoInfo.description }
-    public func interrupt() {
+    var description: String { repoInfo.description }
+    func interrupt() {
         connection.interruptForReason(kFInterruptReasonRepoInterrupt)
     }
-    public func resume() {
+    func resume() {
         connection.resumeForReason(kFInterruptReasonRepoInterrupt)
     }
 
     // NOTE: Typically if you're calling this, you should be in an @autoreleasepool
     // block to make sure that ARC kicks in and cleans up things no longer
     // referenced (i.e. pendingPutsDB).
-    public func dispose() {
+    func dispose() {
         connection.interruptForReason(kFInterruptReasonRepoInterrupt)
 
         // We need to nil out any references to LevelDB, to make sure the
@@ -218,9 +218,9 @@ public class FRepo: FPersistentConnectionDelegate {
         return writeIdCounter
     }
 
-    public var serverTime: TimeInterval { serverClock.currentTime }
+    var serverTime: TimeInterval { serverClock.currentTime }
 
-    public func set(_ path: FPath, withNode node: FNode, withCallback onComplete: ((Error?, DatabaseReference) -> Void)?) {
+    func set(_ path: FPath, withNode node: FNode, withCallback onComplete: ((Error?, DatabaseReference) -> Void)?) {
         let value = node.val(forExport: true)
         FFLog("I-RDB038003", "Setting: \(path) with \(value) pri: \(node.getPriority().val())")
 
@@ -247,7 +247,7 @@ public class FRepo: FPersistentConnectionDelegate {
         rerunTransactionsForPath(affectedPath)
     }
 
-    public func update(_ path: FPath, withNodes nodes: FCompoundWrite, withCallback callback: ((Error?, DatabaseReference) -> Void)?) {
+    func update(_ path: FPath, withNodes nodes: FCompoundWrite, withCallback callback: ((Error?, DatabaseReference) -> Void)?) {
         let values = nodes.valForExport(true)
         FFLog("I-RDB038004", "Updating: \(path) with \(values)")
         let serverValues = FServerValues.generateServerValues(serverClock)
@@ -478,7 +478,7 @@ public class FRepo: FPersistentConnectionDelegate {
     // MARK: -
     // MARK: FPersistentConnectionDelegate methods
 
-    public func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: Any, isMerge: Bool, tagId: Int?) {
+    func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: Any, isMerge: Bool, tagId: Int?) {
         FFLog("I-RDB038013", "onDataUpdateForPath: \(pathString) withMessage: \(message)")
 
         // For testing.
@@ -513,7 +513,7 @@ public class FRepo: FPersistentConnectionDelegate {
 
     }
 
-    public func onRangeMerge(_ ranges: [FRangeMerge], forPath pathString: String, tagId: Int?) {
+    func onRangeMerge(_ ranges: [FRangeMerge], forPath pathString: String, tagId: Int?) {
         FFLog("I-RDB038014", "onRangeMerge: \(pathString) => \(ranges)")
 
         // For testing
@@ -534,16 +534,16 @@ public class FRepo: FPersistentConnectionDelegate {
         eventRaiser.raiseEvents(events)
     }
 
-    public func onConnect(_ fpconnection: FPersistentConnection) {
+    func onConnect(_ fpconnection: FPersistentConnection) {
         updateInfo(kDotInfoConnected, withValue: true)
     }
 
-    public func onDisconnect(_ fpconnection: FPersistentConnection) {
+    func onDisconnect(_ fpconnection: FPersistentConnection) {
         updateInfo(kDotInfoConnected, withValue: false)
         runOnDisconnectEvents()
     }
 
-    public func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : Any]) {
+    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : Any]) {
         for (key, val) in updates {
             updateInfo(key, withValue: val)
         }
@@ -561,7 +561,7 @@ public class FRepo: FPersistentConnectionDelegate {
     }
 
 #if canImport(UIKit)
-    @objc public func didEnterBackground() {
+    @objc func didEnterBackground() {
         guard config.persistenceEnabled else {
             return
         }
@@ -621,7 +621,7 @@ public class FRepo: FPersistentConnectionDelegate {
         eventRaiser.raiseEvents(events)
     }
 
-    public func dumpListens() -> [FQuerySpec : FOutstandingQuery] {
+    func dumpListens() -> [FQuerySpec : FOutstandingQuery] {
         connection.dumpListens()
     }
 

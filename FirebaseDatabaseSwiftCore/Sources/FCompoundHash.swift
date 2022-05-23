@@ -21,28 +21,28 @@ typealias FCompoundHashSplitStrategy = (FCompoundHashBuilder) -> Bool
 public
 class FCompoundHashWrapper {
     let wrapped: FCompoundHash
-    public var posts: [FPath] {
+    var posts: [FPath] {
         wrapped.posts
     }
-    public var hashes: [String] {
+    var hashes: [String] {
         wrapped.hashes
     }
 
     required init(wrapped: FCompoundHash) {
         self.wrapped = wrapped
     }
-    public static func fromNode(_ node: FNode) -> FCompoundHashWrapper {
+    static func fromNode(_ node: FNode) -> FCompoundHashWrapper {
         self.init(wrapped: FCompoundHash.fromNode(node: node))
     }
-    public static func fromNode(_ node: FNode, splitStrategy: @escaping (FCompoundHashBuilderWrapper) -> Bool) -> FCompoundHashWrapper {
+    static func fromNode(_ node: FNode, splitStrategy: @escaping (FCompoundHashBuilderWrapper) -> Bool) -> FCompoundHashWrapper {
         self.init(wrapped: FCompoundHash.fromNode(node: node, splitStrategy: { sko in splitStrategy(FCompoundHashBuilderWrapper(wrapped: sko))}))
     }
 
 }
 
-public class FCompoundHashBuilderWrapper {
+class FCompoundHashBuilderWrapper {
     let wrapped: FCompoundHashBuilder
-    public var currentPath: FPath {
+    var currentPath: FPath {
         wrapped.currentPath
     }
     init(wrapped: FCompoundHashBuilder) {

@@ -7,12 +7,12 @@
 
 import Foundation
 
-public class FLimitedFilter: FNodeFilter {
+class FLimitedFilter: FNodeFilter {
     let rangedFilter: FRangedFilter
-    public let index: FIndex
+    let index: FIndex
     let limit: Int
     let reverse: Bool
-    public init(queryParams params: FQueryParams) {
+    init(queryParams params: FQueryParams) {
         self.rangedFilter = FRangedFilter(queryParams: params)
         self.index = params.index
         self.limit = params.limit
@@ -45,11 +45,11 @@ public class FLimitedFilter: FNodeFilter {
             // `nextChild`
             var remainsInWindow = inRange && !newChildSnap.isEmpty
             remainsInWindow = remainsInWindow &&
-            (nextChild == nil || index.compareKey(nextChild!.name,
-                                                  andNode:nextChild!.node,
-                                                  toOtherKey:childKey,
-                                                  andNode:newChildSnap,
-                                                  reverse:self.reverse).rawValue >=
+            (nextChild == nil || index.compare(lhs: (key: nextChild!.name,
+                                                  node: nextChild!.node),
+                                               rhs: (key: childKey,
+                                                  node: newChildSnap),
+                                                  reversed:self.reverse).rawValue >=
              ComparisonResult.orderedSame.rawValue)
 
             if remainsInWindow {
@@ -102,11 +102,11 @@ public class FLimitedFilter: FNodeFilter {
             // `newChildSnap` is in range, but was ordered after `windowBoundary`.
             // If this has changed, we bump out the `windowBoundary` and add the
             // `newChildSnap`
-            if index.compareKey(windowBoundary.name,
-                               andNode:windowBoundary.node,
-                            toOtherKey:childKey,
-                               andNode:newChildSnap,
-                                reverse:self.reverse).rawValue >= ComparisonResult.orderedSame.rawValue {
+            if index.compare(lhs: (key: windowBoundary.name,
+                               node: windowBoundary.node),
+                             rhs: (key: childKey,
+                                   node: newChildSnap),
+                                reversed:self.reverse).rawValue >= ComparisonResult.orderedSame.rawValue {
                 if let accumulator = optChangeAccumulator {
                     let removedChange = FChange(type: .childRemoved, indexedNode: FIndexedNode(node: windowBoundary.node), childKey: windowBoundary.name)
                     let addedChange = FChange(type: .childAdded, indexedNode: FIndexedNode(node: newChildSnap), childKey: childKey)
@@ -126,7 +126,7 @@ public class FLimitedFilter: FNodeFilter {
         }
     }
 
-    public func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+    func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         var newChildSnap = newChildSnap
         if !self.rangedFilter.matchesKey(childKey, andNode:newChildSnap) {
             newChildSnap = FEmptyNode.emptyNode
@@ -146,7 +146,7 @@ public class FLimitedFilter: FNodeFilter {
         }
     }
 
-    public func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+    func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
 
         var filtered: FIndexedNode
         if newSnap.node.isLeafNode() || newSnap.node.isEmpty {
@@ -169,17 +169,17 @@ public class FLimitedFilter: FNodeFilter {
             var foundStartPost = false
             var count = 0
             newSnap.enumerateChildrenReverse(reverse) { childKey, childNode, stop in
-                if !foundStartPost && self.index.compareKey(startPost.name, andNode: startPost.node, toOtherKey: childKey, andNode: childNode, reverse: self.reverse).rawValue <= ComparisonResult.orderedSame.rawValue {
+                if !foundStartPost && self.index.compare(lhs: (key: startPost.name, node: startPost.node), rhs: (key: childKey, node: childNode), reversed: self.reverse).rawValue <= ComparisonResult.orderedSame.rawValue {
                     // Start adding
                     foundStartPost = true
                 }
                 var inRange = foundStartPost && count < self.limit
                 inRange = inRange &&
-                self.index.compareKey(childKey,
-                                         andNode:childNode,
-                                      toOtherKey:endPost.name,
-                                         andNode:endPost.node,
-                                      reverse:self.reverse).rawValue <=
+                self.index.compare(lhs: (key: childKey,
+                                         node: childNode),
+                                   rhs: (key :endPost.name,
+                                         node: endPost.node),
+                                      reversed:self.reverse).rawValue <=
                 ComparisonResult.orderedSame.rawValue;
                 if inRange {
                     count += 1
@@ -196,14 +196,14 @@ public class FLimitedFilter: FNodeFilter {
 
     }
 
-    public func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
+    func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
         // Don't support priorities on queries.
         return oldSnap
     }
 
-    public var indexedFilter: FNodeFilter {
+    var indexedFilter: FNodeFilter {
         rangedFilter.indexedFilter
     }
 
-    public var filtersNodes: Bool { true }
+    var filtersNodes: Bool { true }
 }

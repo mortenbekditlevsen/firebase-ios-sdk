@@ -8,20 +8,20 @@
 import Foundation
 
 
-public class DatabaseConnectionContext {
+class DatabaseConnectionContext {
     /// Auth token if available.
-    public var authToken: String?
+    var authToken: String?
 
     /// App check token if available.
-    public var appCheckToken: String?
+    var appCheckToken: String?
 
-    public init(authToken: String?, appCheckToken: String?) {
+    init(authToken: String?, appCheckToken: String?) {
         self.authToken = authToken
         self.appCheckToken = appCheckToken
     }
 }
 
-public protocol DatabaseConnectionContextProviderProtocol {
+protocol DatabaseConnectionContextProviderProtocol {
     func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void)
 
     /// Adds a listener to the Auth token updates.
@@ -79,16 +79,16 @@ private class FAuthStateListenerWrapper {
     }
 }
 
-public protocol DatabaseAuthInterop: AnyObject {
+protocol DatabaseAuthInterop: AnyObject {
     func getTokenForcingRefresh(_ forceRefresh: Bool, withCallback callback: (String?, Error?) -> Void)
 }
 
-public protocol DatabaseAppCheckTokenResultInterop {
+protocol DatabaseAppCheckTokenResultInterop {
     var token: String? { get }
     var error: Error? { get }
 }
 
-public protocol DatabaseAppCheckInterop {
+protocol DatabaseAppCheckInterop {
     func getTokenForcingRefresh(_ forceRefresh: Bool, completion: @escaping (DatabaseAppCheckTokenResultInterop) -> Void)
     var notificationTokenKey: String { get }
     var tokenDidChangeNotificationName: Notification.Name { get }
@@ -98,7 +98,7 @@ public protocol DatabaseAppCheckInterop {
 // TODO: Make FIRAppCheckTokenResultInterop conform to FIRDatabaseAppCheckTokenResultInterop
 // TODO: Make FIRAuthInterop conform to FIRDatabaseAuthInterop
 
-public class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtocol {
+class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtocol {
 
     var appCheck: DatabaseAppCheckInterop? // FIRAppCheckInterop
     var auth: DatabaseAuthInterop? // FIRAuthInterop
@@ -144,7 +144,7 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         }
     }
 
-    public func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void) {
+    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void) {
         guard self.auth != nil || self.appCheck != nil else {
             // Nothing to fetch. Finish straight away.
             // XXX TODO: HACK TO MAKE TESTING WORK
@@ -185,7 +185,7 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         })
     }
 
-    public func listenForAuthTokenChanges(_ listener: @escaping (String) -> Void) {
+    func listenForAuthTokenChanges(_ listener: @escaping (String) -> Void) {
         guard let auth = auth else {
             return
         }
@@ -194,7 +194,7 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         authListeners.append(wrapper)
     }
 
-    public func listenForAppCheckTokenChanges(_ listener: @escaping (String) -> Void) {
+    func listenForAppCheckTokenChanges(_ listener: @escaping (String) -> Void) {
         guard let appCheck = appCheck else {
             return
         }
@@ -217,7 +217,7 @@ public class DatabaseConnectionContextProvider: DatabaseConnectionContextProvide
         self.appCheckNotificationObservers.append(observer)
     }
 
-    public class func contextProvider(auth: DatabaseAuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
+    class func contextProvider(auth: DatabaseAuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
         DatabaseConnectionContextProvider(auth: auth, appCheck: appCheck, dispatchQueue: dispatchQueue)
     }
 }

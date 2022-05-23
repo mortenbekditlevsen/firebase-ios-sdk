@@ -7,28 +7,28 @@
 
 import Foundation
 
-public class FValidation {
-    public static func validatePriorityValue(_ value: Any) -> Bool {
+class FValidation {
+    static func validatePriorityValue(_ value: Any) -> Bool {
         FValidationSwift.validatePriorityValue(value)
     }
-    public static func validateFrom(_ fn: String, validRootPathString pathString: String) {
+    static func validateFrom(_ fn: String, validRootPathString pathString: String) {
         FValidationSwift.validateFrom(fn, validRootPathString: pathString)
     }
-    public static func validateFrom(_ fn: String, validURL parsedUrl: FParsedUrl) {
+    static func validateFrom(_ fn: String, validURL parsedUrl: FParsedUrl) {
         FValidationSwift.validateFrom(fn, validURL: parsedUrl)
     }
 
-    public static func validateFrom(_ fn: String, validKey key: String) {
+    static func validateFrom(_ fn: String, validKey key: String) {
         FValidationSwift.validateFrom(fn, validKey: key)
     }
 
-    public static func validateFrom(_ fn: String, validPathString pathString: String) {
+    static func validateFrom(_ fn: String, validPathString pathString: String) {
         FValidationSwift.validateFrom(fn, validPathString: pathString)
     }
-    public static func validateFrom(_ fn: String, writablePath path: FPath) {
+    static func validateFrom(_ fn: String, writablePath path: FPath) {
         FValidationSwift.validateFrom(fn, writablePath: path)
     }
-    public static func validateFrom(_ fn: String, knownEventType event: DataEventType) {
+    static func validateFrom(_ fn: String, knownEventType event: DataEventType) {
         FValidationSwift.validateFrom(fn, knownEventType: event)
     }
 }
@@ -53,14 +53,14 @@ public enum FValidationSwift {
     }
 
     // MARK: Snapshot validation
-    public static func validateFrom(_ fn: String, isValidPriorityValue value: Any, withPath path: [String]) {
+    static func validateFrom(_ fn: String, isValidPriorityValue value: Any, withPath path: [String]) {
         _ = validateFrom(fn, isValidPriorityValue: value, withPath: path, throwError: true)
     }
 
     /**
      * Returns YES if priority is valid.
      */
-    public static func validatePriorityValue(_ value: Any) -> Bool {
+    static func validatePriorityValue(_ value: Any) -> Bool {
         validateFrom("", isValidPriorityValue: value, withPath: [], throwError: false)
     }
 
@@ -162,7 +162,7 @@ public enum FValidationSwift {
         let pathKey = parseAndValidateKey(keyId, fromFunction: fn, path: [])
         let path = FPath(with: pathKey)
         var keyNum = 0
-        path.enumerateComponents { key, _ in
+        for key in path.components {
             if key == kPayloadPriority && keyNum == path.length() - 1 {
                 validateFrom(fn, isValidPriorityValue: value, withPath: [])
             } else {

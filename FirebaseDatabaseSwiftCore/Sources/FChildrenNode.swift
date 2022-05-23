@@ -8,36 +8,36 @@
 import SortedCollections
 import Foundation
 
-public class FEmptyNode {
+class FEmptyNode {
     public static var emptyNode: FNode = FChildrenNode(children: [:])
 }
 
 private let kMinName = "[MIN_NAME]"
 private let kMaxName = "[MAX_NAME]"
 
-public struct FNamedNode: Hashable {
-    public static func == (lhs: FNamedNode, rhs: FNamedNode) -> Bool {
+struct FNamedNode: Hashable {
+    static func == (lhs: FNamedNode, rhs: FNamedNode) -> Bool {
         lhs.name == rhs.name && lhs.node.isEqual(rhs.node)
     }
 
-    public func hash(into hasher: inout Hasher) {
+    func hash(into hasher: inout Hasher) {
         name.hash(into: &hasher)
         node.hash.hash(into: &hasher)
     }
 
-    public var name: String
-    public var node: FNode
-    public init(name: String, andNode node: FNode) {
+    var name: String
+    var node: FNode
+    init(name: String, andNode node: FNode) {
         self.name = name
         self.node = node
     }
-    public static func nodeWithName(_ name: String, node: FNode) -> FNamedNode {
+    static func nodeWithName(_ name: String, node: FNode) -> FNamedNode {
         FNamedNode(name: name, andNode: node)
     }
     public static var min: FNamedNode = FNamedNode(name: kMinName, andNode: FEmptyNode.emptyNode)
     public static var max: FNamedNode = FNamedNode(name: kMaxName, andNode: FEmptyNode.emptyNode)
 
-    public var description: String {
+    var description: String {
         "NamedNode[\(name)] \(node)"
     }
 }
@@ -50,17 +50,17 @@ struct KeyIndex: Comparable {
     let key: String
 }
 
-public class FChildrenNode: FNode {
+class FChildrenNode: FNode {
 
-    public func isLeafNode() -> Bool {
+    func isLeafNode() -> Bool {
         false
     }
     
-    public func getPriority() -> FNode {
+    func getPriority() -> FNode {
         priorityNode ?? FEmptyNode.emptyNode
     }
 
-    public func updatePriority(_ priority: FNode) -> FNode {
+    func updatePriority(_ priority: FNode) -> FNode {
         if children.isEmpty {
             return FEmptyNode.emptyNode
         } else {
@@ -76,7 +76,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func getImmediateChild(_ childKey: String) -> FNode {
+    func getImmediateChild(_ childKey: String) -> FNode {
         if childKey == ".priority" {
             return getPriority()
         } else {
@@ -84,14 +84,14 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func getChild(_ path: FPath) -> FNode {
+    func getChild(_ path: FPath) -> FNode {
         guard let front = path.getFront() else {
             return self
         }
         return getImmediateChild(front).getChild(path.popFront())
     }
 
-    public func predecessorChildKey(_ childKey: String) -> String? {
+    func predecessorChildKey(_ childKey: String) -> String? {
         let wrapped = KeyIndex(key: childKey)
         guard let keyIndex = children.keys.firstIndex(of: wrapped), keyIndex != children.keys.startIndex else {
             return nil
@@ -99,7 +99,7 @@ public class FChildrenNode: FNode {
         return children.keys[children.keys.index(before: keyIndex)].key
     }
 
-    public func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
+    func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
         guard childKey != ".priority" else {
             return updatePriority(newChildNode)
         }
@@ -118,7 +118,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
+    func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
         guard let front = path.getFront() else {
             return newChildNode
         }
@@ -128,23 +128,23 @@ public class FChildrenNode: FNode {
         return updateImmediateChild(front, withNewChild: newImmediateChild)
     }
 
-    public func hasChild(_ childKey: String) -> Bool {
+    func hasChild(_ childKey: String) -> Bool {
         !getImmediateChild(childKey).isEmpty
     }
 
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         children.isEmpty
     }
 
-    public func numChildren() -> Int {
+    func numChildren() -> Int {
         children.count
     }
 
-    public func val() -> Any {
+    func val() -> Any {
         return val(forExport: false)
     }
 
-    public func val(forExport exp: Bool) -> Any {
+    func val(forExport exp: Bool) -> Any {
         guard !isEmpty else {
             return NSNull()
         }
@@ -189,7 +189,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func dataHash() -> String {
+    func dataHash() -> String {
         if let hash = lazyHash {
             return hash
         }
@@ -214,9 +214,9 @@ public class FChildrenNode: FNode {
                 array.append(FNamedNode(name: key.key, andNode: node))
             }
             array.sort { a, b in
-                FPriorityIndex
-                    .priorityIndex
-                    .compareNamedNode(a, toNamedNode: b) == .orderedAscending
+                FIndex
+                    .priority
+                    .compareNamedNode(lhs: a, rhs: b) == .orderedAscending
             }
             for namedNode in array {
                 let childHash = namedNode.node.dataHash()
@@ -238,7 +238,7 @@ public class FChildrenNode: FNode {
         return calculatedHash
     }
 
-    public func compare(_ other: FNode) -> ComparisonResult {
+    func compare(_ other: FNode) -> ComparisonResult {
         
         // children nodes come last, unless this is actually an empty node, then we
         // come first.
@@ -258,7 +258,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop = ObjCBool(booleanLiteral: false)
         for (key, value) in children {
             block(key.key, value, &stop)
@@ -266,7 +266,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop = ObjCBool(booleanLiteral: false)
         if reverse {
             for (key, value) in children.reversed() {
@@ -281,7 +281,7 @@ public class FChildrenNode: FNode {
         }
     }
 
-//    public func childEnumerator() -> NSEnumerator {
+//    func childEnumerator() -> NSEnumerator {
 //        NodeEnumerator(iterator: children.makeIterator(), node: self)
 //    }
 
@@ -293,11 +293,11 @@ public class FChildrenNode: FNode {
         self.children = children
     }
 
-    public var description: String {
+    var description: String {
         "FChildrenNode: \(children)"
     }
 
-    public var hash: Int {
+    var hash: Int {
         var hasher = Hasher()
         for (key, node) in children {
             key.key.hash(into: &hasher)
@@ -307,7 +307,7 @@ public class FChildrenNode: FNode {
         return hasher.finalize()
     }
 
-    public func isEqual(_ object: Any?) -> Bool {
+    func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FNode else { return false }
         if other === self { return true }
         if other.isLeafNode() { return false }
@@ -339,12 +339,12 @@ public class FChildrenNode: FNode {
         self.priorityNode = priority
     }
 
-    public init() {
+    init() {
         self.children = [:]
         self.priorityNode = nil
     }
 
-    public func enumerateChildrenAndPriority(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildrenAndPriority(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         if getPriority().isEmpty {
             enumerateChildren(usingBlock: block)
         } else {
@@ -370,14 +370,14 @@ public class FChildrenNode: FNode {
         }
     }
 
-    public func firstChild() -> FNamedNode? {
+    func firstChild() -> FNamedNode? {
         guard let first = children.keys.first else {
             return nil
         }
         return FNamedNode(name: first.key, andNode: getImmediateChild(first.key))
     }
 
-    public func lastChild() -> FNamedNode? {
+    func lastChild() -> FNamedNode? {
         guard let last = children.keys.last else {
             return nil
         }
@@ -385,7 +385,7 @@ public class FChildrenNode: FNode {
     }
 }
 
-public class FMaxNode: FChildrenNode {
+class FMaxNode: FChildrenNode {
     public static var maxNode = FMaxNode()
     public override func compare(_ other: FNode) -> ComparisonResult {
         if other === self { return .orderedSame }

@@ -7,16 +7,16 @@
 
 import Foundation
 
-public typealias fbt_startListeningBlock = (FQuerySpec, Int?, FSyncTreeHash, @escaping (String) -> [FEvent]) -> [FEvent]
+typealias fbt_startListeningBlock = (FQuerySpec, Int?, FSyncTreeHash, @escaping (String) -> [FEvent]) -> [FEvent]
 
-public typealias fbt_stopListeningBlock = (FQuerySpec, Int?) -> Void
+typealias fbt_stopListeningBlock = (FQuerySpec, Int?) -> Void
 
-public class FListenProvider {
+class FListenProvider {
     internal init(startListening: @escaping fbt_startListeningBlock, stopListening: @escaping fbt_stopListeningBlock) {
         self.startListening = startListening
         self.stopListening = stopListening
     }
 
-    public var startListening: fbt_startListeningBlock
-    public var stopListening: fbt_stopListeningBlock
+    var startListening: fbt_startListeningBlock
+    var stopListening: fbt_stopListeningBlock
 }

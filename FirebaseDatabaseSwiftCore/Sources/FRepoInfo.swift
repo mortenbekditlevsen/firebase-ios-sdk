@@ -13,7 +13,7 @@ public struct FRepoInfo: Hashable {
     public let host: String
 
     public let namespace: String
-    public var internalHost: String {
+    var internalHost: String {
         didSet {
             if internalHost != oldValue {
                 let internalHostKey = "firebase:host:\(host)"
@@ -21,10 +21,10 @@ public struct FRepoInfo: Hashable {
             }
         }
     }
-    public var secure: Bool
+    var secure: Bool
     public let domain: String
 
-    public init(host: String, isSecure: Bool, withNamespace namespace: String) {
+    init(host: String, isSecure: Bool, withNamespace namespace: String) {
         self.host = host
         self.namespace = namespace
         self.secure = isSecure
@@ -42,15 +42,15 @@ public struct FRepoInfo: Hashable {
         }
     }
 
-    public var description: String {
+    var description: String {
         return "http\(secure ? "s" : ""):\(host)"
     }
 
-    public init(info: FRepoInfo, emulatedHost: String) {
+    init(info: FRepoInfo, emulatedHost: String) {
         self.init(host: emulatedHost, isSecure: false, withNamespace: info.namespace)
     }
 
-    public func connectionURL(lastSessionID: String?) -> String {
+    func connectionURL(lastSessionID: String?) -> String {
         let scheme: String
         if secure {
             scheme = "wss"
@@ -65,7 +65,7 @@ public struct FRepoInfo: Hashable {
         return url
     }
 
-    public var connectionURL: String {
+    var connectionURL: String {
         connectionURL(lastSessionID: nil)
     }
 
@@ -76,11 +76,11 @@ public struct FRepoInfo: Hashable {
         UserDefaults.standard.removeObject(forKey: internalHostKey)
     }
 
-    public var isDemoHost: Bool {
+    var isDemoHost: Bool {
         domain == "firebaseio-demo.com"
     }
 
-    public var isCustomHost: Bool {
+    var isCustomHost: Bool {
         domain != "firebaseio-demo.com" &&
         domain != "firebaseio.com"
     }

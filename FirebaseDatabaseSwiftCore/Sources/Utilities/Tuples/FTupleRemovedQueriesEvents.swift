@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class FTupleRemovedQueriesEvents {
+class FTupleRemovedQueriesEvents {
     /**
      * `FQuerySpec`s removed with [SyncPoint removeEventRegistration:]
      */
@@ -16,7 +16,7 @@ public class FTupleRemovedQueriesEvents {
      * cancel events as FEvent
      */
     public let cancelEvents: [FEvent]
-    public init(removedQueries: [FQuerySpec], cancelEvents: [FEvent]) {
+    init(removedQueries: [FQuerySpec], cancelEvents: [FEvent]) {
         self.removedQueries = removedQueries
         self.cancelEvents = cancelEvents
     }

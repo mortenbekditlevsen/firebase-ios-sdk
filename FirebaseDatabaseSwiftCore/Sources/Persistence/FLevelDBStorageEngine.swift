@@ -58,7 +58,7 @@ private func trackedQueryKeysKey(trackedQueryId: Int, key: String) -> String {
     "\(kFTrackedQueryKeysPrefix)\(trackedQueryId)/\(key)"
 }
 
-public class FLevelDBStorageEngine: FStorageEngine {
+class FLevelDBStorageEngine: FStorageEngine {
     private var writesDB: APLevelDB!
     private var serverCacheDB: APLevelDB!
     private var basePath: URL
@@ -83,7 +83,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
 #endif
     }
 
-    public init(path: String) {
+    init(path: String) {
         self.basePath = FLevelDBStorageEngine.firebaseDir.appendingPathComponent(path)
         /* For reference:
          serverDataDB = [aPersistence createDbByName:@"server_data"];
@@ -121,7 +121,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func runLegacyMigration(_ info: FRepoInfo) {
+    func runLegacyMigration(_ info: FRepoInfo) {
         fatalError("Not yet supported")
         /*
          - (void)runLegacyMigration:(FRepoInfo *)info {
@@ -228,7 +228,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func purgeEverything() {
+    func purgeEverything() {
         close()
         for path in [kFServerDBPath, kFWritesDBPath] {
             purgeDatabase(dbPath: path)
@@ -236,7 +236,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         openDatabases()
     }
 
-    public func close() {
+    func close() {
         // XXX TODO: Original code contained an autorelease around the following to ensure connection is dropped
         serverCacheDB.close()
         serverCacheDB = nil
@@ -244,7 +244,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         writesDB = nil
     }
 
-    public func createDb(dbName: String) -> APLevelDB {
+    func createDb(dbName: String) -> APLevelDB {
         let path = basePath.appendingPathComponent(dbName)
         do {
             return try APLevelDB(path: path.path)
@@ -262,7 +262,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func saveUserOverwrite(_ node: FNode, atPath path: FPath, writeId: Int) {
+    func saveUserOverwrite(_ node: FNode, atPath path: FPath, writeId: Int) {
         let write: [String: Any] = [
             kFUserWriteId : writeId,
             kFUserWritePath : path.toStringWithTrailingSlash(),
@@ -276,7 +276,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func saveUserMerge(_ merge: FCompoundWrite, atPath path: FPath, writeId: Int) {
+    func saveUserMerge(_ merge: FCompoundWrite, atPath path: FPath, writeId: Int) {
         let write: [String: Any] = [
             kFUserWriteId : writeId,
             kFUserWritePath : path.toStringWithTrailingSlash(),
@@ -290,11 +290,11 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func removeUserWrite(_ writeId: Int) {
+    func removeUserWrite(_ writeId: Int) {
         _ = writesDB.removeKey(writeRecordKey(writeId: writeId))
     }
 
-    public func removeAllUserWrites() {
+    func removeAllUserWrites() {
         var count = 0
         let start = Date()
         let batch = writesDB.beginWriteBatch()
@@ -310,7 +310,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public var userWrites: [FWriteRecord] {
+    var userWrites: [FWriteRecord] {
         let date = Date()
         var writes: [FWriteRecord] = []
         writesDB.enumerateKeysAndValues { (key: String, data: Data, stop: inout Bool) in
@@ -349,7 +349,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         return writes
     }
 
-    public func serverCache(atPath path: FPath) -> FNode {
+    func serverCache(atPath path: FPath) -> FNode {
         let start = Date()
         let data = internalNestedData(for: path)
         let node = FSnapshotUtilitiesSwift.nodeFrom(data)
@@ -510,7 +510,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func serverCache(forKeys keys: Set<String>, atPath path: FPath) -> FNode {
+    func serverCache(forKeys keys: Set<String>, atPath path: FPath) -> FNode {
         let start = Date()
         var node: FNode = FEmptyNode.emptyNode
         for key in keys {
@@ -536,7 +536,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         database.enumerateKeys(withPrefix: prefix, usingBlock: { key, stop in batch.removeKey(key) })
     }
 
-    public func updateServerCache(_ node: FNode, atPath path: FPath, merge: Bool) {
+    func updateServerCache(_ node: FNode, atPath path: FPath, merge: Bool) {
         let start = Date()
         let batch = serverCacheDB.beginWriteBatch()
         // Remove any leaf nodes that might be higher up
@@ -562,7 +562,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func updateServerCache(merge: FCompoundWrite, atPath path: FPath) {
+    func updateServerCache(merge: FCompoundWrite, atPath path: FPath) {
         let start = Date()
         var count = 0
         let batch = serverCacheDB.beginWriteBatch()
@@ -601,7 +601,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public var serverCacheEstimatedSizeInBytes: Int {
+    var serverCacheEstimatedSizeInBytes: Int {
         // Use the exact size, because for pruning the approximate size can lead to
         // weird situations where we prune everything because no compaction is ever
         // run
@@ -609,7 +609,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
                                 to: kFServerCacheRangeEnd)
     }
 
-    public func pruneCache(_ pruneForest: FPruneForest, atPath path: FPath) {
+    func pruneCache(_ pruneForest: FPruneForest, atPath path: FPath) {
         // TODO: be more intelligent, don't scan entire database...
         var pruned = 0
         var kept = 0
@@ -638,7 +638,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
 
     // MARK: Tracked queries
 
-    public func loadTrackedQueries() -> [FTrackedQuery] {
+    func loadTrackedQueries() -> [FTrackedQuery] {
         let date = Date()
         var trackedQueries: [FTrackedQuery] = []
         serverCacheDB.enumerateKeys(withPrefix: kFTrackedQueriesPrefix, asData: { key, data, stop in
@@ -692,7 +692,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         return trackedQueries
     }
 
-    public func removeTrackedQuery(_ queryId: Int) {
+    func removeTrackedQuery(_ queryId: Int) {
         let start = Date()
         let batch = serverCacheDB.beginWriteBatch()
         batch.removeKey(trackedQueryKey(trackedQueryId: queryId))
@@ -709,7 +709,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func saveTrackedQuery(_ query: FTrackedQuery) {
+    func saveTrackedQuery(_ query: FTrackedQuery) {
         let start = Date()
         let trackedQuery: [String: Any] = [
             kFTrackedQueryId : query.queryId,
@@ -728,7 +728,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         FFDebug("I-RDB076028", "Saved tracked query \(query.queryId) in \(start.timeIntervalSinceNow * -1000)ms")
     }
 
-    public func setTrackedQueryKeys(_ keys: Set<String>, forQueryId queryId: Int) {
+    func setTrackedQueryKeys(_ keys: Set<String>, forQueryId queryId: Int) {
         let start = Date()
         var removed = 0
         var added = 0
@@ -761,7 +761,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func updateTrackedQueryKeys(addedKeys added: Set<String>, removedKeys removed: Set<String>, forQueryId queryId: Int) {
+    func updateTrackedQueryKeys(addedKeys added: Set<String>, removedKeys removed: Set<String>, forQueryId queryId: Int) {
         let start = Date()
         let batch = serverCacheDB.beginWriteBatch()
         for key in removed {
@@ -778,7 +778,7 @@ public class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    public func trackedQueryKeysForQuery(_ queryId: Int) -> Set<String> {
+    func trackedQueryKeysForQuery(_ queryId: Int) -> Set<String> {
         let start = Date()
         var set: Set<String> = []
 

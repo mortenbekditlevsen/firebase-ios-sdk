@@ -7,20 +7,20 @@
 
 import Foundation
 
-public class FLeafNode: FNode {
-    public func isLeafNode() -> Bool {
+class FLeafNode: FNode {
+    func isLeafNode() -> Bool {
         true
     }
 
-    public func getPriority() -> FNode {
+    func getPriority() -> FNode {
         priority
     }
 
-    public func updatePriority(_ priority: FNode) -> FNode {
+    func updatePriority(_ priority: FNode) -> FNode {
         FLeafNode(value: value, withPriority: priority)
     }
 
-    public func getImmediateChild(_ childKey: String) -> FNode {
+    func getImmediateChild(_ childKey: String) -> FNode {
         if childKey == ".priority" {
             return priority
         } else {
@@ -28,7 +28,7 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func getChild(_ path: FPath) -> FNode {
+    func getChild(_ path: FPath) -> FNode {
         guard let front = path.getFront() else {
             return self
         }
@@ -39,11 +39,11 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func predecessorChildKey(_ childKey: String) -> String? {
+    func predecessorChildKey(_ childKey: String) -> String? {
         nil
     }
 
-    public func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
+    func updateImmediateChild(_ childKey: String, withNewChild newChildNode: FNode) -> FNode {
         if childKey == ".priority" {
             return updatePriority(newChildNode)
         } else if newChildNode.isEmpty {
@@ -55,7 +55,7 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
+    func updateChild(_ path: FPath, withNewChild newChildNode: FNode) -> FNode {
         guard let front = path.getFront() else {
             return newChildNode
         }
@@ -67,23 +67,23 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func hasChild(_ childKey: String) -> Bool {
+    func hasChild(_ childKey: String) -> Bool {
         childKey == ".priority" && !priority.isEmpty
     }
 
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         false
     }
 
-    public func numChildren() -> Int {
+    func numChildren() -> Int {
         0
     }
 
-    public func val() -> Any {
+    func val() -> Any {
         val(forExport: false)
     }
 
-    public func val(forExport exp: Bool) -> Any {
+    func val(forExport exp: Bool) -> Any {
         if exp && !priority.isEmpty {
             return [
                 kPayloadValue: value,
@@ -94,7 +94,7 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func dataHash() -> String {
+    func dataHash() -> String {
         if let lazyHash = lazyHash {
             return lazyHash
         }
@@ -105,7 +105,7 @@ public class FLeafNode: FNode {
         return calculatedHash;
     }
 
-    public func compare(_ other: FNode) -> ComparisonResult {
+    func compare(_ other: FNode) -> ComparisonResult {
         if let other = other as? FChildrenNode, other === FEmptyNode.emptyNode {
             return .orderedDescending
         } else if other is FChildrenNode {
@@ -142,20 +142,20 @@ public class FLeafNode: FNode {
         }
     }
 
-    public func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildren(usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         // Nothing to iterate over
     }
 
-    public func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
         // Nothing to iterate over
     }
 
-//    public func childEnumerator() -> NSEnumerator {
+//    func childEnumerator() -> NSEnumerator {
 //        // Nothing to iterate over
 //        NSArray().objectEnumerator()
 //    }
 
-    public var hash: Int {
+    var hash: Int {
         #warning("Extra fishy")
         guard let v = value as? NSObject else {
             return priority.hash
@@ -164,7 +164,7 @@ public class FLeafNode: FNode {
         return v.hash &* 17 &+ priority.hash
     }
 
-    public func isEqual(_ object: Any?) -> Bool {
+    func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FLeafNode else {
             return false
         }
@@ -186,18 +186,18 @@ public class FLeafNode: FNode {
     let priority: FNode
     var lazyHash: String?
 
-    public init(value: Any) {
+    init(value: Any) {
         self.value = value
         self.priority = FEmptyNode.emptyNode
     }
 
-    public init(value: Any, withPriority priority: FNode) {
+    init(value: Any, withPriority priority: FNode) {
         self.value = value
         FSnapshotUtilitiesSwift.validatePriorityNode(priority)
 
         self.priority = priority
     }
-    public var description: String {
+    var description: String {
         "\(val(forExport: true))"
     }
 }

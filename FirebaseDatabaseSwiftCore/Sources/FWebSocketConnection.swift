@@ -8,7 +8,7 @@
 import Foundation
 import NIOHTTP1
 
-public protocol FWebSocketDelegate: AnyObject {
+protocol FWebSocketDelegate: AnyObject {
     func onMessage(_ fwebSocket: AnyObject, withMessage message: [String: Any])
     func onDisconnect(_ fwebSocket: AnyObject, wasEverConnected: Bool)
 }
@@ -32,7 +32,7 @@ extension String {
     }
 }
 
-public class FWebSocketConnection {
+class FWebSocketConnection {
     var connectionId: Int
     var totalFrames: Int
     var buffering: Bool {
@@ -46,7 +46,7 @@ public class FWebSocketConnection {
     var client: WebSocketClient?
 
     public weak var delegate: FWebSocketDelegate?
-    public func open() {
+    func open() {
         FFLog("I-RDB083002", "(wsc:\(self.connectionId)) FWebSocketConnection open)")
         assert(delegate != nil)
         everConnected = false
@@ -67,13 +67,13 @@ public class FWebSocketConnection {
         }
     }
 
-    public func close() {
+    func close() {
         FFLog("I-RDB083003", "(wsc:\(connectionId)) FWebSocketConnection is being closed.")
         isClosed = true
         client?.close()
     }
 
-    public func start() {
+    func start() {
 //        print("START")
     }
 
@@ -91,7 +91,7 @@ public class FWebSocketConnection {
         }
     }
 
-    public func send(_ dictionary: [String: Any]) {
+    func send(_ dictionary: [String: Any]) {
         resetKeepAlive()
 
         guard let data = try? JSONSerialization.data(withJSONObject: dictionary, options: []) else {
@@ -110,7 +110,7 @@ public class FWebSocketConnection {
         }
     }
 
-    public init(with connectionURL: String,
+    init(with connectionURL: String,
                       andQueue queue: DispatchQueue,
                       googleAppID: String,
                       appCheckToken: String?,
@@ -260,7 +260,7 @@ public enum FDisconnectReason: Int {
     }
 }
 
-public protocol FConnectionDelegate: AnyObject {
+protocol FConnectionDelegate: AnyObject {
     func onReady(_ fconnection: AnyObject,
                        atTime timestamp: NSNumber,
                        sessionID: String)

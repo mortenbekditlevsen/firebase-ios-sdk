@@ -7,19 +7,19 @@
 
 import Foundation
 
-public class FSyncPoint {
+class FSyncPoint {
     private var views: [FQueryParams: FView] = [:]
     private let persistenceManager: FPersistenceManager?
 
-    public init(persistenceManager: FPersistenceManager?) {
+    init(persistenceManager: FPersistenceManager?) {
         self.persistenceManager = persistenceManager
     }
 
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         views.isEmpty
     }
 
-    public func applyOperation(_ operation: FOperation,
+    func applyOperation(_ operation: FOperation,
                                      toView view: FView,
                                      writesCache: FWriteTreeRef,
                                      serverCache: FNode?) -> [FEvent] {
@@ -42,7 +42,7 @@ public class FSyncPoint {
         return result.events
     }
 
-    public func applyOperation(_ operation: FOperation,
+    func applyOperation(_ operation: FOperation,
                                      writesCache: FWriteTreeRef,
                                      serverCache: FNode?) -> [FEvent] {
         if let queryParams = operation.source.queryParams {
@@ -61,7 +61,7 @@ public class FSyncPoint {
         }
     }
 
-    public func getView(_ query: FQuerySpec, writesCache: FWriteTreeRef, serverCache: FCacheNode) -> FView {
+    func getView(_ query: FQuerySpec, writesCache: FWriteTreeRef, serverCache: FCacheNode) -> FView {
         if let view = views[query.params] {
             return view
         }
@@ -81,7 +81,7 @@ public class FSyncPoint {
         return FView(query: query, initialViewCache: viewCache)
     }
 
-    public func addEventRegistration(_ eventRegistration: FEventRegistration, forNonExistingViewForQuery query: FQuerySpec, writesCache: FWriteTreeRef, serverCache: FCacheNode) -> [FEvent] {
+    func addEventRegistration(_ eventRegistration: FEventRegistration, forNonExistingViewForQuery query: FQuerySpec, writesCache: FWriteTreeRef, serverCache: FCacheNode) -> [FEvent] {
         assert(self.views[query.params] == nil, "Found view for query: \(query.params)")
         // TODO: make writesCache take flag for complete server node
         let view = getView(query, writesCache: writesCache, serverCache: serverCache)
@@ -99,7 +99,7 @@ public class FSyncPoint {
         return addEventRegistration(eventRegistration, forExistingViewForQuery: query)
     }
 
-    public func addEventRegistration(_ eventRegistration: FEventRegistration, forExistingViewForQuery query: FQuerySpec) -> [FEvent] {
+    func addEventRegistration(_ eventRegistration: FEventRegistration, forExistingViewForQuery query: FQuerySpec) -> [FEvent] {
         guard let view = views[query.params] else {
             assertionFailure("No view for query: \(query)")
             return []
@@ -117,7 +117,7 @@ public class FSyncPoint {
      *
      * @return FTupleRemovedQueriesEvents removed queries and any cancel events
      */
-    public func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> FTupleRemovedQueriesEvents {
+    func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> FTupleRemovedQueriesEvents {
         var removedQueries: [FQuerySpec] = []
         var cancelEvents: [FEvent] = []
         let hadCompleteView = self.hasCompleteView
@@ -156,21 +156,21 @@ public class FSyncPoint {
         return FTupleRemovedQueriesEvents(removedQueries: removedQueries, cancelEvents: cancelEvents)
     }
 
-    public var queryViews: [FView] {
+    var queryViews: [FView] {
         views.values.filter {
             !$0.query.loadsAllData
         }
     }
 
-    public func completeServerCacheAtPath(_ path: FPath) -> FNode? {
+    func completeServerCacheAtPath(_ path: FPath) -> FNode? {
         views.values.lazy.compactMap { $0.completeServerCache(for: path) }.first
     }
 
-    public func completeEventCacheAtPath(_ path: FPath) -> FNode? {
+    func completeEventCacheAtPath(_ path: FPath) -> FNode? {
         views.values.lazy.compactMap { $0.completeEventCache(for: path) }.first
     }
 
-    public func viewForQuery(_ query: FQuerySpec) -> FView? {
+    func viewForQuery(_ query: FQuerySpec) -> FView? {
         views[query.params]
     }
 
@@ -178,11 +178,11 @@ public class FSyncPoint {
         views[query.params] != nil
     }
 
-    public var hasCompleteView: Bool {
+    var hasCompleteView: Bool {
         completeView != nil
     }
 
-     public var completeView: FView? {
+     var completeView: FView? {
         views.values.lazy.first { $0.query.loadsAllData }
     }
 

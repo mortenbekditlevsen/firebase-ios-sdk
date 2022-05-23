@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class FWriteTree {
+class FWriteTree {
   /**
    * A tree tracking the results of applying all visible writes. This does not
    * include transactions with applyLocally=false or writes that are completely
@@ -25,7 +25,7 @@ public class FWriteTree {
 
   var lastWriteId: Int
 
-  public init() {
+  init() {
     visibleWrites = .emptyWrite
     allWrites = []
     lastWriteId = -1
@@ -35,7 +35,7 @@ public class FWriteTree {
    * Create a new WriteTreeRef for the given path. For use with a new sync point
    * at the given path.
    */
-    public func childWritesForPath(_ path: FPath) -> FWriteTreeRef {
+    func childWritesForPath(_ path: FPath) -> FWriteTreeRef {
     FWriteTreeRef(path: path, writeTree: self)
   }
 
@@ -44,7 +44,7 @@ public class FWriteTree {
    * @param visible Is set to false by some transactions. It should be excluded
    * from event caches.
    */
-    public func addOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) {
+    func addOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) {
     assert(writeId > self.lastWriteId,
              "Stacking an older write on top of a newer one")
     let record = FWriteRecord(path: path, overwrite: newData, writeId: writeId, visible: isVisible)
@@ -61,7 +61,7 @@ public class FWriteTree {
    * Record a new merge from user code.
    * @param changedChildren maps NSString -> id<FNode>
    */
-    public func addMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) {
+    func addMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) {
     assert(writeId > self.lastWriteId,
              "Stacking an older merge on top of newer one")
     let record = FWriteRecord(path: path, merge: changedChildren, writeId: writeId)
@@ -81,7 +81,7 @@ public class FWriteTree {
    * @return YES if the write may have been visible (meaning we'll need to
    * reevaluate / raise events as a result).
    */
-    public func removeWriteId(_ writeId: Int) -> Bool {
+    func removeWriteId(_ writeId: Int) -> Bool {
     guard let index = allWrites.firstIndex(where: { $0.writeId == writeId }) else {
       assert(false,
                "[FWriteTree removeWriteId:] called with nonexistent writeId.")
@@ -132,14 +132,14 @@ public class FWriteTree {
      }
   }
 
-    public func removeAllWrites() -> [FWriteRecord] {
+    func removeAllWrites() -> [FWriteRecord] {
     let writes = allWrites
     visibleWrites = .emptyWrite
     allWrites = []
     return writes
   }
 
-    public func writeForId(_ writeId: Int) -> FWriteRecord? {
+    func writeForId(_ writeId: Int) -> FWriteRecord? {
     allWrites.first { $0.writeId == writeId }
   }
 
@@ -159,7 +159,7 @@ public class FWriteTree {
    * @param includeHiddenWrites Defaults to false, whether or not to layer on
    * writes with visible set to false
    */
-    public func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode?, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode? {
+    func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode?, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode? {
     if excludeWriteIds == nil && !includeHiddenWrites {
       if let shadowingNode = visibleWrites.completeNodeAtPath(treePath) {
         return shadowingNode
@@ -254,7 +254,7 @@ public class FWriteTree {
      * Either existingEventSnap or existingServerSnap must exist.
      */
     // XXX TODO: existingEventSnap never used in original method...
-    public func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
+    func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
 
       let path = treePath.child(childPath)
       if visibleWrites.hasCompleteWriteAtPath(path) {
@@ -330,8 +330,8 @@ public class FWriteTree {
       var currentNextKey: String? = nil
       var currentNextNode: FNode? = nil
       toIterate.enumerateChildren { key, node, stop in
-          if index.compareKey(key, andNode: node, toOtherKey: post.name, andNode: post.node, reverse: reverse).rawValue > ComparisonResult.orderedSame.rawValue &&
-                (currentNextKey == nil || index.compareKey(key, andNode: node, toOtherKey: currentNextKey!, andNode: currentNextNode!, reverse: reverse).rawValue < ComparisonResult.orderedSame.rawValue) {
+          if index.compare(lhs: (key: key, node: node), rhs: (key: post.name, node: post.node), reversed: reverse).rawValue > ComparisonResult.orderedSame.rawValue &&
+                (currentNextKey == nil || index.compare(lhs: (key: key, node: node), rhs: (key: currentNextKey!, node: currentNextNode!), reversed: reverse).rawValue < ComparisonResult.orderedSame.rawValue) {
               currentNextKey = key
               currentNextNode = node
           }

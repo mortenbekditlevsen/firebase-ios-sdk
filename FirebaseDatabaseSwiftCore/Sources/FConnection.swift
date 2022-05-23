@@ -14,12 +14,12 @@ enum FConnectionState : Int {
 }
 
 public final class FConnection: FWebSocketDelegate {
-    public weak var delegate: FConnectionDelegate?
+    weak var delegate: FConnectionDelegate?
     var state: FConnectionState
     var conn: FWebSocketConnection?
     var repoInfo: FRepoInfo
 
-    public init(
+    init(
         with aRepoInfo: FRepoInfo,
         andDispatchQueue queue: DispatchQueue,
         googleAppID: String,
@@ -43,12 +43,12 @@ public final class FConnection: FWebSocketDelegate {
 
     // MARK: -
     // MARK: Public method implementation
-    public func open() {
+    func open() {
         FFLog("I-RDB082001", "Calling open in FConnection")
         conn?.open()
     }
 
-    public func close(with reason: FDisconnectReason) {
+    func close(with reason: FDisconnectReason) {
         if state != .disconnected {
             FFLog("I-RDB082002", "Closing realtime connection.")
             state = .disconnected
@@ -63,7 +63,7 @@ public final class FConnection: FWebSocketDelegate {
         }
     }
 
-    public func close() {
+    func close() {
         close(with: .DISCONNECT_REASON_OTHER)
     }
 
@@ -80,7 +80,7 @@ public final class FConnection: FWebSocketDelegate {
     }
 
 
-    public func sendRequest(_ dataMsg: NSDictionary, sensitive: Bool) throws {
+    func sendRequest(_ dataMsg: NSDictionary, sensitive: Bool) throws {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
         let msg: [String: Any] = [
@@ -117,7 +117,7 @@ public final class FConnection: FWebSocketDelegate {
 
     // Corresponds to onConnectionLost in JS
 
-    public func onDisconnect(
+    func onDisconnect(
         _ fwebSocket: AnyObject,
         wasEverConnected everConnected: Bool
     ) {
@@ -136,7 +136,7 @@ public final class FConnection: FWebSocketDelegate {
     }
 
     // Corresponds to onMessageReceived in JS
-    public func onMessage(
+    func onMessage(
         _ fwebSocket: AnyObject,
         withMessage message: [String: Any]
     ) {
@@ -153,7 +153,7 @@ public final class FConnection: FWebSocketDelegate {
         }
     }
 
-    public func onDataMessage(_ message: NSDictionary?) {
+    func onDataMessage(_ message: NSDictionary?) {
         guard let message = message else { return }
         // we don't do anything with data messages, just kick them up a level
         FFLog("I-RDB082010", "Got data message: \(message)")

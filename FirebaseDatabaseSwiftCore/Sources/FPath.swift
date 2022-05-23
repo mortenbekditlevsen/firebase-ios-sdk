@@ -13,7 +13,7 @@ public struct FPath: Hashable {
     let pieceNum: Int
     let pieces: [String]
 
-    public static func relativePath(from outer: FPath, to inner: FPath) -> FPath {
+    static func relativePath(from outer: FPath, to inner: FPath) -> FPath {
         guard let outerFront = outer.getFront() else {
             return inner
         }
@@ -21,24 +21,17 @@ public struct FPath: Hashable {
         if outerFront == innerFront {
             return relativePath(from: outer.popFront(), to: inner.popFront())
         } else {
-            fatalError()
-//            @throw [[NSException alloc]
-//                initWithName:@"FirebaseDatabaseInternalError"
-//                      reason:[NSString
-//                                 stringWithFormat:
-//                                     @"innerPath (%@) is not within outerPath (%@)",
-//                                     inner, outer]
-//                    userInfo:nil];
+            fatalError("innerPath (\(inner)) is not within outerPath (\(outer))")
         }
     }
 
     public static var empty: FPath { emptyPath }
 
-    public static func path(string: String) -> FPath {
+    static func path(string: String) -> FPath {
         FPath(with: string)
     }
 
-    public init(with path: String) {
+    init(with path: String) {
         let pathPieces = path.components(separatedBy: "/")
         self.pieces = pathPieces.filter {
             !$0.isEmpty
@@ -46,38 +39,27 @@ public struct FPath: Hashable {
         self.pieceNum = 0
     }
 
-    public init(pieces: [String], andPieceNum pieceNum: Int) {
+    init(pieces: [String], andPieceNum pieceNum: Int) {
         self.pieces = pieces
         self.pieceNum = pieceNum
     }
 
-    public func copy(with zone: NSZone? = nil) -> Any {
-        // Immutable, so it's safe to return self
-        return self
+    var components: [String] {
+        Array(pieces[pieceNum...])
     }
 
-    public func enumerateComponents(usingBlock block: @escaping (_ key: String, _ stop: UnsafeMutablePointer<ObjCBool>) -> Void) {
-        var stop: ObjCBool = false
-        for piece in pieces[pieceNum...] {
-            withUnsafeMutablePointer(to: &stop) { pointer in
-                block(piece, pointer)
-            }
-            if stop.boolValue { break }
-        }
-    }
-
-    public func getFront() -> String? {
+    func getFront() -> String? {
         guard pieceNum < pieces.count else {
             return nil
         }
         return pieces[pieceNum]
     }
 
-    public func length() -> Int {
+    func length() -> Int {
         pieces.count - pieceNum
     }
 
-    public func popFront() -> FPath {
+    func popFront() -> FPath {
         var newPieceNum = pieceNum
         if newPieceNum < pieces.count {
             newPieceNum += 1
@@ -85,19 +67,19 @@ public struct FPath: Hashable {
         return FPath(pieces: pieces, andPieceNum: newPieceNum)
     }
 
-    public func getBack() -> String? {
+    func getBack() -> String? {
         pieces.last
     }
 
-    public func toString() -> String {
+    func toString() -> String {
         toString(withTrailingSlash: false)
     }
 
-    public var description: String {
+    var description: String {
         toString()
     }
 
-    public func toStringWithTrailingSlash() -> String {
+    func toStringWithTrailingSlash() -> String {
         toString(withTrailingSlash: true)
     }
 
@@ -117,11 +99,11 @@ public struct FPath: Hashable {
         }
     }
 
-    public func wireFormat() -> String {
+    func wireFormat() -> String {
         isEmpty ? "/" : pieces[pieceNum...].joined(separator: "/")
     }
 
-    public func parent() -> FPath? {
+    func parent() -> FPath? {
         guard pieceNum < pieces.count else {
             return nil
         }
@@ -129,13 +111,13 @@ public struct FPath: Hashable {
         return FPath(pieces: Array(pieces[pieceNum..<(pieces.count - 1)]), andPieceNum: 0)
     }
 
-    public func child(_ childPathObj: FPath) -> FPath {
+    func child(_ childPathObj: FPath) -> FPath {
         var newPieces = Array(pieces[pieceNum...])
         newPieces.append(contentsOf: childPathObj.pieces[childPathObj.pieceNum...])
         return FPath(pieces: newPieces, andPieceNum: 0)
     }
 
-    public func child(fromString childPath: String) -> FPath {
+    func child(fromString childPath: String) -> FPath {
         var newPieces = Array(pieces[pieceNum...])
 
         let pathPieces = childPath.components(separatedBy: "/")
@@ -146,11 +128,11 @@ public struct FPath: Hashable {
         return FPath(pieces: newPieces, andPieceNum: 0)
     }
 
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         pieceNum >= pieces.count
     }
 
-    public func contains(_ other: FPath) -> Bool {
+    func contains(_ other: FPath) -> Bool {
         guard self.length() <= other.length() else {
             return false
         }
@@ -163,7 +145,7 @@ public struct FPath: Hashable {
         return true
     }
 
-    public func compare(_ other: FPath) -> ComparisonResult {
+    func compare(_ other: FPath) -> ComparisonResult {
         for (a, b) in zip(pieces[pieceNum...], other.pieces[other.pieceNum...]) {
             let comparison = FUtilitiesSwift.compareKey(a, b)
             if comparison != .orderedSame {

@@ -7,16 +7,16 @@
 
 import Foundation
 
-public class FRangedFilter: FNodeFilter {
+class FRangedFilter: FNodeFilter {
     public let startPost: FNamedNode
     public let endPost: FNamedNode
-    public init(queryParams params: FQueryParams) {
+    init(queryParams params: FQueryParams) {
         self.indexedFilter = FIndexedFilter(index: params.index)
         self.index = params.index
         self.startPost = FRangedFilter.startPost(fromQueryParams: params)
         self.endPost = FRangedFilter.endPost(fromQueryParams: params)
     }
-    public func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+    func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         var newChildSnap = newChildSnap
         if !matchesKey(childKey, andNode:newChildSnap) {
             newChildSnap = FEmptyNode.emptyNode
@@ -30,7 +30,7 @@ public class FRangedFilter: FNodeFilter {
 
     }
 
-    public func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+    func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         var filtered: FIndexedNode
         if newSnap.node.isLeafNode() {
             // Make sure we have a children node with the correct index, not a leaf
@@ -48,16 +48,16 @@ public class FRangedFilter: FNodeFilter {
         return indexedFilter.updateFullNode(oldSnap, withNewNode: filtered, accumulator: optChangeAccumulator)
     }
 
-    public func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
+    func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
         // Don't support priorities on queries
         return oldSnap
     }
 
-    public var filtersNodes: Bool { true }
+    var filtersNodes: Bool { true }
 
-    public var indexedFilter: FNodeFilter
+    var indexedFilter: FNodeFilter
 
-    public var index: FIndex
+    var index: FIndex
 
     static func startPost(fromQueryParams params: FQueryParams) -> FNamedNode {
         if params.hasStart {
@@ -77,14 +77,14 @@ public class FRangedFilter: FNodeFilter {
         }
     }
 
-    public func matchesKey(_ key: String, andNode node: FNode) -> Bool {
-        index.compareKey(startPost.name,
-                         andNode: startPost.node,
-                         toOtherKey: key,
-                         andNode: node).rawValue <= ComparisonResult.orderedSame.rawValue &&
-        index.compareKey(key,
-                         andNode: node,
-                         toOtherKey: endPost.name,
-                         andNode: endPost.node).rawValue <= ComparisonResult.orderedSame.rawValue
+    func matchesKey(_ key: String, andNode node: FNode) -> Bool {
+        index.compare(lhs: (key: startPost.name,
+                            node: startPost.node),
+                      rhs: (key: key,
+                            node: node)
+        ).rawValue <= ComparisonResult.orderedSame.rawValue &&
+        index.compare(lhs: (key: key, node: node),
+                      rhs: (key: endPost.name, node: endPost.node))
+        .rawValue <= ComparisonResult.orderedSame.rawValue
     }
 }

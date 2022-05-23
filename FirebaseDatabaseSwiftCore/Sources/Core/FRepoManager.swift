@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class FRepoManager {
+class FRepoManager {
     private static var lock = NSLock()
     private static var configs: [String: [FRepoInfo: FRepo]] = [:]
 
@@ -16,7 +16,7 @@ public class FRepoManager {
      * FirebaseDatabase which calls createRepo.
      */
 
-    public class func getRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> FRepo {
+    class func getRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> FRepo {
         // XXX TODO: NO objc_sync on non-Darwin
 //        objc_sync_enter(configs)
 //        defer {
@@ -35,7 +35,7 @@ public class FRepoManager {
         }
     }
 
-    public class func createRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig, database: Database) -> FRepo {
+    class func createRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig, database: Database) -> FRepo {
         config.freeze()
         // XXX TODO: NO objc_sync on non-Darwin
 //        objc_sync_enter(configs)
@@ -55,7 +55,7 @@ public class FRepoManager {
         }
     }
 
-    public class func interruptAll() {
+    class func interruptAll() {
         DatabaseQuery.sharedQueue.async {
             for repos in configs.values {
                 for repo in repos.values {
@@ -65,7 +65,7 @@ public class FRepoManager {
         }
     }
     
-    public class func interrupt(_ config: DatabaseConfig) {
+    class func interrupt(_ config: DatabaseConfig) {
         DatabaseQuery.sharedQueue.async {
             guard let repos = configs[config.sessionIdentifier] else { return }
             for repo in repos.values {
@@ -73,7 +73,7 @@ public class FRepoManager {
             }
         }
     }
-    public class func resumeAll() {
+    class func resumeAll() {
         DatabaseQuery.sharedQueue.async {
             for repos in configs.values {
                 for repo in repos.values {
@@ -83,7 +83,7 @@ public class FRepoManager {
         }
 
     }
-    public class func resume(_ config: DatabaseConfig) {
+    class func resume(_ config: DatabaseConfig) {
         DatabaseQuery.sharedQueue.async {
             guard let repos = configs[config.sessionIdentifier] else { return }
             for repo in repos.values {
@@ -91,7 +91,7 @@ public class FRepoManager {
             }
         }
     }
-    public class func disposeRepos(_ config: DatabaseConfig) {
+    class func disposeRepos(_ config: DatabaseConfig) {
         // Do this synchronously to make sure we release our references to LevelDB
         // before returning, allowing LevelDB to close and release its exclusive
         // locks.

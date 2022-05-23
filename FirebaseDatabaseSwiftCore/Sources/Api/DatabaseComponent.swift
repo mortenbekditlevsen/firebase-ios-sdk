@@ -9,7 +9,7 @@ import Foundation
 
 /// This protocol is used in the interop registration process to register an
 /// instance provider for individual FIRApps.
-public protocol DatabaseProvider {
+protocol DatabaseProvider {
     /// Gets a FirebaseDatabase instance for the specified URL, using the specified
     /// FirebaseApp.
     func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database
@@ -17,13 +17,13 @@ public protocol DatabaseProvider {
 
 /// A concrete implementation for FIRDatabaseProvider to create Database
 /// instances.
-public class DatabaseComponent: DatabaseProvider {
+class DatabaseComponent: DatabaseProvider {
     var lock: NSLock = NSLock()
     internal init(app: FIRAppThing) {
         self.app = app
     }
     
-    public func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database {
+    func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database {
         guard let databaseUrl = URL(string: url) else {
             fatalError("The Database URL '\(url)' cannot be parsed. Specify a valid DatabaseURL within FIRApp or from your databaseForApp:URL: call.")
         }

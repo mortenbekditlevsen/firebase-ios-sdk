@@ -13,7 +13,7 @@ import Foundation
  * write modifying that path. Any write to an existing path or shadowing an
  * existing path will modify that existing write to reflect the write added.
  */
-public class FCompoundWrite: Hashable {
+class FCompoundWrite: Hashable {
 
     let writeTree: FImmutableTree<FNode>
     init(writeTree: FImmutableTree<FNode>) {
@@ -23,7 +23,7 @@ public class FCompoundWrite: Hashable {
     /**
      * Creates a compound write with NSDictionary from path string to object
      */
-    public static func compoundWrite(valueDictionary dictionary: [String: Any]) -> FCompoundWrite {
+    static func compoundWrite(valueDictionary dictionary: [String: Any]) -> FCompoundWrite {
         var writeTree: FImmutableTree<FNode> = .empty
         for (path, value) in dictionary {
             let node = FSnapshotUtilitiesSwift.nodeFrom(value)
@@ -33,7 +33,7 @@ public class FCompoundWrite: Hashable {
         return FCompoundWrite(writeTree: writeTree)
     }
 
-    public static func compoundWrite(nodeDictionary dictionary: NSDictionary) -> FCompoundWrite {
+    static func compoundWrite(nodeDictionary dictionary: NSDictionary) -> FCompoundWrite {
         var writeTree = FImmutableTree<FNode>.empty
         dictionary.enumerateKeysAndObjects { key, value, _ in
             guard let pathString = key as? String else { return }
@@ -46,7 +46,7 @@ public class FCompoundWrite: Hashable {
 
     public static let emptyWrite: FCompoundWrite = FCompoundWrite(writeTree: .empty)
 
-    public func addWrite(_ node: FNode, atPath path: FPath) -> FCompoundWrite {
+    func addWrite(_ node: FNode, atPath path: FPath) -> FCompoundWrite {
         if path.isEmpty {
             return FCompoundWrite(writeTree: FImmutableTree(value: node))
         } else {
@@ -62,11 +62,11 @@ public class FCompoundWrite: Hashable {
         }
     }
 
-    public func addWrite(_ node: FNode, atKey key: String) -> FCompoundWrite {
+    func addWrite(_ node: FNode, atKey key: String) -> FCompoundWrite {
         addWrite(node, atPath: FPath(with: key))
     }
 
-    public func addCompoundWrite(_ compoundWrite: FCompoundWrite, atPath path: FPath) -> FCompoundWrite {
+    func addCompoundWrite(_ compoundWrite: FCompoundWrite, atPath path: FPath) -> FCompoundWrite {
         var newWrite = self
         compoundWrite.writeTree.forEach { childPath, value in
             newWrite = newWrite.addWrite(value, atPath: path.child(childPath))
@@ -82,7 +82,7 @@ public class FCompoundWrite: Hashable {
      * removed.
      * @return The new FWriteCompound with the removed path.
      */
-    public func removeWriteAtPath(_ path: FPath) -> FCompoundWrite {
+    func removeWriteAtPath(_ path: FPath) -> FCompoundWrite {
         if path.isEmpty {
             return FCompoundWrite.emptyWrite
         } else {
@@ -91,7 +91,7 @@ public class FCompoundWrite: Hashable {
         }
     }
 
-    public var rootWrite: FNode? {
+    var rootWrite: FNode? {
         writeTree.value
     }
 
@@ -101,7 +101,7 @@ public class FCompoundWrite: Hashable {
      * @param path The path to check for
      * @return Whether there is a complete write at that path.
      */
-    public func hasCompleteWriteAtPath(_ path: FPath) -> Bool {
+    func hasCompleteWriteAtPath(_ path: FPath) -> Bool {
         completeNodeAtPath(path) != nil
     }
 
@@ -112,7 +112,7 @@ public class FCompoundWrite: Hashable {
      * @param path The path to get a complete write
      * @return The node if complete at that path, or nil otherwise.
      */
-    public func completeNodeAtPath(_ path: FPath) -> FNode? {
+    func completeNodeAtPath(_ path: FPath) -> FNode? {
         guard let rootMost = self.writeTree.findRootMostValueAndPath(path) else {
             return nil
         }
@@ -121,7 +121,7 @@ public class FCompoundWrite: Hashable {
     }
 
     // TODO: change into traversal method...
-    public var completeChildren: [FNamedNode] {
+    var completeChildren: [FNamedNode] {
         var children: [FNamedNode] = []
         if let node = writeTree.value {
             node.enumerateChildren { key, node, _ in
@@ -137,7 +137,7 @@ public class FCompoundWrite: Hashable {
         return children
     }
 
-    public var childCompoundWrites: [String: FCompoundWrite] {
+    var childCompoundWrites: [String: FCompoundWrite] {
         var dict: [String: FCompoundWrite] = [:]
         writeTree.forEachChildTree { childKey, childTree in
             dict[childKey] = FCompoundWrite(writeTree: childTree)
@@ -145,7 +145,7 @@ public class FCompoundWrite: Hashable {
         return dict
     }
 
-    public func childCompoundWriteAtPath(_ path: FPath) -> FCompoundWrite {
+    func childCompoundWriteAtPath(_ path: FPath) -> FCompoundWrite {
         if path.isEmpty {
             return self
         } else {
@@ -193,13 +193,13 @@ public class FCompoundWrite: Hashable {
      * @param node The node to apply this FCompoundWrite to
      * @return The node with all writes applied
      */
-    public func applyToNode(_ node: FNode) -> FNode {
+    func applyToNode(_ node: FNode) -> FNode {
         applySubtreeWrite(self.writeTree,
                           atPath: .empty,
                           toNode: node)
     }
 
-    public func enumerateWrites(_ block: @escaping (FPath, FNode,UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateWrites(_ block: @escaping (FPath, FNode,UnsafeMutablePointer<ObjCBool>) -> Void) {
         var stop: ObjCBool = false
         // TODO: add stop to tree iterator...
         writeTree.forEach { path, value in
@@ -209,7 +209,7 @@ public class FCompoundWrite: Hashable {
         }
     }
 
-    public func valForExport(_ exportFormat: Bool) -> NSDictionary {
+    func valForExport(_ exportFormat: Bool) -> NSDictionary {
         let dictionary = NSMutableDictionary()
         writeTree.forEach { path, value in
             dictionary[path.wireFormat()] = value.val(forExport: exportFormat)
@@ -222,25 +222,25 @@ public class FCompoundWrite: Hashable {
      * nodes.
      * @return Whether this CompoundWrite is empty
      */
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         writeTree.isEmpty
     }
 
-    public var description: String {
+    var description: String {
         valForExport(true).description
     }
 
-    public func isEqual(_ object: Any?) -> Bool {
+    func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FCompoundWrite else { return false }
         return valForExport(true).isEqual(other.valForExport(true))
     }
 
-    public static func == (lhs: FCompoundWrite, rhs: FCompoundWrite) -> Bool {
+    static func == (lhs: FCompoundWrite, rhs: FCompoundWrite) -> Bool {
         // XXX TODO: Optimize when FNode is a value type
         lhs.valForExport(true) == rhs.valForExport(true)
     }
 
-    public func hash(into hasher: inout Hasher) {
+    func hash(into hasher: inout Hasher) {
         valForExport(true).hash(into: &hasher)
     }
 }

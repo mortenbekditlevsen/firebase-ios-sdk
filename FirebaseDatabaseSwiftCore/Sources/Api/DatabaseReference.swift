@@ -24,7 +24,7 @@ public class DatabaseReference: DatabaseQuery {
         self.init(repo: FRepoManager.getRepo(parsedUrl.repoInfo, config: config), path: parsedUrl.path)
     }
 
-    public init(repo: FRepo, path: FPath) {
+    init(repo: FRepo, path: FPath) {
         super.init(repo: repo, path: path, params: .defaultInstance, orderByCalled: false, priorityMethodCalled: false)
     }
 
@@ -631,7 +631,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @param value The value to be set after the connection is lost.
      */
-    public func onDisconnectSetValue(_ value: Any?) {
+    func onDisconnectSetValue(_ value: Any?) {
         onDisconnectSetValueInternal(value, andPriority: nil, withCompletionBlock: nil, from: "onDisconnectSetValue:")
     }
 
@@ -647,7 +647,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    public func onDisconnectSetValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    func onDisconnectSetValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(value, andPriority: nil, withCompletionBlock: block, from: "onDisconnectSetValue:withCompletionBlock:")
     }
 
@@ -659,7 +659,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param value The value to be set after the connection is lost.
      * @param priority The priority to be set after the connection is lost.
      */
-    public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?) {
+    func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?) {
         onDisconnectSetValueInternal(value, andPriority: priority, withCompletionBlock: nil, from: "onDisconnectSetValue:andPriority:")
     }
 
@@ -676,7 +676,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    public func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    func onDisconnectSetValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(value, andPriority: priority, withCompletionBlock: block, from: "onDisconnectSetValue:andPriority:withCompletionBlock:")
     }
 
@@ -696,7 +696,7 @@ public class DatabaseReference: DatabaseQuery {
      * onDisconnectRemoveValue is especially useful for implementing "presence"
      * systems.
      */
-    public func onDisconnectRemoveValue() {
+    func onDisconnectRemoveValue() {
         onDisconnectSetValueInternal(nil, andPriority: nil, withCompletionBlock: nil, from: "onDisconnectRemoveValue")
     }
 
@@ -711,7 +711,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block Block to be triggered when the operation has been queued up on
      * the Firebase Database servers
      */
-    public func onDisconnectRemoveValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    func onDisconnectRemoveValue(completionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectSetValueInternal(nil, andPriority: nil, withCompletionBlock: block, from: "onDisconnectRemoveValueWithCompletionBlock:")
     }
 
@@ -724,7 +724,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param values A dictionary of child node keys and the values to set them to
      * after the connection is lost.
      */
-    public func onDisconnectUpdateChildValues(_ values: [String: Any]) {
+    func onDisconnectUpdateChildValues(_ values: [String: Any]) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: nil, from: "onDisconnectUpdateChildValues:")
     }
 
@@ -739,7 +739,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block A block that will be called once the operation has been queued
      * up on the Firebase Database servers
      */
-    public func onDisconnectUpdateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    func onDisconnectUpdateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: block, from: "onDisconnectUpdateChildValues:withCompletionBlock:")
     }
 
@@ -757,7 +757,7 @@ public class DatabaseReference: DatabaseQuery {
      * onDisconnectUpdateChildValues:, and no longer want the values updated when
      * the connection is lost, call cancelDisconnectOperations:
      */
-    public func cancelDisconnectOperations() {
+    func cancelDisconnectOperations() {
         cancelDisconnectOperations(completionBlock: nil)
     }
 
@@ -770,7 +770,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block A block that will be triggered once the Firebase Database
      * servers have acknowledged the cancel request.
      */
-    public func cancelDisconnectOperations(completionBlock block: ((Error?, DatabaseReference) -> Void)?) {
+    func cancelDisconnectOperations(completionBlock block: ((Error?, DatabaseReference) -> Void)?) {
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectCancel(self.path, withCallback: block)
         }
@@ -801,7 +801,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * Note: Invoking this method will impact all Firebase Database connections.
      */
-    public class func goOffline() {
+    class func goOffline() {
         FRepoManager.interruptAll()
     }
 
@@ -824,7 +824,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * Note: Invoking this method will impact all Firebase Database connections.
      */
-    public class func goOnline() {
+    class func goOnline() {
         FRepoManager.resumeAll()
     }
 
@@ -847,7 +847,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block This block receives the current data at this location and must
      * return an instance of FIRTransactionResult
      */
-    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult) {
+    func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult) {
         FValidationSwift.validateFrom("runTransactionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: nil, withLocalEvents: true)
     }
@@ -873,7 +873,7 @@ public class DatabaseReference: DatabaseQuery {
      * error, whether or not the data was committed, and what the current value of
      * the data at this location is.
      */
-    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock completionBlock: @escaping (Error?, Bool, DataSnapshot?) -> Void) {
+    func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock completionBlock: @escaping (Error?, Bool, DataSnapshot?) -> Void) {
         FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: completionBlock, withLocalEvents: true)
     }
@@ -906,7 +906,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param localEvents Set this to NO to suppress events raised for intermediate
      * states, and only get events based on the final state of the transaction.
      */
-    public func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, withLocalEvents localEvents: Bool) {
+    func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, withLocalEvents localEvents: Bool) {
         FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:withLocalEvents", writablePath: path)
         DatabaseQuery.sharedQueue.async {
             self.repo.startTransactionOnPath(self.path, update: block, onComplete: onComplete, withLocalEvents: localEvents)
@@ -933,7 +933,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @return A FIRDatabaseReference for the parent location.
      */
-    public var parent: DatabaseReference? {
+    var parent: DatabaseReference? {
         guard let parentPath = path.parent() else { return nil }
         return DatabaseReference(repo: repo, path: parentPath)
     }
@@ -943,7 +943,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @return A new FIRDatabaseReference to root location.
      */
-    public var root: DatabaseReference { .init(repo: repo, path: .empty) }
+    var root: DatabaseReference { .init(repo: repo, path: .empty) }
 
     /**
      * Gets the last token in a Firebase Database location (e.g. 'fred' in
@@ -951,7 +951,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @return The key of the location this reference points to.
      */
-    public var key: String? { self.path.getBack() }
+    var key: String? { self.path.getBack() }
 
      /**
       * Gets the URL for the Firebase Database location referenced by this
@@ -959,7 +959,7 @@ public class DatabaseReference: DatabaseQuery {
       *
       * @return The url of the location this reference points to.
       */
-    public var URL: String {
+    var URL: String {
         if let parent = parent, let key = key {
             return "\(parent.description)/\(FStringUtilitiesSwift.urlEncoded(key))"
         } else {
@@ -972,5 +972,5 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @return The FIRDatabase object for this reference.
      */
-    public var database: Database { self.repo.database }
+    var database: Database { self.repo.database }
 }

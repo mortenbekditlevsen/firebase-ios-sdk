@@ -10,26 +10,26 @@ import Foundation
 public struct FQuerySpec: Hashable {
     public let path: FPath
     public let params: FQueryParams
-    public init(path: FPath, params: FQueryParams) {
+    init(path: FPath, params: FQueryParams) {
         self.params = params
         self.path = path
     }
 
-    public static func defaultQueryAtPath(_ path: FPath) -> FQuerySpec {
+    static func defaultQueryAtPath(_ path: FPath) -> FQuerySpec {
         FQuerySpec(path: path, params: .defaultInstance)
     }
 
-    public var index: FIndex {
+    var index: FIndex {
         params.index
     }
-    public var isDefault: Bool {
+    var isDefault: Bool {
         params.isDefault
     }
-    public var loadsAllData: Bool {
+    var loadsAllData: Bool {
         params.loadsAllData
     }
 
-    public var description: String {
+    var description: String {
         "FQuerySpec (path: \(path), params: \(params)"
     }
 }

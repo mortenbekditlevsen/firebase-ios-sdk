@@ -8,34 +8,34 @@
 import SortedCollections
 import Foundation
 
-public class FSnapshotUtilities {
-    public static func nodeFrom(_ val: Any?) -> FNode {
+class FSnapshotUtilities {
+    static func nodeFrom(_ val: Any?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: nil)
     }
 
-    public static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, withValidationFrom: fn)
     }
-    public static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority)
     }
-    public static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority, withValidationFrom: fn)
     }
 
-    public static func appendHashV2Representation(for string: String, to mutableString: NSMutableString) {
+    static func appendHashV2Representation(for string: String, to mutableString: NSMutableString) {
         var mutable: String = String(mutableString)
         FSnapshotUtilitiesSwift.appendHashV2Representation(for: string, to: &mutable)
         mutableString.setString(mutable)
     }
 
-    public static func appendHashRepresentationV2ForLeafNode(_ node: FNode, to mutableString: NSMutableString) {
+    static func appendHashRepresentationV2ForLeafNode(_ node: FNode, to mutableString: NSMutableString) {
         var mutable: String = String(mutableString)
         FSnapshotUtilitiesSwift.appendHashRepresentation(for: node, to: &mutable, hashVersion: .v2)
         mutableString.setString(mutable)
     }
 
-    public static func compoundWriteFromDictionary(_ values: NSDictionary, withValidationFrom fn: String) -> FCompoundWrite {
+    static func compoundWriteFromDictionary(_ values: NSDictionary, withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for keyId in values.allKeys {
@@ -62,7 +62,7 @@ public class FSnapshotUtilities {
 
     // Move to enum and remove this once swift conversion of usage points is done
     #warning("TODO - MOVE")
-    public static func estimateSerializedNodeSize(_ node: FNode) -> Int {
+    static func estimateSerializedNodeSize(_ node: FNode) -> Int {
         if node.isEmpty {
             return 4 // null keyword
         } else if node.isLeafNode() {
@@ -127,29 +127,29 @@ public enum FSnapshotUtilitiesSwift {
         case v2
     }
 
-    public static func nodeFrom(_ val: Any?) -> FNode {
+    static func nodeFrom(_ val: Any?) -> FNode {
         nodeFrom(val, priority: nil)
     }
 
-    public static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
         nodeFrom(val, priority: priority, withValidationFrom: "nodeFrom:priority:")
     }
 
-    public static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: nil, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    public static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    public static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
         internalNodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: depth, path: &path)
     }
 
-    public static func compoundWriteFromDictionary(_ values: [String: Any], withValidationFrom fn: String) -> FCompoundWrite {
+    static func compoundWriteFromDictionary(_ values: [String: Any], withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for (keyId, value) in values {
@@ -173,7 +173,7 @@ public enum FSnapshotUtilitiesSwift {
         return compoundWrite
     }
 
-     public static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+     static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
          guard depth <= kFirebaseMaxObjectDepth else {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")

@@ -25,7 +25,7 @@ public class FIRAppThing: Equatable {
     }
     var name: String
     var options: Options
-    init(options: Options, name: String) {
+    public init(options: Options, name: String) {
         self.options = options
         self.name = name
     }
@@ -127,7 +127,7 @@ public class Database {
      * @param path Path to a location in your Firebase Database.
      * @return A FIRDatabaseReference pointing to the specified path.
      */
-    public func referenceWithPath(_ path: String) -> DatabaseReference {
+    func referenceWithPath(_ path: String) -> DatabaseReference {
         let repo = ensureRepo()
         FValidation.validateFrom("referenceWithPath", validRootPathString: path)
         let childPath = FPath(with: path)
@@ -143,7 +143,7 @@ public class Database {
      * @param databaseUrl A URL to a path within your database.
      * @return A FIRDatabaseReference for the provided URL.
      */
-    public func referenceFromURL(_ databaseUrl: String) -> DatabaseReference {
+    func referenceFromURL(_ databaseUrl: String) -> DatabaseReference {
         let repo = ensureRepo()
         let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl)
         FValidation.validateFrom("referenceFromURL:", validURL: parsedUrl)
@@ -166,7 +166,7 @@ public class Database {
      * affected event listeners, and the client will not (re-)send them to the
      * Firebase Database backend.
      */
-    public func purgeOutstandingWrites() {
+    func purgeOutstandingWrites() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -178,7 +178,7 @@ public class Database {
      * Shuts down our connection to the Firebase Database backend until goOnline is
      * called.
      */
-    public func goOffline() {
+    func goOffline() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -190,7 +190,7 @@ public class Database {
      * Resumes our connection to the Firebase Database backend after a previous
      * goOffline call.
      */
-    public func goOnline() {
+    func goOnline() {
         let repo = ensureRepo()
 
         DatabaseQuery.sharedQueue.async {
@@ -252,7 +252,7 @@ public class Database {
      *
      * Note that this must be set before creating your first Database reference.
      */
-    public var callbackQueue: DispatchQueue {
+    var callbackQueue: DispatchQueue {
         set {
             assertUnfrozen("setCallbackQueue")
             config.callbackQueue = newValue
@@ -285,7 +285,7 @@ public class Database {
      *
      * @param enabled YES to enable logging, NO to disable.
      */
-    public class func setLoggingEnabled(_ enabled: Bool) {
+    class func setLoggingEnabled(_ enabled: Bool) {
         FUtilitiesSwift.setLoggingEnabled(enabled)
         FFLog("I-RDB024001", "BUILD Version: \(buildVersion)")
     }
@@ -300,7 +300,7 @@ public class Database {
      * Configures the database to use an emulated backend instead of the default
      * remote backend.
      */
-    public func useEmulator(host: String, port: Int) {
+    func useEmulator(host: String, port: Int) {
         guard !host.isEmpty else {
             fatalError("Cannot connect to empty host.")
         }
@@ -312,13 +312,13 @@ public class Database {
         self.repoInfo = emulatorInfo
     }
 
-    public init(app: FIRAppThing?, repoInfo: FRepoInfo, config: DatabaseConfig) {
+    init(app: FIRAppThing?, repoInfo: FRepoInfo, config: DatabaseConfig) {
         self.app = app
         self.repoInfo = repoInfo
         self.config = config
     }
 
-    public class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> Database {
+    class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> Database {
         let db = Database(app: nil, repoInfo: repoInfo, config: config)
         db.ensureRepo()
         return db

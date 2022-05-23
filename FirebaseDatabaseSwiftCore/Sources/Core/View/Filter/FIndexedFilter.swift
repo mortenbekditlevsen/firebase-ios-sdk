@@ -7,8 +7,8 @@
 
 import Foundation
 
-public class FIndexedFilter: FNodeFilter {
-    public func updateChildIn(_ indexedNode: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+class FIndexedFilter: FNodeFilter {
+    func updateChildIn(_ indexedNode: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         assert(indexedNode.hasIndex(index), "The index in FIndexedNode must match the index of the filter")
         let node = indexedNode.node
         let oldChildSnap = node.getImmediateChild(childKey)
@@ -51,7 +51,7 @@ public class FIndexedFilter: FNodeFilter {
         }
     }
 
-    public func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
+    func updateFullNode(_ oldSnap: FIndexedNode, withNewNode newSnap: FIndexedNode, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         guard let optChangeAccumulator = optChangeAccumulator else {
             return newSnap
         }
@@ -79,7 +79,7 @@ public class FIndexedFilter: FNodeFilter {
         return newSnap
     }
 
-    public func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
+    func updatePriority(_ priority: FNode, forNode oldSnap: FIndexedNode) -> FIndexedNode {
         if oldSnap.node.isEmpty {
             return oldSnap
         } else {
@@ -87,12 +87,12 @@ public class FIndexedFilter: FNodeFilter {
         }
     }
 
-    public var filtersNodes: Bool { false }
+    var filtersNodes: Bool { false }
 
-    public var indexedFilter: FNodeFilter { self }
+    var indexedFilter: FNodeFilter { self }
 
-    public let index: FIndex
-    public init(index: FIndex) {
+    let index: FIndex
+    init(index: FIndex) {
         self.index = index
     }
 }

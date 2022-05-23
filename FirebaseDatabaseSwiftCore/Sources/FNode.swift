@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FNode: AnyObject {
+protocol FNode: AnyObject {
     func isLeafNode() -> Bool
     func getPriority() -> FNode
     func updatePriority(_ priority: FNode) -> FNode

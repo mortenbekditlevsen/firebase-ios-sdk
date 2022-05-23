@@ -7,20 +7,20 @@
 
 import Foundation
 
-public class FMerge: FOperation {
-    public var source: FOperationSource
-    public var type: FOperationType
-    public var path: FPath
-    public var children: FCompoundWrite
+class FMerge: FOperation {
+    var source: FOperationSource
+    var type: FOperationType
+    var path: FPath
+    var children: FCompoundWrite
 
-    public init(source: FOperationSource, path: FPath, children: FCompoundWrite) {
+    init(source: FOperationSource, path: FPath, children: FCompoundWrite) {
         self.source = source
         self.type = .merge
         self.path = path
         self.children = children
     }
 
-    public func operationForChild(_ childKey: String) -> FOperation? {
+    func operationForChild(_ childKey: String) -> FOperation? {
         if path.isEmpty {
             let childTree = children.childCompoundWriteAtPath(FPath(with: childKey))
             if childTree.isEmpty {
@@ -40,7 +40,7 @@ public class FMerge: FOperation {
         }
     }
 
-    public var description: String {
+    var description: String {
         "FMerge { path=\(path), source=\(source) children=\(children)}"
     }
 }

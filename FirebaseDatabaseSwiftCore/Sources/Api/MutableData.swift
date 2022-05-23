@@ -27,7 +27,7 @@ import Foundation
  * the parent.
  */
 
-public class MutableData {
+class MutableData {
 
     // MARK: - Inspecting and navigating the data
 
@@ -36,7 +36,7 @@ public class MutableData {
      *
      * @return YES if this data contains child nodes.
      */
-    public var hasChildren: Bool {
+    var hasChildren: Bool {
         let node = data.getNode(prefixPath)
         guard let childrenNode = node as? FChildrenNode else {
             return false
@@ -51,7 +51,7 @@ public class MutableData {
      * 'child', or multiple segments, 'a/deeper/child'
      * @return YES if this data contains a child at the specified relative path
      */
-    public func hasChildAtPath(_ path: String) -> Bool {
+    func hasChildAtPath(_ path: String) -> Bool {
         let node = data.getNode(prefixPath)
         let childPath = FPath(with: path)
         return !node.getChild(childPath).isEmpty
@@ -66,7 +66,7 @@ public class MutableData {
      * 'child', or multiple segments, 'a/deeper/child'
      * @return A FIRMutableData instance containing the data at the given path
      */
-    public func childDataByAppendingPath(_ path: String) -> MutableData {
+    func childDataByAppendingPath(_ path: String) -> MutableData {
         let wholePath = prefixPath.child(fromString: path)
         return MutableData(prefixPath: wholePath, andSnapshotHolder: data)
     }
@@ -78,13 +78,13 @@ public class MutableData {
         return MutableData(prefixPath: path, andSnapshotHolder: data)
     }
 
-    public func setValue(_ value: Any?) {
+    func setValue(_ value: Any?) {
         let node = FSnapshotUtilitiesSwift.nodeFrom(value,
                                                     withValidationFrom: "setValue:")
         data.updateSnapshot(prefixPath, withNewSnapshot: node)
     }
 
-    public func setPriority(_ priority: Any) {
+    func setPriority(_ priority: Any) {
         var node = data.getNode(prefixPath)
         let pri = FSnapshotUtilitiesSwift.nodeFrom(priority)
         node = node.updatePriority(pri)
@@ -108,7 +108,7 @@ public class MutableData {
      *
      * @return The current data at this location as a native object
      */
-    public var value: Any {
+    var value: Any {
         data.getNode(prefixPath).val()
     }
 
@@ -122,19 +122,19 @@ public class MutableData {
      *
      * @return The priority of the data at this location
      */
-    public var priority: Any {
+    var priority: Any {
         data.getNode(prefixPath).getPriority().val()
     }
 
     /**
      * @return The number of child nodes at this location
      */
-    public var childrenCount: Int {
+    var childrenCount: Int {
         data.getNode(prefixPath).numChildren()
     }
 
     // NOTE: Only used for testing
-    public var children: [MutableData] {
+    var children: [MutableData] {
         let indexedNode = FIndexedNode(node: nodeValue)
         return indexedNode.children.map { namedNode in
             let childPath = self.prefixPath.child(fromString: namedNode.name)
@@ -146,7 +146,7 @@ public class MutableData {
     /**
      * @return The key name of this node, or nil if it is the top-most location
      */
-    public var key: String? {
+    var key: String? {
         prefixPath.getBack()
     }
 
@@ -168,7 +168,7 @@ public class MutableData {
         self.prefixPath = prefixPath
         self.data = snapshotHolder
     }
-    public var description: String {
+    var description: String {
         if let key = key {
             return "FIRMutableData (\(key)) \(value)"
         } else {

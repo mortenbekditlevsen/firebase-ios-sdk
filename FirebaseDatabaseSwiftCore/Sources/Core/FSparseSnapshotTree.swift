@@ -7,11 +7,11 @@
 
 import Foundation
 
-public class FSparseSnapshotTree {
+class FSparseSnapshotTree {
     var value: FNode?
     var children: [String: FSparseSnapshotTree] = [:]
 
-    public func findPath(_ path: FPath) -> FNode? {
+    func findPath(_ path: FPath) -> FNode? {
         if let value = value {
             return value.getChild(path)
         } else if let childKey = path.getFront(), !children.isEmpty {
@@ -25,7 +25,7 @@ public class FSparseSnapshotTree {
         }
     }
 
-    public func rememberData(_ data: FNode, onPath path: FPath) {
+    func rememberData(_ data: FNode, onPath path: FPath) {
         if path.isEmpty {
             value = data
             children = [:]
@@ -41,7 +41,7 @@ public class FSparseSnapshotTree {
         }
     }
 
-    public func forgetPath(_ path: FPath) -> Bool {
+    func forgetPath(_ path: FPath) -> Bool {
         if path.isEmpty {
             value = nil
             children = [:]
@@ -79,7 +79,7 @@ public class FSparseSnapshotTree {
         }
     }
 
-    public func forEachTreeAtPath(_ prefixPath: FPath, do closure: (FPath, FNode) -> Void) {
+    func forEachTreeAtPath(_ prefixPath: FPath, do closure: (FPath, FNode) -> Void) {
         if let value = value {
             closure(prefixPath, value)
         } else {
@@ -90,7 +90,7 @@ public class FSparseSnapshotTree {
         }
     }
 
-    public func forEachChild(_ closure: (String, FSparseSnapshotTree) -> Void) {
+    func forEachChild(_ closure: (String, FSparseSnapshotTree) -> Void) {
         for (key, tree) in children {
             closure(key, tree)
         }

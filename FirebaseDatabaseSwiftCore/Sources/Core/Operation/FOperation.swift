@@ -14,7 +14,7 @@ public enum FOperationType: Int {
     case listenComplete = 3
 }
 
-public protocol FOperation {
+protocol FOperation {
     var source: FOperationSource { get }
     var type: FOperationType { get }
     var path: FPath { get }

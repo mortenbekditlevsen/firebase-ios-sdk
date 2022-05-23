@@ -8,19 +8,16 @@
 import Foundation
 
 public class DatabaseConfig {
-    // XXX TODO: Only public during porting - after that it should be internal
-    public var sessionIdentifier: String
-    // XXX TODO: Only public during porting - after that it should be internal
-    public var googleAppID: String
+    var sessionIdentifier: String
+    var googleAppID: String
 
-    // XXX TODO: Only public during porting - after that it should be internal
-    public var contextProvider: DatabaseConnectionContextProviderProtocol {
+    var contextProvider: DatabaseConnectionContextProviderProtocol {
         willSet {
             assertUnfrozen()
         }
     }
 
-    public init(sessionIdentifier: String, googleAppID: String, contextProvider: DatabaseConnectionContextProviderProtocol) {
+    init(sessionIdentifier: String, googleAppID: String, contextProvider: DatabaseConnectionContextProviderProtocol) {
         self.sessionIdentifier = sessionIdentifier
         self.googleAppID = googleAppID
         self.contextProvider = contextProvider
@@ -37,12 +34,11 @@ public class DatabaseConfig {
         }
     }
 
-    public func freeze() {
+    func freeze() {
         isFrozen = true
     }
 
-    // XXX TODO: Only public during porting - after that it should be internal
-    public var forceStorageEngine: FStorageEngine?
+    var forceStorageEngine: FStorageEngine?
 
     /**
      * By default the Firebase Database client will keep data in memory while your

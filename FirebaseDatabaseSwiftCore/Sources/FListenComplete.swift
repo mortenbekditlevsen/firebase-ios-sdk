@@ -7,11 +7,11 @@
 
 import Foundation
 
-public class FListenComplete: FOperation {
-    public var source: FOperationSource
-    public var path: FPath
-    public var type: FOperationType
-    public init(source: FOperationSource, path: FPath) {
+class FListenComplete: FOperation {
+    var source: FOperationSource
+    var path: FPath
+    var type: FOperationType
+    init(source: FOperationSource, path: FPath) {
         assert(!source.fromUser,
                  "Can't have a listen complete from a user source")
         self.source = source
@@ -19,14 +19,14 @@ public class FListenComplete: FOperation {
         self.type = .listenComplete
     }
 
-    public func operationForChild(_ childKey: String) -> FOperation? {
+    func operationForChild(_ childKey: String) -> FOperation? {
         if path.isEmpty {
             return FListenComplete(source: source, path: .empty)
         } else {
             return FListenComplete(source: source, path: path.popFront())
         }
     }
-    public var description: String {
+    var description: String {
         "FListenComplete { path=\(path), source=\(source) }"
     }
 }

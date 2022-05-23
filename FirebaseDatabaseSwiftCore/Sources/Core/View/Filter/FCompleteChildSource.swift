@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FCompleteChildSource {
+protocol FCompleteChildSource {
     func completeChild(_ childKey: String) -> FNode?
     func childByIndex(_ index: FIndex, afterChild child: FNamedNode, isReverse: Bool) -> FNamedNode?
 }

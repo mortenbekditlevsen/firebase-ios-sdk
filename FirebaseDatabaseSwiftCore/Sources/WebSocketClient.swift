@@ -99,12 +99,12 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
     public let url: URL
     private let extraHeaders: HTTPHeaders
 
-    public init(url: URL, headers: HTTPHeaders) {
+    init(url: URL, headers: HTTPHeaders) {
         self.url = url
         self.extraHeaders = headers
     }
 
-    public func channelActive(context: ChannelHandlerContext) {
+    func channelActive(context: ChannelHandlerContext) {
         print("Client connected to \(context.remoteAddress!)")
 
         // We are connected. It's time to send the message to the server to initialize the upgrade dance.
@@ -129,7 +129,7 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
         context.writeAndFlush(self.wrapOutboundOut(.end(nil)), promise: nil)
     }
 
-    public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
 
         let clientResponse = self.unwrapInboundIn(data)
 
@@ -147,11 +147,11 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
         }
     }
 
-    public func handlerRemoved(context: ChannelHandlerContext) {
+    func handlerRemoved(context: ChannelHandlerContext) {
 //        print("HTTP handler removed.")
     }
 
-    public func errorCaught(context: ChannelHandlerContext, error: Error) {
+    func errorCaught(context: ChannelHandlerContext, error: Error) {
         print("error: ", error)
 
         // As we are not really interested getting notified on success or failure
@@ -173,7 +173,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
     private let onMessage: (String) -> Void
     private let onOpen: () -> Void
 
-    public init(onOpen: @escaping () -> Void,
+    init(onOpen: @escaping () -> Void,
                 onMessage: @escaping (String) -> Void,
                 onClose: @escaping () -> Void) {
         self.onOpen = onOpen
@@ -182,7 +182,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
     }
 
     // This is being hit, channel active won't be called as it is already added.
-    public func handlerAdded(context: ChannelHandlerContext) {
+    func handlerAdded(context: ChannelHandlerContext) {
         self.context = context
 //        print("WebSocket handler added.")
         onOpen()
@@ -218,7 +218,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
         }
     }
 
-    public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let frame = self.unwrapInboundIn(data)
 
         switch frame.opcode {
@@ -240,7 +240,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
         }
     }
 
-    public func channelReadComplete(context: ChannelHandlerContext) {
+    func channelReadComplete(context: ChannelHandlerContext) {
         context.flush()
     }
 

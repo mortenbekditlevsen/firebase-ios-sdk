@@ -7,10 +7,10 @@
 
 import Foundation
 
-public class FParsedUrl {
-    public var repoInfo: FRepoInfo
-    public var path: FPath
-    public init(repoInfo: FRepoInfo, path: FPath) {
+class FParsedUrl {
+    var repoInfo: FRepoInfo
+    var path: FPath
+    init(repoInfo: FRepoInfo, path: FPath) {
         self.repoInfo = repoInfo
         self.path = path
     }

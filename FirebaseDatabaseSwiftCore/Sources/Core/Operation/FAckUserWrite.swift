@@ -25,7 +25,7 @@ class FAckUserWrite: FOperation {
         self.revert = shouldRevert
     }
 
-    public func operationForChild(_ childKey: String) -> FOperation? {
+    func operationForChild(_ childKey: String) -> FOperation? {
         if !path.isEmpty {
             assert(path.getFront() == childKey, "operationForChild called for unrelated child.")
             return FAckUserWrite(path: path.popFront(),
@@ -43,7 +43,7 @@ class FAckUserWrite: FOperation {
         }
     }
 
-    public var description: String {
+    var description: String {
         "FAckUserWrite { path=\(path), revert=\(revert), affectedTree=\(affectedTree) }"
     }
 }

@@ -18,7 +18,7 @@ private struct QueryParams: Hashable, Equatable {
         (lhs.indexEndValue?.isEqual(rhs.indexEndValue) ?? true) &&
         (rhs.indexEndValue?.isEqual(lhs.indexEndValue) ?? true) &&
         lhs.indexEndKey == rhs.indexEndKey &&
-        lhs.index.isEqual(rhs.index)
+        lhs.index == rhs.index
     }
 
     func hash(into hasher: inout Hasher) {
@@ -36,7 +36,7 @@ private struct QueryParams: Hashable, Equatable {
         } else {
             "zyx".hash(into: &hasher)
         }
-        index.hash.hash(into: &hasher)
+        index.hash(into: &hasher)
     }
 
     var isViewFromLeft: Bool {
@@ -57,17 +57,17 @@ private struct QueryParams: Hashable, Equatable {
         indexEndValue != nil
     }
 
-    public var limitSet: Bool
-    public var limit: Int
-    public var viewFrom: String?
-    public var indexStartValue: FNode?
-    public var indexStartKey: String?
-    public var indexEndValue: FNode?
-    public var indexEndKey: String?
-    public var index: FIndex
+    var limitSet: Bool
+    var limit: Int
+    var viewFrom: String?
+    var indexStartValue: FNode?
+    var indexStartKey: String?
+    var indexEndValue: FNode?
+    var indexEndKey: String?
+    var index: FIndex
 
 //
-//    public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
+//    static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
 //        guard dict.count > 0 else {
 //            return .defaultInstance
 //        }
@@ -100,26 +100,26 @@ private struct QueryParams: Hashable, Equatable {
 public struct FQueryParams: Hashable {
 
     private var params: QueryParams
-    public var limitSet: Bool { params.limitSet }
-    public var viewFrom: String? { params.viewFrom }
-    public var index: FIndex { params.index }
+    var limitSet: Bool { params.limitSet }
+    var viewFrom: String? { params.viewFrom }
+    var index: FIndex { params.index }
 
-    public var loadsAllData: Bool {
+    var loadsAllData: Bool {
         !(hasStart || hasEnd || limitSet)
     }
 
-    public var isDefault: Bool {
-        loadsAllData && index.isEqual(FPriorityIndex.priorityIndex)
+    var isDefault: Bool {
+        loadsAllData && index == .priority
     }
 
-    public var isValid: Bool {
+    var isValid: Bool {
         !(hasStart && hasEnd && limitSet && !hasAnchoredLimit)
     }
 
     /**
      * @return true if a limit has been set and has been explicitly anchored
      */
-    public var hasAnchoredLimit: Bool {
+    var hasAnchoredLimit: Bool {
         limitSet && viewFrom != nil
     }
 
@@ -127,7 +127,7 @@ public struct FQueryParams: Hashable {
      * Only valid if hasEnd is true.
      * @return The end key name for the range defined by these query parameters
      */
-    public var indexEndKey: String {
+    var indexEndKey: String {
         assert(hasEnd, "Only valid if end has been set")
         return params.indexEndKey ?? FUtilities.maxName
     }
@@ -135,7 +135,7 @@ public struct FQueryParams: Hashable {
     /**
      * Only valid if hasEnd is true.
      */
-    public var indexEndValue: FNode {
+    var indexEndValue: FNode {
         assert(hasEnd, "Only valid if end has been set")
         return params.indexEndValue!
     }
@@ -143,7 +143,7 @@ public struct FQueryParams: Hashable {
     /**
      * Only valid if hasStart is true
      */
-    public var indexStartValue: FNode {
+    var indexStartValue: FNode {
         assert(hasStart, "Only valid if start has been set")
         return params.indexStartValue!
     }
@@ -152,26 +152,26 @@ public struct FQueryParams: Hashable {
      * Only valid if hasStart is true.
      * @return The starting key name for the range defined by these query parameters
      */
-    public var indexStartKey: String {
+    var indexStartKey: String {
         assert(hasStart, "Only valid if start has been set")
         return params.indexStartKey ?? FUtilities.minName
     }
 
-    public init() {
+    init() {
         self.params = QueryParams(limitSet: false,
                                   limit: 0,
-                                  index: FPriorityIndex.priorityIndex)
+                                  index: .priority)
     }
 
     /**
      * Only valid to call if limitSet returns true
      */
-    public var limit: Int {
+    var limit: Int {
         assert(self.limitSet, "Only valid if limit has been set")
         return params.limit
     }
 
-    public func limitTo(_ limit: Int) -> FQueryParams {
+    func limitTo(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -180,7 +180,7 @@ public struct FQueryParams: Hashable {
     }
 
 
-    public func limitToFirst(_ limit: Int) -> FQueryParams {
+    func limitToFirst(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -188,7 +188,7 @@ public struct FQueryParams: Hashable {
         return FQueryParams(params: params)
     }
 
-    public func limitToLast(_ limit: Int) -> FQueryParams {
+    func limitToLast(_ limit: Int) -> FQueryParams {
         var params = params
         params.limit = limit
         params.limitSet = true
@@ -196,7 +196,7 @@ public struct FQueryParams: Hashable {
         return FQueryParams(params: params)
     }
 
-    public func startAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
+    func startAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
         assert(indexValue.isLeafNode() || indexValue.isEmpty)
         var params = params
         params.indexStartValue = indexValue
@@ -204,11 +204,11 @@ public struct FQueryParams: Hashable {
         return FQueryParams(params: params)
     }
 
-    public func startAt(_ indexValue: FNode) -> FQueryParams {
+    func startAt(_ indexValue: FNode) -> FQueryParams {
         startAt(indexValue, childKey: nil)
     }
 
-    public func endAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
+    func endAt(_ indexValue: FNode, childKey: String?) -> FQueryParams {
         assert(indexValue.isLeafNode() || indexValue.isEmpty)
         var params = params
         params.indexEndValue = indexValue
@@ -216,11 +216,11 @@ public struct FQueryParams: Hashable {
         return FQueryParams(params: params)
     }
 
-    public func endAt(_ indexValue: FNode) -> FQueryParams {
+    func endAt(_ indexValue: FNode) -> FQueryParams {
         endAt(indexValue, childKey: nil)
     }
 
-    public func orderBy(_ index: FIndex) -> FQueryParams {
+    func orderBy(_ index: FIndex) -> FQueryParams {
         var params = params
         params.index = index
         return FQueryParams(params: params)
@@ -232,11 +232,11 @@ public struct FQueryParams: Hashable {
         self.params = params
     }
 
-    public static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
+    static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
         guard dict.count > 0 else {
             return .defaultInstance
         }
-        var params = QueryParams(limitSet: false, limit: 0, index: FPriorityIndex.priorityIndex)
+        var params = QueryParams(limitSet: false, limit: 0, index: .priority)
         if let val = dict[kFQPLimit] as? Int {
             params.limitSet = true
             params.limit = val
@@ -260,20 +260,20 @@ public struct FQueryParams: Hashable {
             params.viewFrom = vf
         }
         if let index = dict[kFQPIndex] as? String {
-            params.index = FIndexFactory.indexFromQueryDefinition(index)
+            params.index = FIndex.fromQueryDefinition(index)
         }
         return FQueryParams(params: params)
     }
 
-    public var hasStart: Bool {
+    var hasStart: Bool {
         params.hasStart
     }
 
-    public var hasEnd: Bool {
+    var hasEnd: Bool {
         params.hasEnd
     }
 
-    public var wireProtocolParams: [String: Any] {
+    var wireProtocolParams: [String: Any] {
         var dict: [String: Any] = [:]
         if let value = params.indexStartValue {
             dict[kFQPIndexStartValue] = value.val(forExport: true)
@@ -305,36 +305,36 @@ public struct FQueryParams: Hashable {
         }
         // For now, priority index is the default, so we only specify if it's some
         // other index.
-        if !index.isEqual(FPriorityIndex.priorityIndex) {
+        if index != .priority {
             dict[kFQPIndex] = index.queryDefinition
         }
 
         return dict
     }
 
-    public var description: String {
+    var description: String {
         // Ensure that description is always in same order, as it is (apparently) used
         // to generate keys - at least in test cases.
         let sortedParams = wireProtocolParams.map { ($0, $1) }.sorted(by: { $0.0 < $1.0 })
         return "[\(sortedParams.map { "\"\($0.0)\": \($0.1)" }.joined(separator: ", "))]"
     }
 
-    public func isEqual(_ object: Any?) -> Bool {
+    func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FQueryParams else { return false }
         return other.params == self.params
     }
 
-    public var hash: Int {
+    var hash: Int {
         var hasher = Hasher()
         params.hash(into: &hasher)
         return hasher.finalize()
     }
 
-    public var isViewFromLeft: Bool {
+    var isViewFromLeft: Bool {
         params.isViewFromLeft
     }
 
-    public var nodeFilter: FNodeFilter {
+    var nodeFilter: FNodeFilter {
         if loadsAllData {
             return FIndexedFilter(index: index)
         } else if limitSet {

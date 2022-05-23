@@ -7,18 +7,18 @@
 
 import Foundation
 
-public class FPendingPut: NSCoding {
+class FPendingPut: NSCoding {
     public let path: FPath
     public let priority: Any
     public let data: Any
 
-    public init(path: FPath, andData data: Any, andPriority priority: Any) {
+    init(path: FPath, andData data: Any, andPriority priority: Any) {
         self.path = path
         self.priority = priority
         self.data = data
     }
 
-    public func encode(with coder: NSCoder) {
+    func encode(with coder: NSCoder) {
         coder.encode(path.description, forKey: "path")
         coder.encode(priority, forKey: "priority")
         coder.encode(data, forKey: "data")
@@ -43,15 +43,15 @@ public class FPendingPut: NSCoding {
 
 
 
-public class FPendingPutPriority: NSCoding {
+class FPendingPutPriority: NSCoding {
     public let path: FPath
     public let priority: Any
-    public init(path: FPath, andPriority priority: Any) {
+    init(path: FPath, andPriority priority: Any) {
         self.path = path
         self.priority = priority
     }
 
-    public func encode(with coder: NSCoder) {
+    func encode(with coder: NSCoder) {
         coder.encode(path.description, forKey: "path")
         coder.encode(priority, forKey: "priority")
     }
@@ -67,15 +67,15 @@ public class FPendingPutPriority: NSCoding {
     }
 }
 
-public class FPendingUpdate: NSCoding {
+class FPendingUpdate: NSCoding {
     public let path: FPath
     public let data: NSDictionary
-    public init(path: FPath, andData data: NSDictionary) {
+    init(path: FPath, andData data: NSDictionary) {
         self.path = path
         self.data = data
     }
 
-    public func encode(with coder: NSCoder) {
+    func encode(with coder: NSCoder) {
         coder.encode(path.description, forKey: "path")
         coder.encode(data, forKey: "data")
     }

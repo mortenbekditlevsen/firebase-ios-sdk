@@ -238,7 +238,7 @@ final fileprivate class ReadOptions: Options {
 public enum WriteOption: Option {
     case sync
 
-    public func set(options: OpaquePointer) {
+    func set(options: OpaquePointer) {
         switch self {
         case .sync:
             leveldb_writeoptions_set_sync(options, 1)
@@ -251,10 +251,10 @@ public enum WriteOption: Option {
     }
 }
 
-final public class WriteOptions: Options {
+final class WriteOptions: Options {
     public let pointer: OpaquePointer
 
-    public init(options: [WriteOption]) {
+    init(options: [WriteOption]) {
         self.pointer = leveldb_writeoptions_create()
         options.forEach { $0.set(options: pointer) }
     }
@@ -263,43 +263,43 @@ final public class WriteOptions: Options {
         leveldb_writeoptions_destroy(pointer)
     }
 }
-public class APLevelDBIterator {
+class APLevelDBIterator {
     private let iterator: DBIterator
-    public class func iterator(levelDB db: APLevelDB) -> APLevelDBIterator {
+    class func iterator(levelDB db: APLevelDB) -> APLevelDBIterator {
         APLevelDBIterator(levelDB: db)
     }
 
     // Designated initializer:
-    public init(levelDB db: APLevelDB) {
+    init(levelDB db: APLevelDB) {
         self.iterator = DBIterator(query: SequenceQuery(db: db))
     }
 
-    public func seek(toKey key: String) -> Bool {
+    func seek(toKey key: String) -> Bool {
         iterator.seek(key)
     }
 
-    public func nextKey() -> String? {
+    func nextKey() -> String? {
         iterator.nextRow()
         guard iterator.isValid else { return nil }
 
         return iterator.key.flatMap { String(data: $0, encoding: .utf8) }
     }
 
-    public func key() -> String? {
+    func key() -> String? {
         guard iterator.isValid else { return nil }
         return iterator.key.flatMap { String(data: $0, encoding: .utf8) }
     }
 
-    public func valueAsString() -> String? {
+    func valueAsString() -> String? {
         iterator.value.flatMap { String(data: $0, encoding: .utf8) }
     }
 
-    public func valueAsData() -> Data? {
+    func valueAsData() -> Data? {
         iterator.value
     }
 }
 
-public protocol APLevelDBWriteBatch {
+protocol APLevelDBWriteBatch {
     func setData(_ data: Data, forKey key: String)
     func setString(_ str: String, forKey key: String)
     func removeKey(_ key: String)
@@ -308,26 +308,26 @@ public protocol APLevelDBWriteBatch {
 
 }
 
-public class APLevelDBWriteBatchImpl: APLevelDBWriteBatch {
+class APLevelDBWriteBatchImpl: APLevelDBWriteBatch {
     fileprivate let batch: WriteBatch = WriteBatch()
     fileprivate let db: APLevelDB
     fileprivate init(db: APLevelDB) {
         self.db = db
     }
-    public func setData(_ data: Data, forKey key: String) {
+    func setData(_ data: Data, forKey key: String) {
         batch.put(key, value: data)
     }
-    public func setString(_ str: String, forKey key: String) {
+    func setString(_ str: String, forKey key: String) {
         batch.put(key, value: str.data())
     }
-    public func removeKey(_ key: String) {
+    func removeKey(_ key: String) {
         batch.delete(key)
     }
     // Remove all of the buffered sets and removes:
-    public func clear() {
+    func clear() {
         batch.clear()
     }
-    public func commit() -> Bool {
+    func commit() -> Bool {
         var error: UnsafeMutablePointer<Int8>? = nil
 
         let options = WriteOptions(options: WriteOption.standard)
@@ -346,13 +346,13 @@ public enum CompressionType: Int {
     case snappy
 }
 
-public protocol Option {
+protocol Option {
     func set(options: OpaquePointer)
 
     static var standard: [Self] { get }
 }
 
-public protocol Options: AnyObject {
+protocol Options: AnyObject {
     associatedtype OptionType: Option
 
     init(options: [OptionType])
@@ -370,7 +370,7 @@ public enum FileOption: Option {
     case blockRestartInterval(Int)
     case compression(CompressionType)
 
-    public func set(options: OpaquePointer) {
+    func set(options: OpaquePointer) {
         switch self {
         case .createIfMissing:
             leveldb_options_set_create_if_missing(options, 1)
@@ -411,10 +411,10 @@ public enum FileOption: Option {
     }
 }
 
-final public class FileOptions: Options {
+final class FileOptions: Options {
     public let pointer: OpaquePointer
 
-    public init(options: [FileOption]) {
+    init(options: [FileOption]) {
         self.pointer = leveldb_options_create()
         options.forEach { $0.set(options: pointer) }
     }
@@ -461,15 +461,15 @@ final fileprivate class DefaultComparator: Comparator {
     }
 }
 
-public class APLevelDB {
+class APLevelDB {
     var dbPointer: OpaquePointer!
     fileprivate let comparator: Comparator
 
-    public class func levelDB(withPath path: String) throws -> APLevelDB {
+    class func levelDB(withPath path: String) throws -> APLevelDB {
         return try APLevelDB(path: path)
     }
 
-    public init(path: String) throws {
+    init(path: String) throws {
         var error: UnsafeMutablePointer<Int8>? = nil
         comparator = DefaultComparator()
 
@@ -497,7 +497,7 @@ public class APLevelDB {
         close()
     }
 
-    public func close() {
+    func close() {
         guard let pointer = dbPointer else { return }
         leveldb_close(pointer)
         dbPointer = nil
@@ -544,15 +544,15 @@ public class APLevelDB {
 
     }
 
-    public func setData(_ data: Data?, forKey key: String) -> Bool {
+    func setData(_ data: Data?, forKey key: String) -> Bool {
         set(slice: data, forKey: key)
     }
 
-    public func setString(_ data: String?, forKey key: String) -> Bool {
+    func setString(_ data: String?, forKey key: String) -> Bool {
         set(slice: data, forKey: key)
     }
 
-    public func removeKey(_ key: String) -> Bool {
+    func removeKey(_ key: String) -> Bool {
         var error: UnsafeMutablePointer<Int8>? = nil
         let options = WriteOptions(options: WriteOption.standard)
 
@@ -566,11 +566,11 @@ public class APLevelDB {
         return error == nil
     }
 
-    public func beginWriteBatch() -> APLevelDBWriteBatch {
+    func beginWriteBatch() -> APLevelDBWriteBatch {
         APLevelDBWriteBatchImpl(db: self)
     }
 
-    public func data(forKey key: String) -> Data? {
+    func data(forKey key: String) -> Data? {
         var valueLength = 0
         var error: UnsafeMutablePointer<Int8>? = nil
         var value: UnsafeMutablePointer<Int8>? = nil
@@ -594,11 +594,11 @@ public class APLevelDB {
         return Data(bytes: value!, count: valueLength)
     }
 
-    public func string(forKey key: String) -> String? {
+    func string(forKey key: String) -> String? {
         data(forKey: key).flatMap { String(data: $0, encoding: .utf8) }
     }
 
-    public func allKeys() -> [String] {
+    func allKeys() -> [String] {
         var keys: [String] = []
         enumerateKeys { key, _ in
             keys.append(key)
@@ -606,11 +606,11 @@ public class APLevelDB {
         return keys
     }
 
-    public func enumerateKeys(_ block: @escaping (_ key: String, _ stop: inout Bool) -> Void) {
+    func enumerateKeys(_ block: @escaping (_ key: String, _ stop: inout Bool) -> Void) {
         enumerateKeys(withPrefix: "", usingBlock: block)
     }
 
-    public func enumerateKeys(withPrefix prefix: String, usingBlock block: @escaping (_ key: String, _ stop: inout Bool) -> Void) {
+    func enumerateKeys(withPrefix prefix: String, usingBlock block: @escaping (_ key: String, _ stop: inout Bool) -> Void) {
         var stop: Bool = false
         let query = SequenceQuery(db: self, startKey: prefix)
         let iterator = DBIterator(query: query)
@@ -626,10 +626,10 @@ public class APLevelDB {
         }
     }
 
-    public func enumerateKeysAndValues(asStrings block: @escaping (_ key: String, _ value: String, _ stop: inout Bool) -> Void) {
+    func enumerateKeysAndValues(asStrings block: @escaping (_ key: String, _ value: String, _ stop: inout Bool) -> Void) {
         enumerateKeys(withPrefix: "", asStrings: block)
     }
-    public func enumerateKeys(withPrefix prefix: String, asStrings block: @escaping (_ key: String, _ value: String, _ stop: inout Bool) -> Void) {
+    func enumerateKeys(withPrefix prefix: String, asStrings block: @escaping (_ key: String, _ value: String, _ stop: inout Bool) -> Void) {
         var stop: Bool = false
         let query = SequenceQuery(db: self, startKey: prefix)
         let iterator = DBIterator(query: query)
@@ -646,11 +646,11 @@ public class APLevelDB {
         }
     }
 
-    public func enumerateKeysAndValues(asData block: @escaping (_ key: String, _ value: Data, _ stop: inout Bool) -> Void) {
+    func enumerateKeysAndValues(asData block: @escaping (_ key: String, _ value: Data, _ stop: inout Bool) -> Void) {
         enumerateKeys(withPrefix: "", asData: block)
     }
 
-    public func enumerateKeys(withPrefix prefix: String, asData block: @escaping (_ key: String, _ value: Data, _ stop: inout Bool) -> Void) {
+    func enumerateKeys(withPrefix prefix: String, asData block: @escaping (_ key: String, _ value: Data, _ stop: inout Bool) -> Void) {
         var stop: Bool = false
         let query = SequenceQuery(db: self, startKey: prefix)
         let iterator = DBIterator(query: query)
@@ -667,7 +667,7 @@ public class APLevelDB {
 
     }
 
-    public func exactSize(from: String, to: String) -> Int {
+    func exactSize(from: String, to: String) -> Int {
         var size = 0
         let iterator = DBIterator(query: SequenceQuery(db: self, startKey: from, endKey: to, descending: false, options: ReadOption.standard))
         while iterator.isValid, let key = iterator.key, self.compare(key, to) != .orderedAscending {

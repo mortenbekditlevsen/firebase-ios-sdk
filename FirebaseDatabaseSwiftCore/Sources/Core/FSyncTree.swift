@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FSyncTreeHash {
+protocol FSyncTreeHash {
     var simpleHash: String { get }
     var compoundHash: FCompoundHashWrapper { get }
     var includeCompoundHash: Bool { get }
@@ -16,28 +16,28 @@ public protocol FSyncTreeHash {
 // Size after which we start including the compound hash
 let kFSizeThresholdForCompoundHash = 1024
 
-public class FListenContainer: FSyncTreeHash {
-    public var view: FView
-    public var onComplete: (String) -> [FEvent]
+class FListenContainer: FSyncTreeHash {
+    var view: FView
+    var onComplete: (String) -> [FEvent]
 
-    public init(view: FView, onComplete: @escaping (String) -> [FEvent]) {
+    init(view: FView, onComplete: @escaping (String) -> [FEvent]) {
         self.view = view
         self.onComplete = onComplete
     }
 
-    public var serverCache: FNode {
+    var serverCache: FNode {
         view.serverCache
     }
 
-    public var compoundHash: FCompoundHashWrapper {
+    var compoundHash: FCompoundHashWrapper {
         FCompoundHashWrapper(wrapped: FCompoundHash.fromNode(node: serverCache))
     }
 
-    public var simpleHash: String {
+    var simpleHash: String {
         serverCache.dataHash()
     }
 
-    public var includeCompoundHash: Bool {
+    var includeCompoundHash: Bool {
         FSnapshotUtilities.estimateSerializedNodeSize(serverCache) > kFSizeThresholdForCompoundHash
     }
 }
@@ -67,7 +67,7 @@ public class FListenContainer: FSyncTreeHash {
  * raise, the actual events are returned to the caller rather than raised
  * synchronously.
  */
-public class FSyncTree {
+class FSyncTree {
     /**
      * Tree of SyncPoints. There's a SyncPoint at any location that has 1 or more
      * views.
@@ -91,12 +91,12 @@ public class FSyncTree {
     let queryTagCounter: FAtomicNumber = FAtomicNumber()
     var keepSyncedQueries: Set<FQuerySpec> = []
 
-    public init(listenProvider: FListenProvider) {
+    init(listenProvider: FListenProvider) {
         self.listenProvider = listenProvider
         self.persistenceManager = nil
     }
 
-    public init(persistenceManager: FPersistenceManager?, listenProvider: FListenProvider) {
+    init(persistenceManager: FPersistenceManager?, listenProvider: FListenProvider) {
         self.listenProvider = listenProvider
         self.persistenceManager = persistenceManager
     }
@@ -109,7 +109,7 @@ public class FSyncTree {
      * updateChildValues:, etc.
      * @return NSArray of FEvent to raise.
      */
-    public func applyUserOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) -> [FEvent] {
+    func applyUserOverwriteAtPath(_ path: FPath, newData: FNode, writeId: Int, isVisible: Bool) -> [FEvent] {
         // Record pending write
         pendingWriteTree.addOverwriteAtPath(path, newData: newData, writeId: writeId, isVisible: isVisible)
         if !isVisible {
@@ -124,7 +124,7 @@ public class FSyncTree {
      * Apply the data from a user-generated updateChildValues: call
      * @return NSArray of FEvent to raise.
      */
-    public func applyUserMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) -> [FEvent] {
+    func applyUserMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) -> [FEvent] {
         // Record pending merge
         pendingWriteTree.addMergeAtPath(path, changedChildren: changedChildren, writeId: writeId)
         let operation = FMerge(source: .userInstance, path: path, children: changedChildren)
@@ -137,7 +137,7 @@ public class FSyncTree {
      * TODO[offline]: Taking a serverClock here is awkward, but server values are
      * awkward. :-(
      */
-    public func ackUserWriteWithWriteId(_ writeId: Int, revert: Bool, persist: Bool, clock: FClock) -> [FEvent] {
+    func ackUserWriteWithWriteId(_ writeId: Int, revert: Bool, persist: Bool, clock: FClock) -> [FEvent] {
         let write = pendingWriteTree.writeForId(writeId)
         let needToReevaluate = pendingWriteTree.removeWriteId(writeId)
         if let write = write, write.visible {
@@ -172,19 +172,19 @@ public class FSyncTree {
         return []
     }
 
-    public func applyServerOverwriteAtPath(_ path: FPath, newData: FNode) -> [FEvent] {
+    func applyServerOverwriteAtPath(_ path: FPath, newData: FNode) -> [FEvent] {
         persistenceManager?.updateServerCache(node: newData, forQuery: .defaultQueryAtPath(path))
         let operation = FOverwrite(source: .serverInstance, path: path, snap: newData)
         return applyOperationToSyncPoints(operation)
     }
 
-    public func applyServerMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite) -> [FEvent] {
+    func applyServerMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite) -> [FEvent] {
         persistenceManager?.updateServerCache(merge: changedChildren, atPath: path)
         let operation = FMerge(source: .serverInstance, path: path, children: changedChildren)
         return applyOperationToSyncPoints(operation)
     }
 
-    public func applyServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge]) -> [FEvent] {
+    func applyServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge]) -> [FEvent] {
         guard let syncPoint = syncPointTree.value(atPath: path) else {
             // Removed view, so it's safe to just ignore this update
             return []
@@ -234,7 +234,7 @@ public class FSyncTree {
         return syncPoint.applyOperation(operation, writesCache: writesCache, serverCache: nil)
     }
 
-    public func applyTaggedQueryOverwriteAtPath(_ path: FPath, newData: FNode, tagId: Int) -> [FEvent] {
+    func applyTaggedQueryOverwriteAtPath(_ path: FPath, newData: FNode, tagId: Int) -> [FEvent] {
         if let query = query(for: tagId) {
             let relativePath = FPath.relativePath(from: query.path, to: path)
             let queryToOverwrite = relativePath.isEmpty ? query : FQuerySpec.defaultQueryAtPath(path)
@@ -246,7 +246,7 @@ public class FSyncTree {
             return []
         }
     }
-    public func applyTaggedQueryMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, tagId: Int) -> [FEvent] {
+    func applyTaggedQueryMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, tagId: Int) -> [FEvent] {
         guard let query = query(for: tagId) else {
             // We've already removed the query. No big deal, ignore the update.
             return []
@@ -265,7 +265,7 @@ public class FSyncTree {
         queryToTagMap[query]
     }
 
-    public func applyTaggedServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge], tagId: Int) -> [FEvent] {
+    func applyTaggedServerRangeMergeAtPath(_ path: FPath, updates ranges: [FRangeMerge], tagId: Int) -> [FEvent] {
         guard let query = query(for: tagId) else {
             // We've already removed the query. No big deal, ignore the update.
             return []
@@ -286,7 +286,7 @@ public class FSyncTree {
         return applyTaggedQueryOverwriteAtPath(path, newData: serverNode, tagId: tagId)
     }
 
-    public func addEventRegistration(_ eventRegistration: FEventRegistration, forQuery query: FQuerySpec) -> [FEvent] {
+    func addEventRegistration(_ eventRegistration: FEventRegistration, forQuery query: FQuerySpec) -> [FEvent] {
         let path = query.path
         var foundAncestorDefaultView = false
 
@@ -376,7 +376,7 @@ public class FSyncTree {
      * @param cancelError If provided, appropriate cancel events will be returned
      * @return NSArray of FEvent to raise.
      */
-    public func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
+    func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
         // Find the syncPoint first. Then deal with whether or not it has matching
         // listeners
         let path = query.path
@@ -457,7 +457,7 @@ public class FSyncTree {
         return cancelEvents
     }
 
-    public func keepQuery(_ query: FQuerySpec, synced keepSynced: Bool) {
+    func keepQuery(_ query: FQuerySpec, synced keepSynced: Bool) {
         // Only do something if we actually need to add/remove an event registration
         if keepSynced && !keepSyncedQueries.contains(query) {
             _ = addEventRegistration(FKeepSyncedEventRegistration.instance, forQuery: query)
@@ -468,7 +468,7 @@ public class FSyncTree {
         }
     }
 
-    public func removeAllWrites() -> [FEvent] {
+    func removeAllWrites() -> [FEvent] {
         persistenceManager?.removeAllUserWrites()
         let removedWrites = pendingWriteTree.removeAllWrites()
         if !removedWrites.isEmpty {
@@ -480,7 +480,7 @@ public class FSyncTree {
     }
 
     /** Returns a non-empty cache node if one exists. Otherwise returns null. */
-    public func persistenceServerCache(_ querySpec: FQuerySpec) -> FIndexedNode? {
+    func persistenceServerCache(_ querySpec: FQuerySpec) -> FIndexedNode? {
         guard let cacheNode = persistenceManager?.serverCacheForQuery(querySpec) else {
             return nil
         }
@@ -490,7 +490,7 @@ public class FSyncTree {
         return cacheNode.indexedNode
     }
 
-    public func getServerValue(_ query: FQuerySpec) -> FNode? {
+    func getServerValue(_ query: FQuerySpec) -> FNode? {
         var serverCacheNode: FNode? = nil
         var targetSyncPoint: FSyncPoint? = nil
         _ = syncPointTree.forEachOn(path: query.path) { pathToSyncPoint, syncPoint in
@@ -524,7 +524,7 @@ public class FSyncTree {
      * @param path The path to the data we want
      * @param writeIdsToExclude A specific set to be excluded
      */
-    public func calcCompleteEventCacheAtPath(_ path: FPath, excludeWriteIds: [Int]) -> FNode? {
+    func calcCompleteEventCacheAtPath(_ path: FPath, excludeWriteIds: [Int]) -> FNode? {
         let includeHiddenSets = true
         let writeTree = pendingWriteTree
         let serverCache: FNode? = syncPointTree.find(onPath: path) { pathSoFar, syncPoint in

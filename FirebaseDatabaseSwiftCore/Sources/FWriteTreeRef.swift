@@ -11,7 +11,7 @@ import Foundation
  * A FWriteTreeRef wraps a FWriteTree and a FPath, for convenient access to a
  * particular subtree. All the methods just proxy to the underlying FWriteTree.
  */
-public class FWriteTreeRef {
+class FWriteTreeRef {
     /**
      * The path to this particular FWriteTreeRef. Used for calling methods on
      * writeTree while exposing a simpler interface to callers.
@@ -36,7 +36,7 @@ public class FWriteTreeRef {
      * includes hidden writes, and excludes arbitrary writes. Note that customizing
      * the returned node can lead to a more expensive calculation.
      */
-    public func calculateCompleteEventCache(completeServerCache: FNode?) -> FNode? {
+    func calculateCompleteEventCache(completeServerCache: FNode?) -> FNode? {
         writeTree.calculateCompleteEventCacheAtPath(
             path,
             completeServerCache: completeServerCache,
@@ -50,7 +50,7 @@ public class FWriteTreeRef {
      * children we have data for. The returned data is a mix of the given server
      * data and write data.
      */
-    public func calculateCompleteEventChildren(completeServerChildren: FNode?) -> FNode {
+    func calculateCompleteEventChildren(completeServerChildren: FNode?) -> FNode {
         writeTree.calculateCompleteEventChildrenAtPath(path,
                           completeServerChildren:completeServerChildren)
     }
@@ -72,7 +72,7 @@ public class FWriteTreeRef {
      * Either existingEventSnap or existingServerSnap must exist, this is validated
      * via an assert.
      */
-    public func calculateEventCacheAfterServerOverwrite(childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
+    func calculateEventCacheAfterServerOverwrite(childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
         writeTree.calculateEventCacheAfterServerOverwriteAtPath(
             path,
             childPath: childPath,
@@ -87,7 +87,7 @@ public class FWriteTreeRef {
      * child of that write relative to the write and this path. Returns nil if there
      * is no write at this path.
      */
-    public func shadowingWriteAtPath(_ path: FPath) -> FNode? {
+    func shadowingWriteAtPath(_ path: FPath) -> FNode? {
         writeTree.shadowingWriteAtPath(path.child(path))
     }
 
@@ -96,7 +96,7 @@ public class FWriteTreeRef {
      * can, we pull in children that are outside the window, but may now be in the
      * window.
      */
-    public func calculateNextNodeAfterPost(_ post: FNamedNode,
+    func calculateNextNodeAfterPost(_ post: FNamedNode,
                                     completeServerData: FNode?,
                                     reverse: Bool,
                                     index: FIndex) -> FNamedNode? {
@@ -107,7 +107,7 @@ public class FWriteTreeRef {
      * Returns a complete child for a given server snap after applying all user
      * writes or nil if there is no complete child for this child key.
      */
-    public func calculateCompleteChild(_ childKey: String,
+    func calculateCompleteChild(_ childKey: String,
                                 cache existingServerCache: FCacheNode) -> FNode? {
         writeTree.calculateCompleteChildAtPath(path, childKey: childKey, cache: existingServerCache)
     }
@@ -115,7 +115,7 @@ public class FWriteTreeRef {
     /**
      * @return a WriteTreeref for a child.
      */
-    public func childWriteTreeRef(_ childKey: String) -> FWriteTreeRef {
+    func childWriteTreeRef(_ childKey: String) -> FWriteTreeRef {
         FWriteTreeRef(path: path.child(fromString: childKey), writeTree: writeTree)
     }
 }

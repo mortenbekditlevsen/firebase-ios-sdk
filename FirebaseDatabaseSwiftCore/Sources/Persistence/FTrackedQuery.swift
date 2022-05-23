@@ -14,7 +14,7 @@ public struct FTrackedQuery: Hashable {
     public let isComplete: Bool
     public let isActive: Bool
 
-    public init(id queryId: Int, query: FQuerySpec, lastUse: TimeInterval, isActive: Bool, isComplete: Bool) {
+    init(id queryId: Int, query: FQuerySpec, lastUse: TimeInterval, isActive: Bool, isComplete: Bool) {
         self.queryId = queryId
         self.query = query
         self.lastUse = lastUse
@@ -22,7 +22,7 @@ public struct FTrackedQuery: Hashable {
         self.isComplete = isComplete
     }
 
-    public init(id queryId: Int, query: FQuerySpec, lastUse: TimeInterval, isActive: Bool) {
+    init(id queryId: Int, query: FQuerySpec, lastUse: TimeInterval, isActive: Bool) {
         self.queryId = queryId
         self.query = query
         self.lastUse = lastUse
@@ -30,15 +30,15 @@ public struct FTrackedQuery: Hashable {
         self.isComplete = false
     }
 
-    public func updateLastUse(_ lastUse: TimeInterval) -> FTrackedQuery {
+    func updateLastUse(_ lastUse: TimeInterval) -> FTrackedQuery {
         .init(id: queryId, query: query, lastUse: lastUse, isActive: isActive, isComplete: isComplete)
     }
 
-    public func setComplete() -> FTrackedQuery {
+    func setComplete() -> FTrackedQuery {
         .init(id: queryId, query: query, lastUse: lastUse, isActive: isActive, isComplete: true)
     }
 
-    public func setActiveState(_ isActive: Bool) -> FTrackedQuery {
+    func setActiveState(_ isActive: Bool) -> FTrackedQuery {
         .init(id: queryId, query: query, lastUse: lastUse, isActive: isActive, isComplete: true)
     }
 }

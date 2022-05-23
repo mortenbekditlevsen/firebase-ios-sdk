@@ -87,16 +87,15 @@ internal struct FImmutableTree<Element> {
     ) -> Element? {
         var currentTree = self
         var currentValue = self.value
-        relativePath.enumerateComponents(usingBlock: { key, stop in
+        for key in relativePath.components {
             guard let child = currentTree.children[key] else {
-                stop.pointee = ObjCBool(booleanLiteral: true)
-                return
+                break
             }
             currentTree = child
             if let treeValue = currentTree.value, predicate(treeValue) {
                 currentValue = treeValue
             }
-        })
+        }
         return currentValue
     }
 

@@ -80,34 +80,34 @@ struct FWriteRecordImpl: Hashable, Equatable {
 protocol Ski: Hashable {}
 
 
-public class FWriteRecord {
+class FWriteRecord {
   let impl: FWriteRecordImpl
 
-  public init(path: FPath, overwrite: FNode, writeId: Int, visible: Bool) {
+  init(path: FPath, overwrite: FNode, writeId: Int, visible: Bool) {
     self.impl = FWriteRecordImpl(path: path, overwrite: overwrite, writeId: writeId, visible: visible)
   }
 
-  public init(path: FPath, merge: FCompoundWrite, writeId: Int) {
+  init(path: FPath, merge: FCompoundWrite, writeId: Int) {
     self.impl = .init(path: path, merge: merge, writeId: writeId)
   }
 
-  public var writeId: Int { impl.writeId }
-  public var visible: Bool { impl.visible }
-  public var path: FPath { impl.path }
-  public var isOverwrite: Bool { impl.isOverwrite }
-  public var isMerge: Bool { impl.isMerge }
-  public var overwrite: FNode? { impl.overwrite }
-  public var merge: FCompoundWrite? { impl.merge }
-    public var hash: Int { impl.hashValue }
-    public var debugDescription: String {
+  var writeId: Int { impl.writeId }
+  var visible: Bool { impl.visible }
+  var path: FPath { impl.path }
+  var isOverwrite: Bool { impl.isOverwrite }
+  var isMerge: Bool { impl.isMerge }
+  var overwrite: FNode? { impl.overwrite }
+  var merge: FCompoundWrite? { impl.merge }
+    var hash: Int { impl.hashValue }
+    var debugDescription: String {
         impl.debugDescription
     }
 
-    public var description: String {
+    var description: String {
         impl.debugDescription
     }
 
-    public func isEqual(_ object: Any?) -> Bool {
+    func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? FWriteRecord else { return false }
         return other.impl == self.impl
     }

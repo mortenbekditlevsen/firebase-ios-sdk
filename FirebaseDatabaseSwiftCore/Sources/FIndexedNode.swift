@@ -19,11 +19,11 @@ import Foundation
 public struct FIndexedNode {
     struct IndexedNamedNode: Comparable, Equatable {
         static func == (lhs: IndexedNamedNode, rhs: IndexedNamedNode) -> Bool {
-            lhs.wrapped == rhs.wrapped && lhs.index === rhs.index
+            lhs.wrapped == rhs.wrapped && lhs.index == rhs.index
         }
 
         static func < (lhs: IndexedNamedNode, rhs: IndexedNamedNode) -> Bool {
-            lhs.index.compareNamedNode(lhs.wrapped, toNamedNode: rhs.wrapped) == .orderedAscending
+            lhs.index.compareNamedNode(lhs: lhs.wrapped, rhs: rhs.wrapped) == .orderedAscending
         }
 
         let wrapped: FNamedNode
@@ -41,7 +41,7 @@ public struct FIndexedNode {
         if let initial = initialIndexed {
             return initial
         }
-        if index.isEqual(FKeyIndex.keyIndex) {
+        if index == .key {
             return .fallback
         }
         var sawChild = false
@@ -66,14 +66,14 @@ public struct FIndexedNode {
 
     let initialIndexed: Wrapper?
 
-    init(node: FNode, index: FIndex = FPriorityIndex.priorityIndex, indexed: Wrapper? = nil) {
+    init(node: FNode, index: FIndex = .priority, indexed: Wrapper? = nil) {
         self.node = node
         self.index = index
         self.initialIndexed = indexed
     }
 
     static func indexedNode(node: FNode) -> FIndexedNode {
-        indexedNodeWithNode(node, index: FPriorityIndex.priorityIndex)
+        indexedNodeWithNode(node, index: .priority)
     }
 
     static func indexedNodeWithNode(_ node: FNode, index: FIndex) -> FIndexedNode {
@@ -81,7 +81,7 @@ public struct FIndexedNode {
     }
 
     func hasIndex(_ index: FIndex) -> Bool {
-        self.index.isEqual(index)
+        self.index == index
     }
 
     func updateChild(_ key: String, withNewChild newChildNode: FNode) -> Self {
@@ -139,7 +139,7 @@ public struct FIndexedNode {
     }
 
     func predecessorForChildKey(_ childKey: String, childNode: FNode, index: FIndex) -> String? {
-        if !self.index.isEqual(index) {
+        if self.index != index {
             fatalError("Index not available in IndexedNode!")
 //            [NSException raise:NSInvalidArgumentException
 //                        format:@"Index not available in IndexedNode!"];
@@ -223,78 +223,3 @@ struct NamedNodeIterator: IteratorProtocol {
 
     func next() -> FNamedNode? { _next() }
 }
-
-public class FIndexedNodeObjC {
-    internal let wrapped: FIndexedNode
-    public var node: FNode {
-        wrapped.node
-    }
-
-    public static func indexedNode(node: FNode) -> FIndexedNodeObjC {
-        indexedNodeWithNode(node, index: FPriorityIndex.priorityIndex)
-    }
-    public static func indexedNodeWithNode(_ node: FNode, index: FIndex) -> FIndexedNodeObjC {
-        .init(node: node, index: index)
-    }
-
-    internal init(wrapped: FIndexedNode) {
-        self.wrapped = wrapped
-    }
-
-    public init(node: FNode) {
-        self.wrapped = FIndexedNode(node: node)
-    }
-
-    public init(node: FNode, index: FIndex) {
-        self.wrapped = FIndexedNode(node: node, index: index)
-    }
-
-    public func hasIndex(_ index: FIndex) -> Bool {
-        wrapped.index.isEqual(index)
-    }
-    public func updateChild(_ key: String, withNewChild newChildNode: FNode) -> FIndexedNodeObjC {
-        let x = wrapped.updateChild(key, withNewChild: newChildNode)
-        return FIndexedNodeObjC(wrapped: x)
-    }
-    public func updatePriority(_ priority: FNode) -> FIndexedNodeObjC {
-        let updated = wrapped.updatePriority(priority)
-        return .init(wrapped: updated)
-    }
-    public var firstChild: FNamedNode? {
-        wrapped.firstChild
-    }
-    public var lastChild: FNamedNode? {
-        wrapped.lastChild
-    }
-    public func predecessorForChildKey(_ childKey: String, childNode: FNode, index: FIndex) -> String? {
-        wrapped.predecessorForChildKey(childKey, childNode: childNode, index: index)
-    }
-    public func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        wrapped.enumerateChildrenReverse(reverse, usingBlock: block)
-    }
-
-    var children: FIndexedNodeChildren { wrapped.children }
-}
-
-//public class FIndexedNode {
-//    public func childEnumerator() -> NSEnumerator {
-//        switch indexed {
-//        case .fallback:
-//            return node.childEnumerator()
-//        case .indexed(let set):
-//            return ObjectEnumerator(iterator: set.makeIterator())
-//        }
-//    }
-//}
-
-//class ObjectEnumerator: NSEnumerator {
-//    var iterator: IndexingIterator<(OrderedSet<FNamedNode>)>
-//    init(iterator: IndexingIterator<(OrderedSet<FNamedNode>)>) {
-//        self.iterator = iterator
-//    }
-//
-//    override func nextObject() -> Any? {
-//        iterator.next()
-//    }
-//
-//}

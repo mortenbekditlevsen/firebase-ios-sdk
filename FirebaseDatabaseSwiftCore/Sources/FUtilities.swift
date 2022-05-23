@@ -19,7 +19,7 @@ public enum FLogLevel: Int {
 
 
 @_cdecl("FFIsLoggingEnabled")
-public func FFIsLoggingEnabled(_ level: Int) -> Bool { level >= logLevel.rawValue }
+func FFIsLoggingEnabled(_ level: Int) -> Bool { level >= logLevel.rawValue }
 
 #warning("TODO: Use actual logging. Perhaps through swift-log.")
 internal func FFLog(_ id: String, _ log: String) {
@@ -77,11 +77,11 @@ func tryParseStringToInt(_ str: String, integer: inout Int) -> Bool {
 }
 
 // Temporary obj-c wrapper - remove after migration.
-public class FUtilities {
-    public static func LUIDGenerator() -> Int {
+class FUtilities {
+    static func LUIDGenerator() -> Int {
         FUtilitiesSwift.LUIDGenerator()
     }
-    public static func setLoggingEnabled(_ enabled: Bool) {
+    static func setLoggingEnabled(_ enabled: Bool) {
         FUtilitiesSwift.setLoggingEnabled(enabled)
     }
     public static var int32min: Int { Int(Int32.min) }
@@ -90,24 +90,24 @@ public class FUtilities {
     public static var minName: String { FUtilitiesSwift.minName }
     public static var maxName: String { FUtilitiesSwift.maxName }
 
-    public static func getJavascriptType(_ obj: Any) -> String {
+    static func getJavascriptType(_ obj: Any) -> String {
         FUtilitiesSwift.getJavascriptType(obj).rawValue
     }
 
     // Only used for testing
-    public static func keyComparator() -> Comparator {
+    static func keyComparator() -> Comparator {
         { a, b in FUtilitiesSwift.compareKey(a as! String, b as! String) }
     }
-    public static func compareKey(_ a: String, toKey b: String) -> ComparisonResult {
+    static func compareKey(_ a: String, toKey b: String) -> ComparisonResult {
         FUtilitiesSwift.compareKey(a, b)
     }
-    public static func randomDouble() -> Double {
+    static func randomDouble() -> Double {
         FUtilitiesSwift.randomDouble()
     }
-    public static func errorForStatus(_ status: String, andReason reason: String?) -> Error? {
+    static func errorForStatus(_ status: String, andReason reason: String?) -> Error? {
         FUtilitiesSwift.error(for: status, reason: reason)
     }
-    public static func parseUrl(_ input: String) -> FParsedUrl {
+    static func parseUrl(_ input: String) -> FParsedUrl {
         FUtilitiesSwift.parseUrl(input)
     }
 }

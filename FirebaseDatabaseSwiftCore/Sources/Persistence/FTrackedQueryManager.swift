@@ -7,12 +7,12 @@
 
 import Foundation
 
-public class FTrackedQueryManager {
+class FTrackedQueryManager {
     let storageEngine: FStorageEngine
     let clock: FClock
     var trackedQueryTree: FImmutableTree<[FQueryParams: FTrackedQuery]>
     var currentQueryId: Int = 0
-    public init(storageEngine: FStorageEngine, clock: FClock) {
+    init(storageEngine: FStorageEngine, clock: FClock) {
         self.storageEngine = storageEngine
         self.clock = clock
         self.trackedQueryTree = .empty
@@ -42,7 +42,7 @@ public class FTrackedQueryManager {
         query.loadsAllData ? FQuerySpec.defaultQueryAtPath(query.path) : query
     }
 
-    public func findTrackedQuery(_ query: FQuerySpec) -> FTrackedQuery? {
+    func findTrackedQuery(_ query: FQuerySpec) -> FTrackedQuery? {
         let query = FTrackedQueryManager.normalizeQuery(query)
         guard let set = trackedQueryTree.value(atPath: query.path) else {
             return nil
@@ -50,7 +50,7 @@ public class FTrackedQueryManager {
         return set[query.params]
     }
 
-    public func isQueryComplete(_ query: FQuerySpec) -> Bool {
+    func isQueryComplete(_ query: FQuerySpec) -> Bool {
         if isIncludedInDefaultCompleteQuery(query) {
             return true
         } else if query.loadsAllData {
@@ -64,7 +64,7 @@ public class FTrackedQueryManager {
         }
     }
 
-    public func removeTrackedQuery(_ query: FQuerySpec) {
+    func removeTrackedQuery(_ query: FQuerySpec) {
         let query = FTrackedQueryManager.normalizeQuery(query)
         guard let trackedQuery = findTrackedQuery(query) else {
             assertionFailure("Tracked query must exist to be removed!")
@@ -78,7 +78,7 @@ public class FTrackedQueryManager {
         storageEngine.removeTrackedQuery(trackedQuery.queryId)
     }
 
-    public func setQueryComplete(_ query: FQuerySpec) {
+    func setQueryComplete(_ query: FQuerySpec) {
         let query = FTrackedQueryManager.normalizeQuery(query)
         guard var trackedQuery = findTrackedQuery(query) else {
             // We might have removed a query and pruned it before we got the
@@ -96,7 +96,7 @@ public class FTrackedQueryManager {
         }
     }
 
-    public func setQueriesCompleteAtPath(_ path: FPath) {
+    func setQueriesCompleteAtPath(_ path: FPath) {
         trackedQueryTree.subtree(atPath: path).forEach { path, trackedQueries in
             for trackedQuery in trackedQueries.values {
                 if !trackedQuery.isComplete {
@@ -108,10 +108,10 @@ public class FTrackedQueryManager {
         }
     }
 
-    public func setQueryActive(_ query: FQuerySpec) {
+    func setQueryActive(_ query: FQuerySpec) {
         setQueryActive(query, isActive: true)
     }
-    public func setQueryInactive(_ query: FQuerySpec) {
+    func setQueryInactive(_ query: FQuerySpec) {
         setQueryActive(query, isActive: false)
     }
 
@@ -140,7 +140,7 @@ public class FTrackedQueryManager {
         cacheTrackedQuery(resultingQuery)
     }
 
-    public func hasActiveDefaultQueryAtPath(_ path: FPath) -> Bool {
+    func hasActiveDefaultQueryAtPath(_ path: FPath) -> Bool {
         trackedQueryTree.rootMostValue(onPath: path, matching: { trackedQueries in
             return (trackedQueries[FQueryParams.defaultInstance]?.isActive) ?? false
         }) != nil
@@ -153,7 +153,7 @@ public class FTrackedQueryManager {
 
     }
     
-    public func ensureCompleteTrackedQueryAtPath(_ path: FPath) {
+    func ensureCompleteTrackedQueryAtPath(_ path: FPath) {
         let query = FQuerySpec.defaultQueryAtPath(path)
         if !isIncludedInDefaultCompleteQuery(query) {
             let resultingQuery: FTrackedQuery
@@ -188,7 +188,7 @@ public class FTrackedQueryManager {
         return min(max(numMax, numPercent), numPrunable)
     }
 
-    public func pruneOldQueries(_ cachePolicy: FCachePolicy) -> FPruneForest {
+    func pruneOldQueries(_ cachePolicy: FCachePolicy) -> FPruneForest {
         var prunableQueries: [FTrackedQuery] = []
         var unprunableQueries: [FTrackedQuery] = []
         trackedQueryTree.forEach { path, trackedQueries in
@@ -222,7 +222,7 @@ public class FTrackedQueryManager {
         return pruneForest
     }
 
-    public var numberOfPrunableQueries: Int {
+    var numberOfPrunableQueries: Int {
         var count = 0
 
         trackedQueryTree.forEach { path, trackedQueries in
@@ -248,7 +248,7 @@ public class FTrackedQueryManager {
         return ids
     }
 
-    public func knownCompleteChildrenAtPath(_ path: FPath) -> Set<String> {
+    func knownCompleteChildrenAtPath(_ path: FPath) -> Set<String> {
         assert(!isQueryComplete(FQuerySpec.defaultQueryAtPath(path)), "Path is fully complete")
         var completeChildren: Set<String> = []
         // First, get complete children from any queries at this location.
@@ -269,7 +269,7 @@ public class FTrackedQueryManager {
 
 
     // For testing
-    public func verifyCache() {
+    func verifyCache() {
         let storedTrackedQueries = storageEngine.loadTrackedQueries()
         var trackedQueries: [FTrackedQuery] = []
         trackedQueryTree.forEach { path, queryDict in
