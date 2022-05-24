@@ -19,7 +19,7 @@ class FRangedFilter: FNodeFilter {
     func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         var newChildSnap = newChildSnap
         if !matchesKey(childKey, andNode:newChildSnap) {
-            newChildSnap = FEmptyNode.emptyNode
+            newChildSnap = .empty
         }
         return indexedFilter.updateChildIn(oldSnap,
                                            forChildKey:childKey,
@@ -35,13 +35,13 @@ class FRangedFilter: FNodeFilter {
         if newSnap.node.isLeafNode() {
             // Make sure we have a children node with the correct index, not a leaf
             // node
-            filtered = FIndexedNode.indexedNodeWithNode(FEmptyNode.emptyNode, index: index)
+            filtered = FIndexedNode.indexedNodeWithNode(.empty, index: index)
         } else {
             // Dont' support priorities on queries
-            filtered = newSnap.updatePriority(FEmptyNode.emptyNode)
+            filtered = newSnap.updatePriority(.empty)
             newSnap.node.enumerateChildren { key, node, stop in
                 if !self.matchesKey(key, andNode: node) {
-                    filtered = filtered.updateChild(key, withNewChild: FEmptyNode.emptyNode)
+                    filtered = filtered.updateChild(key, withNewChild: .empty)
                 }
             }
         }

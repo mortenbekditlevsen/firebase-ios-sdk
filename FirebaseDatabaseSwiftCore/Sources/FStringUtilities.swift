@@ -31,24 +31,7 @@ extension Data {
 
 import Foundation
 
-class FStringUtilities {
-    static func base64EncodedSha1(_ input: String) -> String {
-        FStringUtilitiesSwift.base64EncodedSha1(input)
-    }
-
-    static func urlDecoded(_ url: String) -> String {
-        FStringUtilitiesSwift.urlDecoded(url)
-    }
-
-    static func urlEncoded(_ input: String) -> String {
-        FStringUtilitiesSwift.urlEncoded(input)
-    }
-    static func sanitizedForUserAgent(_ str: String) -> String {
-        FStringUtilitiesSwift.sanitizedForUserAgent(str)
-    }
-}
-
-enum FStringUtilitiesSwift {
+enum FStringUtilities {
     static func base64EncodedSha1(_ input: String) -> String  {
         let data = Data(input.utf8)
         return data.sha1().base64EncodedString()

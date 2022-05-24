@@ -8,36 +8,36 @@
 import Foundation
 
 private struct QueryParams: Hashable, Equatable {
-    static func == (lhs: QueryParams, rhs: QueryParams) -> Bool {
-        lhs.limitSet == rhs.limitSet &&
-        lhs.limit == rhs.limit &&
-        lhs.isViewFromLeft == rhs.isViewFromLeft &&
-        (lhs.indexStartValue?.isEqual(rhs.indexStartValue) ?? true) &&
-        (rhs.indexStartValue?.isEqual(lhs.indexStartValue) ?? true) &&
-        lhs.indexStartKey == rhs.indexStartKey &&
-        (lhs.indexEndValue?.isEqual(rhs.indexEndValue) ?? true) &&
-        (rhs.indexEndValue?.isEqual(lhs.indexEndValue) ?? true) &&
-        lhs.indexEndKey == rhs.indexEndKey &&
-        lhs.index == rhs.index
-    }
-
-    func hash(into hasher: inout Hasher) {
-        limitSet.hash(into: &hasher)
-        limit.hash(into: &hasher)
-        isViewFromLeft.hash(into: &hasher)
-        if let x = indexStartValue {
-            x.hash.hash(into: &hasher)
-        } else {
-            "xyz".hash(into: &hasher)
-        }
-        indexStartKey.hash(into: &hasher)
-        if let x = indexEndValue {
-            x.hash.hash(into: &hasher)
-        } else {
-            "zyx".hash(into: &hasher)
-        }
-        index.hash(into: &hasher)
-    }
+//    static func == (lhs: QueryParams, rhs: QueryParams) -> Bool {
+//        lhs.limitSet == rhs.limitSet &&
+//        lhs.limit == rhs.limit &&
+//        lhs.isViewFromLeft == rhs.isViewFromLeft &&
+//        (lhs.indexStartValue?.isEqual(rhs.indexStartValue) ?? true) &&
+//        (rhs.indexStartValue?.isEqual(lhs.indexStartValue) ?? true) &&
+//        lhs.indexStartKey == rhs.indexStartKey &&
+//        (lhs.indexEndValue?.isEqual(rhs.indexEndValue) ?? true) &&
+//        (rhs.indexEndValue?.isEqual(lhs.indexEndValue) ?? true) &&
+//        lhs.indexEndKey == rhs.indexEndKey &&
+//        lhs.index == rhs.index
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        limitSet.hash(into: &hasher)
+//        limit.hash(into: &hasher)
+//        isViewFromLeft.hash(into: &hasher)
+//        if let x = indexStartValue {
+//            x.hash.hash(into: &hasher)
+//        } else {
+//            "xyz".hash(into: &hasher)
+//        }
+//        indexStartKey.hash(into: &hasher)
+//        if let x = indexEndValue {
+//            x.hash.hash(into: &hasher)
+//        } else {
+//            "zyx".hash(into: &hasher)
+//        }
+//        index.hash(into: &hasher)
+//    }
 
     var isViewFromLeft: Bool {
         if viewFrom != nil {
@@ -232,7 +232,7 @@ public struct FQueryParams: Hashable {
         self.params = params
     }
 
-    static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
+    static func fromQueryObject(_ dict: [String: AnyHashable]) -> FQueryParams {
         guard dict.count > 0 else {
             return .defaultInstance
         }
@@ -273,8 +273,8 @@ public struct FQueryParams: Hashable {
         params.hasEnd
     }
 
-    var wireProtocolParams: [String: Any] {
-        var dict: [String: Any] = [:]
+    var wireProtocolParams: [String: AnyHashable] {
+        var dict: [String: AnyHashable] = [:]
         if let value = params.indexStartValue {
             dict[kFQPIndexStartValue] = value.val(forExport: true)
         }

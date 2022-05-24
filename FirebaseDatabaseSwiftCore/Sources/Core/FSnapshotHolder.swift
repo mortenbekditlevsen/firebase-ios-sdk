@@ -8,7 +8,7 @@
 import Foundation
 
 class FSnapshotHolder {
-    var rootNode = FEmptyNode.emptyNode
+    var rootNode = FNode.empty
 
     init() {}
 

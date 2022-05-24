@@ -76,49 +76,13 @@ func tryParseStringToInt(_ str: String, integer: inout Int) -> Bool {
     }
 }
 
-// Temporary obj-c wrapper - remove after migration.
-class FUtilities {
-    static func LUIDGenerator() -> Int {
-        FUtilitiesSwift.LUIDGenerator()
-    }
-    static func setLoggingEnabled(_ enabled: Bool) {
-        FUtilitiesSwift.setLoggingEnabled(enabled)
-    }
-    public static var int32min: Int { Int(Int32.min) }
-    public static var int32max: Int { Int(Int32.max) }
-
-    public static var minName: String { FUtilitiesSwift.minName }
-    public static var maxName: String { FUtilitiesSwift.maxName }
-
-    static func getJavascriptType(_ obj: Any) -> String {
-        FUtilitiesSwift.getJavascriptType(obj).rawValue
-    }
-
-    // Only used for testing
-    static func keyComparator() -> Comparator {
-        { a, b in FUtilitiesSwift.compareKey(a as! String, b as! String) }
-    }
-    static func compareKey(_ a: String, toKey b: String) -> ComparisonResult {
-        FUtilitiesSwift.compareKey(a, b)
-    }
-    static func randomDouble() -> Double {
-        FUtilitiesSwift.randomDouble()
-    }
-    static func errorForStatus(_ status: String, andReason reason: String?) -> Error? {
-        FUtilitiesSwift.error(for: status, reason: reason)
-    }
-    static func parseUrl(_ input: String) -> FParsedUrl {
-        FUtilitiesSwift.parseUrl(input)
-    }
-}
-
 func firebaseJobsTroll() {
     FFLog("I-RDB095001", "password super secret; JFK conspiracy; Hello there! Having fun digging through Firebase? We're always hiring! jobs@firebase.com")
 }
 
 fileprivate let localUid = FAtomicNumber()
 
-enum FUtilitiesSwift {
+enum FUtilities {
     static func LUIDGenerator() -> Int {
         localUid.getAndIncrement()
     }
@@ -131,7 +95,7 @@ enum FUtilitiesSwift {
         let pieces = pathString.components(separatedBy: "/")
         var decodedPieces: [String] = []
         for piece in pieces where !piece.isEmpty {
-            decodedPieces.append(FStringUtilitiesSwift.urlDecoded(piece))
+            decodedPieces.append(FStringUtilities.urlDecoded(piece))
         }
         return "/" + decodedPieces.joined(separator: "/")
     }
@@ -260,8 +224,8 @@ enum FUtilitiesSwift {
     }
     static func compareKey(_ a: String, _ b: String) -> ComparisonResult {
         if a == b { return .orderedSame }
-        else if a == FUtilitiesSwift.minName || b == FUtilitiesSwift.maxName { return .orderedAscending }
-        else if a == FUtilitiesSwift.maxName || b == FUtilitiesSwift.minName { return .orderedDescending }
+        else if a == FUtilities.minName || b == FUtilities.maxName { return .orderedAscending }
+        else if a == FUtilities.maxName || b == FUtilities.minName { return .orderedDescending }
         else {
             var aAsInt: Int = 0
             var bAsInt: Int = 0

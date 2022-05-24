@@ -58,7 +58,7 @@ class FView {
 
         // Don't filter server node with other filter than index, wait for
         // tagged listen
-        let emptyIndexedNode = FIndexedNode(node: FEmptyNode.emptyNode, index: query.index)
+        let emptyIndexedNode = FIndexedNode(node: .empty, index: query.index)
         let serverSnap = indexFilter.updateFullNode(emptyIndexedNode, withNewNode: initialServerCache.indexedNode, accumulator: nil)
         let eventSnap = filter.updateFullNode(emptyIndexedNode, withNewNode: initialEventCache.indexedNode, accumulator: nil)
         let newServerCache = FCacheNode(indexedNode: serverSnap, isFullyInitialized: initialServerCache.isFullyInitialized, isFiltered: indexFilter.filtersNodes)

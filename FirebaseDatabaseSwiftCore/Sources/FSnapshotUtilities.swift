@@ -9,17 +9,17 @@ import SortedCollections
 import Foundation
 
 class FSnapshotUtilities {
-    static func nodeFrom(_ val: Any?) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: nil)
     }
 
-    static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, withValidationFrom: fn)
     }
-    static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority)
     }
-    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String) -> FNode {
         FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority, withValidationFrom: fn)
     }
 
@@ -35,11 +35,10 @@ class FSnapshotUtilities {
         mutableString.setString(mutable)
     }
 
-    static func compoundWriteFromDictionary(_ values: NSDictionary, withValidationFrom fn: String) -> FCompoundWrite {
+    static func compoundWriteFromDictionary(_ values: [String: AnyHashable], withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
-        for keyId in values.allKeys {
-            let value = values[keyId]
+        for (keyId, value) in values {
             let key = FValidationSwift.validateFrom(fn, validUpdateDictionaryKey: keyId, withValue: value as Any)
             let path = FPath(with: key)
             let node = FSnapshotUtilitiesSwift.nodeFrom(value, withValidationFrom: fn)
@@ -67,9 +66,9 @@ class FSnapshotUtilities {
             return 4 // null keyword
         } else if node.isLeafNode() {
             return estimateLeafNodeSize(node)
-        } else if let childrenNode = node as? FChildrenNode {
+        } else if case let .children(children) = node.type {
             var sum = 1 // opening brackets
-            for (key, child) in childrenNode.children {
+            for (key, child) in children {
                 sum += key.key.count
                 sum += 4 // quotes around key and colon and (comma or closing bracket)
                 sum += estimateSerializedNodeSize(child)
@@ -87,7 +86,7 @@ class FSnapshotUtilities {
         // These values are somewhat arbitrary, but we don't need an exact value so
         // prefer performance over exact value
         let valueSize: Int
-        switch FUtilitiesSwift.getJavascriptType(node.val()) {
+        switch FUtilities.getJavascriptType(node.val()) {
         case .number:
             valueSize = 8 // estimate each float with 8 bytes
         case .boolean:
@@ -127,29 +126,29 @@ public enum FSnapshotUtilitiesSwift {
         case v2
     }
 
-    static func nodeFrom(_ val: Any?) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?) -> FNode {
         nodeFrom(val, priority: nil)
     }
 
-    static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?) -> FNode {
         nodeFrom(val, priority: priority, withValidationFrom: "nodeFrom:priority:")
     }
 
-    static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: nil, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
         internalNodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: depth, path: &path)
     }
 
-    static func compoundWriteFromDictionary(_ values: [String: Any], withValidationFrom fn: String) -> FCompoundWrite {
+    static func compoundWriteFromDictionary(_ values: [String: AnyHashable], withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for (keyId, value) in values {
@@ -173,19 +172,23 @@ public enum FSnapshotUtilitiesSwift {
         return compoundWrite
     }
 
-     static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+     static func internalNodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
          guard depth <= kFirebaseMaxObjectDepth else {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")
          }
-         if val == nil || (val as? NSNull) === NSNull() {
-             return FEmptyNode.emptyNode
+         guard let val = val else {
+             return .empty
+         }
+
+         if (val as? NSNull) === NSNull() {
+             return .empty
          }
          var value = val
          FValidationSwift.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
          var priority = FSnapshotUtilitiesSwift.nodeFrom(priority)
          var isLeafNode = false
-         if let dict = val as? NSDictionary {
+         if let dict = val as? [String: AnyHashable] {
              if let rawPriority = dict[kPayloadPriority] {
                  FValidationSwift.validateFrom(fn, isValidPriorityValue: rawPriority, withPath: path)
                  priority = nodeFrom(rawPriority)
@@ -204,17 +207,17 @@ public enum FSnapshotUtilitiesSwift {
          }
 
          if isLeafNode {
-             return FLeafNode(value: value as Any, withPriority: priority)
+             return FNode.leaf(value, priority: priority)
          }
 
          // Unlike with JS, we have to handle the dictionary and array cases
          // separately.
 
-         if let dval = value as? NSDictionary {
+         if let dval = value as? [String: AnyHashable] {
              var children: [String: FNode] = .init(minimumCapacity: dval.count)
 
              // Avoid creating a million newPaths by appending to old one
-             for keyId in dval.allKeys {
+             for keyId in dval.keys {
                  let key = FValidationSwift.validateFrom(fn, validDictionaryKey: keyId, withPath: path)
                  if !key.hasPrefix(kPayloadMetadataPrefix) {
                      path.append(key)
@@ -226,12 +229,12 @@ public enum FSnapshotUtilitiesSwift {
                  }
              }
              if children.isEmpty {
-                 return FEmptyNode.emptyNode
+                 return .empty
              } else {
                  let dict = SortedDictionary(keysWithValues: children.map { (KeyIndex(key: $0.key), $0.value) })
-                 return FChildrenNode(priority: priority, children: dict)
+                 return .children(dict, priority: priority)
              }
-         } else if let aval = value as? NSArray {
+         } else if let aval = value as? [AnyHashable] {
              var children: [String: FNode] = .init(minimumCapacity: aval.count)
 
              for i in 0..<aval.count {
@@ -246,11 +249,11 @@ public enum FSnapshotUtilitiesSwift {
              }
 
              if children.isEmpty {
-                 return FEmptyNode.emptyNode
+                 return .empty
              } else {
                  let dict = SortedDictionary(keysWithValues: children.map { (KeyIndex(key: $0.key), $0.value) })
 
-                 return FChildrenNode(priority: priority, children: dict)
+                 return .children(dict, priority: priority)
              }
          } else {
              let pathString = path.prefix(50).joined(separator: ".")
@@ -264,15 +267,49 @@ public enum FSnapshotUtilitiesSwift {
             if let valDict = val as? NSDictionary {
                 assert(valDict[kServerValueSubKey] != nil, "Priority can't be object unless it's a deferred value")
             } else {
-                let jsType = FUtilitiesSwift.getJavascriptType(val)
+                let jsType = FUtilities.getJavascriptType(val)
                 assert(jsType == .string || jsType == .number, "Priority of unexpected type.")
             }
         } else {
-            assert (priorityNode === FMaxNode.maxNode || priorityNode.isEmpty, "Priority of unexpected type.")
+            assert (priorityNode == .max || priorityNode.isEmpty, "Priority of unexpected type.")
         }
         // Don't call getPriority() on MAX_NODE to avoid hitting assertion.
-        assert (priorityNode === FMaxNode.maxNode || priorityNode.getPriority().isEmpty, "Priority nodes can't have a priority of their own.")
+        assert (priorityNode == .max || priorityNode.getPriority().isEmpty, "Priority nodes can't have a priority of their own.")
     }
+
+//    static func appendHashRepresentation(for leafNode: FNode, to output: inout String, hashVersion: FDataHashVersion) {
+//        if !leafNode.getPriority().isEmpty {
+//            output += "priority:"
+//            appendHashRepresentation(for: leafNode.getPriority(),
+//                                        to: &output,
+//                                        hashVersion: hashVersion)
+//            output += ":"
+//        }
+//        let jsType = FUtilities.getJavascriptType(leafNode.val())
+//        output += jsType.rawValue + ":"
+//        switch jsType {
+//        case .object:
+//            fatalError("Unknown value for hashing: \(leafNode)")
+//
+//        case .boolean:
+//            let numberVal = (leafNode.val() as? NSNumber) ?? NSNumber(booleanLiteral: false)
+//            output += numberVal.boolValue ? "true" : "false"
+//        case .number:
+//            let numberVal = (leafNode.val() as? NSNumber) ?? NSNumber(integerLiteral: 0)
+//
+//            output += FUtilities.ieee754String(for: numberVal)
+//        case .string:
+//            let stringVal = (leafNode.val() as? String) ?? ""
+//            switch hashVersion {
+//            case .v1:
+//                output += stringVal
+//            case .v2:
+//                appendHashV2Representation(for: stringVal, to: &output)
+//            }
+//        case .null:
+//            ()
+//        }
+//    }
 
     static func appendHashRepresentation(for leafNode: FNode, to output: inout String, hashVersion: FDataHashVersion) {
         if !leafNode.getPriority().isEmpty {
@@ -282,7 +319,7 @@ public enum FSnapshotUtilitiesSwift {
                                         hashVersion: hashVersion)
             output += ":"
         }
-        let jsType = FUtilitiesSwift.getJavascriptType(leafNode.val())
+        let jsType = FUtilities.getJavascriptType(leafNode.val())
         output += jsType.rawValue + ":"
         switch jsType {
         case .object:
@@ -294,7 +331,7 @@ public enum FSnapshotUtilitiesSwift {
         case .number:
             let numberVal = (leafNode.val() as? NSNumber) ?? NSNumber(integerLiteral: 0)
 
-            output += FUtilitiesSwift.ieee754String(for: numberVal)
+            output += FUtilities.ieee754String(for: numberVal)
         case .string:
             let stringVal = (leafNode.val() as? String) ?? ""
             switch hashVersion {
@@ -307,6 +344,7 @@ public enum FSnapshotUtilitiesSwift {
             ()
         }
     }
+
 
     static func appendHashV2Representation(for string: String, to output: inout String) {
         output += "\""

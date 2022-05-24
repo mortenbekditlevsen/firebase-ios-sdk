@@ -13,7 +13,7 @@ class FIndexedFilter: FNodeFilter {
         let node = indexedNode.node
         let oldChildSnap = node.getImmediateChild(childKey)
          // Check if anything actually changed.
-        if oldChildSnap.getChild(affectedPath).isEqual(newChildSnap.getChild(affectedPath)) {
+        if oldChildSnap.getChild(affectedPath) == newChildSnap.getChild(affectedPath) {
             // There's an edge case where a child can enter or leave the view
             // because affectedPath was set to null. In this case, affectedPath will
             // appear null in both the old and new snapshots.  So we need to avoid
@@ -21,7 +21,7 @@ class FIndexedFilter: FNodeFilter {
             if oldChildSnap.isEmpty == newChildSnap.isEmpty {
                 // Nothing changed.
 #if DEBUG
-                assert(oldChildSnap.isEqual(newChildSnap),
+                assert(oldChildSnap == newChildSnap,
                          "Old and new snapshots should be equal.")
 #endif
 
@@ -67,7 +67,7 @@ class FIndexedFilter: FNodeFilter {
             if oldSnap.node.hasChild(childKey) {
                 let oldChildSnap = oldSnap.node.getImmediateChild(childKey)
                 // XXX TODO, COULD FNODE BE MADE EQUATABLE
-                if !oldChildSnap.isEqual(childNode) {
+                if oldChildSnap != childNode {
                     let change = FChange(type: .childChanged, indexedNode: FIndexedNode(node: childNode), childKey: childKey, oldIndexedNode: FIndexedNode(node: oldChildSnap))
                     optChangeAccumulator.trackChildChange(change)
                 }

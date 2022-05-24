@@ -64,7 +64,7 @@ class FTupleTransaction {
     }
 
     var abortError: Error? {
-        abortStatus.flatMap { FUtilitiesSwift.error(for: $0, reason: abortReason) }
+        abortStatus.flatMap { FUtilities.error(for: $0, reason: abortReason) }
     }
 
 

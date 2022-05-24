@@ -13,7 +13,7 @@ import Foundation
  * write modifying that path. Any write to an existing path or shadowing an
  * existing path will modify that existing write to reflect the write added.
  */
-class FCompoundWrite: Hashable {
+struct FCompoundWrite: Hashable {
 
     let writeTree: FImmutableTree<FNode>
     init(writeTree: FImmutableTree<FNode>) {
@@ -23,7 +23,7 @@ class FCompoundWrite: Hashable {
     /**
      * Creates a compound write with NSDictionary from path string to object
      */
-    static func compoundWrite(valueDictionary dictionary: [String: Any]) -> FCompoundWrite {
+    static func compoundWrite(valueDictionary dictionary: [String: AnyHashable]) -> FCompoundWrite {
         var writeTree: FImmutableTree<FNode> = .empty
         for (path, value) in dictionary {
             let node = FSnapshotUtilitiesSwift.nodeFrom(value)
@@ -33,11 +33,9 @@ class FCompoundWrite: Hashable {
         return FCompoundWrite(writeTree: writeTree)
     }
 
-    static func compoundWrite(nodeDictionary dictionary: NSDictionary) -> FCompoundWrite {
+    static func compoundWrite(nodeDictionary dictionary: [String: FNode]) -> FCompoundWrite {
         var writeTree = FImmutableTree<FNode>.empty
-        dictionary.enumerateKeysAndObjects { key, value, _ in
-            guard let pathString = key as? String else { return }
-            guard let node = value as? FNode else { return }
+        for (pathString, node) in dictionary {
             let tree = FImmutableTree(value: node)
             writeTree = writeTree.setTree(tree, atPath: FPath(with: pathString))
         }
@@ -209,8 +207,8 @@ class FCompoundWrite: Hashable {
         }
     }
 
-    func valForExport(_ exportFormat: Bool) -> NSDictionary {
-        let dictionary = NSMutableDictionary()
+    func valForExport(_ exportFormat: Bool) -> [String: AnyHashable] {
+        var dictionary: [String: AnyHashable] = [:]
         writeTree.forEach { path, value in
             dictionary[path.wireFormat()] = value.val(forExport: exportFormat)
         }
@@ -230,17 +228,17 @@ class FCompoundWrite: Hashable {
         valForExport(true).description
     }
 
-    func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? FCompoundWrite else { return false }
-        return valForExport(true).isEqual(other.valForExport(true))
-    }
-
-    static func == (lhs: FCompoundWrite, rhs: FCompoundWrite) -> Bool {
-        // XXX TODO: Optimize when FNode is a value type
-        lhs.valForExport(true) == rhs.valForExport(true)
-    }
-
-    func hash(into hasher: inout Hasher) {
-        valForExport(true).hash(into: &hasher)
-    }
+//    func isEqual(_ object: Any?) -> Bool {
+//        guard let other = object as? FCompoundWrite else { return false }
+//        return valForExport(true).isEqual(other.valForExport(true))
+//    }
+//
+//    static func == (lhs: FCompoundWrite, rhs: FCompoundWrite) -> Bool {
+//        // XXX TODO: Optimize when FNode is a value type
+//        lhs.valForExport(true) == rhs.valForExport(true)
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        valForExport(true).hash(into: &hasher)
+//    }
 }

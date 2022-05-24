@@ -115,24 +115,24 @@ public struct FIndexedNode {
     }
 
     var firstChild: FNamedNode? {
-        guard let childrenNode = node as? FChildrenNode else {
+        guard case let .children(children) = node.type else {
             return nil
         }
         switch indexed {
         case .fallback:
-            return childrenNode.firstChild()
+            return children.first.map { FNamedNode(name: $0.key.key, andNode: $0.value) }
         case .indexed(let set):
             return set.first?.wrapped
         }
     }
 
     var lastChild: FNamedNode? {
-        guard let childrenNode = node as? FChildrenNode else {
+        guard case let .children(children) = node.type else {
             return nil
         }
         switch indexed {
         case .fallback:
-            return childrenNode.lastChild()
+            return children.last.map { FNamedNode(name: $0.key.key, andNode: $0.value) }
         case .indexed(let set):
             return set.last?.wrapped
         }
@@ -203,8 +203,8 @@ struct NamedNodeIterator: IteratorProtocol {
     fileprivate init(node: FIndexedNode) {
         switch node.indexed {
         case .fallback:
-            if let childrenNode = node.node as? FChildrenNode {
-                var iterator = childrenNode.children.makeIterator()
+            if case let .children(children) = node.node.type {
+                var iterator = children.makeIterator()
                 _next = {
                     guard let element = iterator.next() else { return nil }
                     return FNamedNode(name: element.key.key, andNode: element.value)

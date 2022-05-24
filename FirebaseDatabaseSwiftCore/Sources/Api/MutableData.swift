@@ -38,10 +38,11 @@ class MutableData {
      */
     var hasChildren: Bool {
         let node = data.getNode(prefixPath)
-        guard let childrenNode = node as? FChildrenNode else {
-            return false
-        }
-        return !childrenNode.isEmpty
+        return !node.children.isEmpty
+//        guard let childrenNode = node as? FChildrenNode else {
+//            return false
+//        }
+//        return !childrenNode.isEmpty
     }
 
     /**
@@ -78,13 +79,13 @@ class MutableData {
         return MutableData(prefixPath: path, andSnapshotHolder: data)
     }
 
-    func setValue(_ value: Any?) {
+    func setValue(_ value: AnyHashable?) {
         let node = FSnapshotUtilitiesSwift.nodeFrom(value,
                                                     withValidationFrom: "setValue:")
         data.updateSnapshot(prefixPath, withNewSnapshot: node)
     }
 
-    func setPriority(_ priority: Any) {
+    func setPriority(_ priority: AnyHashable) {
         var node = data.getNode(prefixPath)
         let pri = FSnapshotUtilitiesSwift.nodeFrom(priority)
         node = node.updatePriority(pri)

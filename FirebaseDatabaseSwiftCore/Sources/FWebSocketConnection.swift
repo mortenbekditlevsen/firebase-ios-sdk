@@ -265,7 +265,7 @@ protocol FConnectionDelegate: AnyObject {
                        atTime timestamp: NSNumber,
                        sessionID: String)
 
-    func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary)
+    func onDataMessage(_ fconnection: AnyObject, withMessage message: [String: AnyHashable])
     func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason)
     func onKill(_ fconnection: AnyObject, withReason: String)
 }

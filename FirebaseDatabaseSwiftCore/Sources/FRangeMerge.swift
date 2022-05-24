@@ -57,7 +57,7 @@ class FRangeMerge {
             assert(!updates.isLeafNode(), "Found leaf node update, this case should have been handled above.")
             if node.isLeafNode() {
                 // Update node was not a leaf node, so we can delete it
-                return FEmptyNode.emptyNode
+                return .empty
             } else {
                 // Unaffected by range, ignore
                 return node
@@ -83,7 +83,7 @@ class FRangeMerge {
                                        node: currentChild,
                                        updates: updates.getImmediateChild(key))
                 // Only need to update if the node changed
-                if (updatedChild !== currentChild) {
+                if (updatedChild != currentChild) {
                     newNode = newNode.updateImmediateChild(key,
                                                            withNewChild:updatedChild)
                 }

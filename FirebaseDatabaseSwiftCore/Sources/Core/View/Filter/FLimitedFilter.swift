@@ -72,7 +72,7 @@ class FLimitedFilter: FNodeFilter {
                                          childKey: childKey)
                     accumulator.trackChildChange(change)
                 }
-                let newIndexed = oldIndexed.updateChild(childKey, withNewChild: FEmptyNode.emptyNode)
+                let newIndexed = oldIndexed.updateChild(childKey, withNewChild: .empty)
                 // We need to check if the `nextChild` is actually in range before
                 // adding it
 
@@ -115,7 +115,7 @@ class FLimitedFilter: FNodeFilter {
                 }
                 return oldIndexed
                     .updateChild(childKey, withNewChild:newChildSnap)
-                    .updateChild(windowBoundary.name, withNewChild: FEmptyNode.emptyNode)
+                    .updateChild(windowBoundary.name, withNewChild: .empty)
             } else {
                 return oldIndexed
             }
@@ -129,9 +129,9 @@ class FLimitedFilter: FNodeFilter {
     func updateChildIn(_ oldSnap: FIndexedNode, forChildKey childKey: String, newChild newChildSnap: FNode, affectedPath: FPath, fromSource source: FCompleteChildSource, accumulator optChangeAccumulator: FChildChangeAccumulator?) -> FIndexedNode {
         var newChildSnap = newChildSnap
         if !self.rangedFilter.matchesKey(childKey, andNode:newChildSnap) {
-            newChildSnap = FEmptyNode.emptyNode
+            newChildSnap = .empty
         }
-        if oldSnap.node.getImmediateChild(childKey).isEqual(newChildSnap) {
+        if oldSnap.node.getImmediateChild(childKey) == newChildSnap {
             // No change
             return oldSnap
         } else if oldSnap.node.numChildren() < self.limit {
@@ -152,11 +152,11 @@ class FLimitedFilter: FNodeFilter {
         if newSnap.node.isLeafNode() || newSnap.node.isEmpty {
             // Make sure we have a children node with the correct index, not a leaf
             // node
-            filtered = FIndexedNode(node: FEmptyNode.emptyNode, index: index)
+            filtered = FIndexedNode(node: .empty, index: index)
         } else {
             filtered = newSnap
             // Don't support priorities on queries.
-            filtered = filtered.updatePriority(FEmptyNode.emptyNode)
+            filtered = filtered.updatePriority(.empty)
             var startPost: FNamedNode
             var endPost: FNamedNode
             if self.reverse {
@@ -185,7 +185,7 @@ class FLimitedFilter: FNodeFilter {
                     count += 1
                 } else {
                     filtered = filtered.updateChild(childKey,
-                                withNewChild:FEmptyNode.emptyNode)
+                                withNewChild:.empty)
                 }
 
             }

@@ -71,7 +71,7 @@ class FNextPushId {
         guard let index = next.lastIndex(where: { $0 != MAX_PUSH_CHAR }) else {
             // `successor` was called on the largest possible key, so return the
             // maxName, which sorts larger than all keys.
-            return FUtilitiesSwift.maxName
+            return FUtilities.maxName
         }
         let source = next[index]
 
@@ -91,7 +91,7 @@ class FNextPushId {
         var keyAsInt: Int = 0
         if tryParseStringToInt(key, integer: &keyAsInt) {
             if keyAsInt == Int(Int32.min) {
-                return FUtilitiesSwift.minName
+                return FUtilities.minName
             }
             return "\(keyAsInt - 1)"
         }

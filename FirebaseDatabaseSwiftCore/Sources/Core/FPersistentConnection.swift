@@ -29,7 +29,7 @@ class FOutstandingQuery {
 }
 
 fileprivate class FOutstandingPut {
-    fileprivate init(action: String, request: [String : Any], onComplete: ((String, String?) -> Void)?, sent: Bool) {
+    fileprivate init(action: String, request: [String : AnyHashable], onComplete: ((String, String?) -> Void)?, sent: Bool) {
         self.action = action
         self.request = request
         self.onComplete = onComplete
@@ -37,20 +37,20 @@ fileprivate class FOutstandingPut {
     }
 
     let action: String
-    let request: [String : Any]
+    let request: [String : AnyHashable]
     let onComplete: ((String, String?) -> Void)?
     var sent: Bool
 }
 
 fileprivate class FOutstandingGet {
-    fileprivate init(request: [String : Any], onComplete: @escaping (String, Any, String?) -> Void, sent: Bool) {
+    fileprivate init(request: [String : AnyHashable], onComplete: @escaping (String, AnyHashable?, String?) -> Void, sent: Bool) {
         self.request = request
         self.onComplete = onComplete
         self.sent = sent
     }
 
-    let request: [String : Any]
-    let onComplete: (String, Any, String?) -> Void
+    let request: [String : AnyHashable]
+    let onComplete: (String, AnyHashable?, String?) -> Void
     var sent: Bool
 }
 
@@ -65,7 +65,7 @@ enum ConnectionState {
 protocol FPersistentConnectionDelegate: AnyObject {
     func onDataUpdate(_ fpconnection: FPersistentConnection,
                       forPath pathString: String,
-                      message: Any,
+                      message: AnyHashable,
                       isMerge: Bool,
                       tagId: Int?)
 
@@ -77,12 +77,12 @@ protocol FPersistentConnectionDelegate: AnyObject {
 
     func onDisconnect(_ fpconnection: FPersistentConnection)
 
-    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String: Any])
+    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String: AnyHashable])
 }
 
 typealias OnDisconnectTuple = (pathString: String,
                                action: String,
-                               data: Any,
+                               data: AnyHashable,
                                onComplete: (String, String?) -> Void)
 
 typealias PutToAckTuple = (block: ((String, String) -> Void),
@@ -109,7 +109,7 @@ class FPersistentConnection: FConnectionDelegate {
     let putCounter: FAtomicNumber
     let getCounter: FAtomicNumber
     let requestNumber: FAtomicNumber
-    var requestCBHash: [Int: ([String: Any]?) -> Void]
+    var requestCBHash: [Int: ([String: AnyHashable]?) -> Void]
     let config: DatabaseConfig
     var unackedListentsCount: Int
     var putsToAck: [PutToAckTuple]
@@ -208,7 +208,7 @@ class FPersistentConnection: FConnectionDelegate {
         var bundleIdentifier = Bundle.main.bundleIdentifier ?? "-"
 
         // Sanitize '/'s in deviceName and bundleIdentifier for stats
-        deviceName = FStringUtilitiesSwift.sanitizedForUserAgent(deviceName)
+        deviceName = FStringUtilities.sanitizedForUserAgent(deviceName)
         bundleIdentifier = FStringUtilities.sanitizedForUserAgent(bundleIdentifier)
 
         // Firebase/5/<semver>_<build date>_<git hash>/<os version>/{device model /
@@ -254,7 +254,7 @@ class FPersistentConnection: FConnectionDelegate {
         listen(query, tagId: tagId, hash: hash, onComplete: onComplete)
     }
 
-    func putData(_ data: Any,
+    func putData(_ data: AnyHashable,
                               forPath pathString: String,
                               withHash hash: String?,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
@@ -265,7 +265,7 @@ class FPersistentConnection: FConnectionDelegate {
                     withCallback: onComplete)
     }
 
-    func mergeData(_ data: Any,
+    func mergeData(_ data: AnyHashable,
                               forPath pathString: String,
                               withCallback onComplete: @escaping (String, String?) -> Void) {
         putInternal(data,
@@ -275,7 +275,7 @@ class FPersistentConnection: FConnectionDelegate {
                     withCallback: onComplete)
     }
 
-    func onDisconnectPutData(_ data: Any,
+    func onDisconnectPutData(_ data: AnyHashable,
                                           forPath path: FPath,
                                           withCallback callback: @escaping (String, String?) -> Void) {
         if canSendWrites {
@@ -294,7 +294,7 @@ class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    func onDisconnectMergeData(_ data: Any,
+    func onDisconnectMergeData(_ data: AnyHashable,
                                             forPath path: FPath,
                                             withCallback callback: @escaping (String, String?) -> Void) {
 
@@ -396,19 +396,19 @@ class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    func onDataMessage(_ fconnection: AnyObject, withMessage message: NSDictionary) {
+    func onDataMessage(_ fconnection: AnyObject, withMessage message: [String: AnyHashable]) {
         if let number = message[kFWPRequestNumber] as? NSNumber {
             // this is a response to a request we sent
             let rn = number.intValue
             if let callback = requestCBHash[rn] {
                 requestCBHash.removeValue(forKey: rn)
-                callback(message[kFWPResponseForRNData] as? [String: Any])
+                callback(message[kFWPResponseForRNData] as? [String: AnyHashable])
             }
         } else if let error = message[kFWPRequestError] as? String {
             // XXX TODO THROW ERROR HERE?
             fatalError("FirebaseDatabaseServerError: \(error)")
         } else if let action = message[kFWPAsyncServerAction] as? String,
-            let body = message[kFWPAsyncServerPayloadBody] as? [String: Any] {
+            let body = message[kFWPAsyncServerPayloadBody] as? [String: AnyHashable] {
             // this is a server push of some sort
             onDataPush(action, andBody: body)
         }
@@ -670,9 +670,9 @@ class FPersistentConnection: FConnectionDelegate {
 
     private func sendOnDisconnectAction(_ action: String,
                                         forPath pathString: String,
-                                        withData data: Any,
+                                        withData data: AnyHashable,
                                         andCallback callback: @escaping (String, String) -> Void) {
-        let request: [String: Any] = [
+        let request: [String: AnyHashable] = [
             kFWPRequestPath: pathString,
             kFWPRequestData: data
         ]
@@ -746,7 +746,7 @@ class FPersistentConnection: FConnectionDelegate {
                     get.onComplete(status, resultData, nil)
                     return
                 }
-                get.onComplete(status, Optional<Any>.none, resultData as? String)
+                get.onComplete(status, Optional<String>.none /* <- Dummy nil type*/, resultData as? String)
             }
         }
     }
@@ -755,7 +755,7 @@ class FPersistentConnection: FConnectionDelegate {
                               queryParams: FQueryParams,
                               tagId: Int?) {
         FFLog("I-RDB034023", "Unlisten on \(path) for \(queryParams)")
-        var request: [String: Any] = [path.description: kFWPRequestPath]
+        var request: [String: AnyHashable] = [path.description: kFWPRequestPath]
         if let tagId = tagId {
             request[kFWPRequestQueries] = queryParams.wireProtocolParams
             // XXX TODO: Ensure that this works or if it needs to be an NSNumber
@@ -766,8 +766,8 @@ class FPersistentConnection: FConnectionDelegate {
                    sensitive: false, callback: { _ in })
     }
 
-    private func putInternal(_ data: Any, forAction action: String, forPath pathString: String, withHash hash: String?, withCallback onComplete: @escaping (String, String?) -> Void) {
-        var request: [String: Any] = [kFWPRequestPath: pathString,
+    private func putInternal(_ data: AnyHashable, forAction action: String, forPath pathString: String, withHash hash: String?, withCallback onComplete: @escaping (String, String?) -> Void) {
+        var request: [String: AnyHashable] = [kFWPRequestPath: pathString,
                                       kFWPRequestData: data]
         if let hash = hash {
             request[kFWPRequestHash] = hash
@@ -789,9 +789,9 @@ class FPersistentConnection: FConnectionDelegate {
     }
 
     func getDataAtPath(_ pathString: String,
-                               withParams queryWireProtocolParams: [String: Any],
-                               withCallback onComplete: @escaping (String, Any?, String?) -> Void) {
-        var request: [String: Any] = [
+                               withParams queryWireProtocolParams: [String: AnyHashable],
+                               withCallback onComplete: @escaping (String, AnyHashable?, String?) -> Void) {
+        var request: [String: AnyHashable] = [
             kFWPRequestPath: pathString,
             kFWPRequestQueries: queryWireProtocolParams
         ]
@@ -810,7 +810,7 @@ class FPersistentConnection: FConnectionDelegate {
                 FFLog("I-RDB034045",
                       "get \(index) timed out waiting for a connection")
                 currentGet?.sent = true
-                currentGet?.onComplete(kFWPResponseForActionStatusFailed, Optional<Any>.none, kPersistentConnectionOffline)
+                currentGet?.onComplete(kFWPResponseForActionStatusFailed, Optional<String>.none /* <- dummy nil value */, kPersistentConnectionOffline)
                 self.outstandingGets.removeValue(forKey: index)
             }
             return
@@ -824,7 +824,7 @@ class FPersistentConnection: FConnectionDelegate {
     private func sendListen(_ listenSpec: FOutstandingQuery) {
         let query = listenSpec.query
         FFLog("I-RDB034026", "Listen for \(query)")
-        var request: [String: Any] = [kFWPRequestPath: query.path.description]
+        var request: [String: AnyHashable] = [kFWPRequestPath: query.path.description]
         // Only bother to send query if it's non-default
         if let tagId = listenSpec.tagId {
             request[kFWPRequestQueries] = query.params.wireProtocolParams
@@ -838,7 +838,7 @@ class FPersistentConnection: FConnectionDelegate {
             for path in compoundHash.posts {
                 posts.append(path.wireFormat())
             }
-            let hashDict: [String: Any] = [
+            let hashDict: [String: AnyHashable] = [
                 kFWPRequestCompoundHashHashes: compoundHash.hashes,
                 kFWPRequestCompoundHashPaths: posts
             ]
@@ -890,11 +890,11 @@ better performance
         requestNumber.getAndIncrement()
     }
     
-    private func sendAction(_ action: String, body: [String: Any], sensitive: Bool, callback: (([String: Any]?) -> Void)?) {
+    private func sendAction(_ action: String, body: [String: AnyHashable], sensitive: Bool, callback: (([String: AnyHashable]?) -> Void)?) {
         guard let realtime = realtime else { return }
         // Hold onto the onMessage callback for this request before firing it off
         let rn = getNextRequestNumber()
-        let msg: [String: Any] = [kFWPRequestNumber: rn, kFWPRequestAction: action, kFWPRequestPayloadBody: body]
+        let msg: [String: AnyHashable] = [kFWPRequestNumber: rn, kFWPRequestAction: action, kFWPRequestPayloadBody: body]
         do {
             try realtime.sendRequestSwift(msg, sensitive: sensitive)
         } catch {
@@ -925,7 +925,7 @@ better performance
         }
     }
 
-    private func onDataPush(_ action: String, andBody body: [String: Any]) {
+    private func onDataPush(_ action: String, andBody body: [String: AnyHashable]) {
         FFLog("I-RDB034029", "handleServerMessage: \(action), \(body)")
         switch action {
         case kFWPAsyncServerDataUpdate, kFWPAsyncServerDataMerge:
@@ -945,7 +945,7 @@ better performance
             }
         case kFWPAsyncServerDataRangeMerge:
             guard let path = body[kFWPAsyncServerDataUpdateBodyPath] as? String else { return }
-            let ranges = (body[kFWPAsyncServerDataUpdateBodyData] as? [[String: Any]]) ?? []
+            let ranges = (body[kFWPAsyncServerDataUpdateBodyData] as? [[String: AnyHashable]]) ?? []
             let tag = body[kFWPAsyncServerDataUpdateBodyTag] as? Int
             var rangeMerges: [FRangeMerge] = []
             for range in ranges {
@@ -1102,12 +1102,12 @@ better performance
         delegate?.onServerInfoUpdate(self, updates: [kDotInfoServerTimeOffset: NSNumber(value: timestampDeltaMs)])
     }
 
-    private func sendStats(_ stats: [String: Any]) {
+    private func sendStats(_ stats: [String: AnyHashable]) {
         guard !stats.isEmpty else {
             FFLog("I-RDB034043", "Not sending stats because stats are empty")
             return
         }
-        let request: [String: Any] = [kFWPRequestCounters: stats]
+        let request: [String: AnyHashable] = [kFWPRequestCounters: stats]
         sendAction(kFWPRequestActionStats,
                    body: request,
                    sensitive: false) { data in
@@ -1121,7 +1121,7 @@ better performance
     }
 
     private func sendConnectStats() {
-        var stats: [String: Any] = [:]
+        var stats: [String: AnyHashable] = [:]
 #if os(iOS) || os(tvOS)
         if config.persistenceEnabled {
             stats["persistence.ios.enabled"] = 1
@@ -1166,12 +1166,12 @@ better performance
     }
 
     private func sendAppCheckToken(_ token: String) {
-        let requestData: [String: Any] = [kFWPRequestAppCheckToken: token]
+        let requestData: [String: AnyHashable] = [kFWPRequestAppCheckToken: token]
         sendAction(kFWPRequestActionAppCheck,
                    body: requestData,
                    sensitive: true) { data in
             let status = data?[kFWPResponseForActionStatus] as? String
-            let responseData = data?[kFWPResponseForActionData] ?? "Response data was empty."
+            let responseData: AnyHashable = data?[kFWPResponseForActionData] ?? "Response data was empty." as AnyHashable
             let statusOk = status == kFWPResponseForActionStatusOk
             if !statusOk {
                 self.authToken = nil

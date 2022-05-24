@@ -147,7 +147,7 @@ public struct FPath: Hashable {
 
     func compare(_ other: FPath) -> ComparisonResult {
         for (a, b) in zip(pieces[pieceNum...], other.pieces[other.pieceNum...]) {
-            let comparison = FUtilitiesSwift.compareKey(a, b)
+            let comparison = FUtilities.compareKey(a, b)
             if comparison != .orderedSame {
                 return comparison;
             }

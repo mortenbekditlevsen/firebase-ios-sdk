@@ -113,7 +113,7 @@ class FCompoundHashBuilder {
       }
   }
 
-  func processLeaf(leafNode: FLeafNode) {
+  func processLeaf(leafNode: FNode) {
       ensureRange()
 
       lastLeafDepth = currentPathDepth
@@ -172,7 +172,7 @@ class FCompoundHashBuilder {
 
       let lastLeafPath = currentPath(withDepth: lastLeafDepth)
 
-      let hash = FStringUtilitiesSwift.base64EncodedSha1(optHashValueBuilder!)
+      let hash = FStringUtilities.base64EncodedSha1(optHashValueBuilder!)
       currentHashes.append(hash)
       currentPaths.append(lastLeafPath)
 
@@ -212,15 +212,14 @@ struct FCompoundHash {
     }
 
     static func processNode(_ node: FNode, builder: FCompoundHashBuilder) {
-        if let leafNode = node as? FLeafNode {
-            builder.processLeaf(leafNode: leafNode)
-        } else {
-            guard let childrenNode = node as? FChildrenNode else {
-                assert(false, "Can't calculate hash on empty node!")
-                return
-            }
-            childrenNode.enumerateChildrenAndPriority { key, node, stop in
-                builder.startChild(key: key)
+        switch node.type {
+        case .empty:
+            ()
+        case .leaf:
+            builder.processLeaf(leafNode: node)
+        case .children(let children):
+            for (key, node) in children {
+                builder.startChild(key: key.key)
                 self.processNode(node, builder: builder)
                 builder.endChild()
             }

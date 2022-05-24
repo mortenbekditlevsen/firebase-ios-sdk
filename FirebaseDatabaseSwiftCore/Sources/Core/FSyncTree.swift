@@ -34,7 +34,7 @@ class FListenContainer: FSyncTreeHash {
     }
 
     var simpleHash: String {
-        serverCache.dataHash()
+        view.serverCache.dataHash()
     }
 
     var includeCompoundHash: Bool {
@@ -345,7 +345,7 @@ class FSyncTree {
             if let persistenceServerCache = persistenceServerCache, persistenceServerCache.isFullyInitialized {
                 serverCache = persistenceServerCache
             } else {
-                var serverCacheNode: FNode = FEmptyNode.emptyNode
+                var serverCacheNode: FNode = .empty
                 let subtree = syncPointTree.subtree(atPath: query.path)
                 subtree.forEachChild { childKey, childSyncPoint in
                     if let completeCache = childSyncPoint?.completeServerCacheAtPath(.empty) {
@@ -508,7 +508,7 @@ class FSyncTree {
             syncPointTree = syncPointTree.setValue(target, atPath: query.path)
         }
 
-        let indexed = FIndexedNode(node: serverCacheNode ?? FEmptyNode.emptyNode, index: query.index)
+        let indexed = FIndexedNode(node: serverCacheNode ?? .empty, index: query.index)
         let serverCache = FCacheNode(indexedNode: indexed, isFullyInitialized: serverCacheNode != nil, isFiltered: false)
         let view = target.getView(query, writesCache: pendingWriteTree.childWritesForPath(query.path), serverCache: serverCache)
         return view.completeEventCache
@@ -631,7 +631,7 @@ class FSyncTree {
                 // the one that triggered the error. Note that this may need to
                 // be scoped to just this listener if we change permissions on
                 // filtered children
-                let error = FUtilitiesSwift.error(for: status, reason: nil)
+                let error = FUtilities.error(for: status, reason: nil)
                 FFWarn("I-RDB038012", "Listener at \(query.path) failed: \(status)")
                 return self.removeEventRegistration(nil, forQuery: query, cancelError: error)
             }

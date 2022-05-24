@@ -71,7 +71,7 @@ class FRepo: FPersistentConnectionDelegate {
         }
     }
 
-    private var interceptServerDataCallback: ((String, Any) -> Any)?
+    private var interceptServerDataCallback: ((String, AnyHashable) -> AnyHashable)?
 
     private func deferredInit() {
 //        print("DEFERRED INIT")
@@ -430,7 +430,7 @@ class FRepo: FPersistentConnectionDelegate {
         serverSyncTree.keepQuery(query, synced: synced)
     }
 
-    private func updateInfo(_ pathString: String, withValue value: Any) {
+    private func updateInfo(_ pathString: String, withValue value: AnyHashable) {
         // hack to make serverTimeOffset available in a threadsafe way. Property is
         // marked as atomic
         if pathString == kDotInfoServerTimeOffset {
@@ -449,7 +449,7 @@ class FRepo: FPersistentConnectionDelegate {
         let statusOk = status == kFWPResponseForActionStatusOk
         var error: Error? = nil
         if !statusOk {
-            error = FUtilitiesSwift.error(for: status, reason: errorReason)
+            error = FUtilities.error(for: status, reason: errorReason)
         }
         eventRaiser.raiseCallback {
             onComplete(error, ref)
@@ -478,7 +478,7 @@ class FRepo: FPersistentConnectionDelegate {
     // MARK: -
     // MARK: FPersistentConnectionDelegate methods
 
-    func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: Any, isMerge: Bool, tagId: Int?) {
+    func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: AnyHashable, isMerge: Bool, tagId: Int?) {
         FFLog("I-RDB038013", "onDataUpdateForPath: \(pathString) withMessage: \(message)")
 
         // For testing.
@@ -489,7 +489,7 @@ class FRepo: FPersistentConnectionDelegate {
         let events: [FEvent]
         if let tagId = tagId {
             if isMerge {
-                let taggedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: Any] ?? [:])
+                let taggedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
                 events = serverSyncTree.applyTaggedQueryMergeAtPath(path, changedChildren: taggedChildren, tagId: tagId)
             } else {
                 let taggedSnap = FSnapshotUtilitiesSwift.nodeFrom(data)
@@ -497,7 +497,7 @@ class FRepo: FPersistentConnectionDelegate {
             }
         } else {
             if isMerge {
-                let changedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: Any] ?? [:])
+                let changedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
                 events = serverSyncTree.applyServerMergeAtPath(path, changedChildren: changedChildren)
             } else {
                 let snap = FSnapshotUtilitiesSwift.nodeFrom(data)
@@ -543,7 +543,7 @@ class FRepo: FPersistentConnectionDelegate {
         runOnDisconnectEvents()
     }
 
-    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : Any]) {
+    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : AnyHashable]) {
         for (key, val) in updates {
             updateInfo(key, withValue: val)
         }
@@ -659,7 +659,7 @@ offline for more details.
         // Note: we can't do this asynchronously. To preserve event ordering, it has
         // to be done in this block. This is ok, this block is guaranteed to be our
         // own event loop
-        let handle = FUtilitiesSwift.LUIDGenerator()
+        let handle = FUtilities.LUIDGenerator()
         let registration = FValueEventRegistration(repo: self, handle: handle, callback: nil, cancelCallback: nil)
         watchRef.repo.addEventRegistration(registration, forQuery: watchRef.querySpec)
         let unwatcher: () -> Void = { watchRef.removeObserverWithHandle(handle) }
@@ -669,7 +669,7 @@ offline for more details.
             update: update,
             onComplete: onComplete,
             status: FTransactionStatus.initializing,
-            order: FUtilitiesSwift.LUIDGenerator(),
+            order: FUtilities.LUIDGenerator(),
             applyLocally: applyLocally,
             retryCount: 0,
             unwatcher: unwatcher,
@@ -763,7 +763,7 @@ offline for more details.
     private func sendTransactionQueue(_ queue: [FTupleTransaction], atPath path: FPath) {
         // Mark transactions as sent and bump the retry count
         let writeIdsToExclude: [Int] = queue.compactMap(\.currentWriteId)
-        let latestState = latestStateAtPath(path, excludeWriteIds: writeIdsToExclude)
+        var latestState = latestStateAtPath(path, excludeWriteIds: writeIdsToExclude)
         var snapToSend = latestState
         var latestHash = latestState.dataHash()
         for transaction in queue {
@@ -1071,33 +1071,21 @@ offline for more details.
             } else {
                 // we can abort this immediately
                 transaction.unwatcher()
-/*
- if ([error isEqualToString:kFTransactionSet]) {
-     [events
-         addObjectsFromArray:
-             [self.serverSyncTree
-                 ackUserWriteWithWriteId:
-                     [transaction.currentWriteId integerValue]
-                                  revert:YES
-                                 persist:NO
-                                   clock:self.serverClock]];
- } else {
-     // If it was cancelled it was already removed from the sync
-     // tree, no need to ack
-     NSAssert([error isEqualToString:kFErrorWriteCanceled], nil);
- }
-
- if (transaction.onComplete) {
-     NSError *abortReason = [FUtilities errorForStatus:error
-                                             andReason:nil];
-     FIRDataSnapshot *snapshot = nil;
-     fbt_void_void cb = ^{
-       transaction.onComplete(abortReason, NO, snapshot);
-     };
-     [callbacks addObject:[cb copy]];
- }
-
- */
+                if error == kFTransactionSet {
+                    // XXX TODO: Force unwrap
+                    events.append(contentsOf: serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId!, revert: true, persist: false, clock: serverClock))
+                } else {
+                    // If it was cancelled it was already removed from the sync
+                    // tree, no need to ack
+                    assert(error == kFErrorWriteCanceled)
+                }
+                if let onComplete = transaction.onComplete {
+                    let abortReason = FUtilities.error(for: error, reason: nil)
+                    let callback: () -> Void = {
+                        onComplete(abortReason, false, nil)
+                    }
+                    callbacks.append(callback)
+                }
             }
             if lastSent == -1 {
                 // We're not waiting for any sent transactions. We can clear the
@@ -1117,7 +1105,7 @@ offline for more details.
      */
     private func latestStateAtPath(_ path: FPath, excludeWriteIds: [Int]) -> FNode {
         let latestState = serverSyncTree.calcCompleteEventCacheAtPath(path, excludeWriteIds: excludeWriteIds)
-        return latestState ?? FEmptyNode.emptyNode
+        return latestState ?? .empty
     }
 }
 

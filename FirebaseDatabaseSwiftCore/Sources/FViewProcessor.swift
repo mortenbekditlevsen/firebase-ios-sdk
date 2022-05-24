@@ -158,8 +158,8 @@ class FViewProcessor {
         if eventSnap.isFullyInitialized {
             let isLeafOrEmpty = eventSnap.node.isLeafNode() || eventSnap.node.isEmpty
             if !changes.isEmpty || !oldViewCache.cachedEventSnap.isFullyInitialized ||
-                (isLeafOrEmpty && !eventSnap.node.isEqual(oldViewCache.completeEventSnap)) ||
-                !eventSnap.node.getPriority().isEqual(oldViewCache.completeEventSnap?.getPriority()) {
+                (isLeafOrEmpty && eventSnap.node != oldViewCache.completeEventSnap) ||
+                eventSnap.node.getPriority() != oldViewCache.completeEventSnap?.getPriority() {
                 let valueChange = FChange(type: .value, indexedNode: eventSnap.indexedNode)
                 newChanges.append(valueChange)
             }
@@ -234,7 +234,12 @@ class FViewProcessor {
                 // events for incomplete children. If the server data is
                 // filtered deep writes cannot be guaranteed to be complete
                 let serverCache = viewCache.completeServerSnap
-                let completeChildren = (serverCache as? FChildrenNode) ?? FEmptyNode.emptyNode
+                let completeChildren: FNode
+                if case let .children(children) = serverCache?.type {
+                    completeChildren = .children(children, priority: serverCache?.getPriority())
+                } else {
+                    completeChildren = .empty
+                }
                 nodeWithLocalWrites = writesCache.calculateCompleteEventChildren(completeServerChildren: completeChildren)
             } else {
 
@@ -338,13 +343,13 @@ class FViewProcessor {
 
                         }
                     } else {
-                        newChild = FEmptyNode.emptyNode
+                        newChild = .empty
                     }
                 } else {
                     // Child overwrite, we can replace the child
                     newChild = changedSnap
                 }
-                if !oldChild.isEqual(newChild) {
+                if oldChild != newChild {
                     let newEventSnap = filter.updateChildIn(oldEventSnap.indexedNode, forChildKey: childKey, newChild: newChild, affectedPath: childChangePath, fromSource: source, accumulator: accumulator)
                     newViewCache = oldViewCache.updateEventSnap(newEventSnap, isComplete: oldEventSnap.isFullyInitialized, isFiltered: filter.filtersNodes)
                 } else {
@@ -506,8 +511,8 @@ class FViewProcessor {
                 // whatever we have in our cache as a merge.
                 var changedChildren = FCompoundWrite.emptyWrite
                 // TODO: Make more better than casting
-                if let childrenNode = serverCache.node as? FChildrenNode {
-                    for (name, node) in childrenNode.children {
+                if case let .children(children) = serverCache.node.type {
+                    for (name, node) in children {
                         changedChildren = changedChildren.addWrite(node,
                                                                    atKey: name.key)
                     }
@@ -581,7 +586,7 @@ class FViewProcessor {
                 newEventCache =
                 filter.updateChildIn(oldEventCache,
                                      forChildKey:childKey,
-                                     newChild:FEmptyNode.emptyNode,
+                                     newChild:.empty,
                                      affectedPath:path.popFront(),
                                      fromSource:source,
                                      accumulator:accumulator)

@@ -16,11 +16,11 @@ enum FIndex: Equatable, Hashable {
     func compare(lhs: (key: String, node: FNode), rhs: (key: String, node: FNode)) -> ComparisonResult {
         switch self {
         case .key:
-            return FUtilitiesSwift.compareKey(lhs.key, rhs.key)
+            return FUtilities.compareKey(lhs.key, rhs.key)
         case .value:
             let indexCmp = lhs.node.compare(rhs.node)
             if indexCmp == .orderedSame {
-                return FUtilitiesSwift.compareKey(lhs.key, rhs.key)
+                return FUtilities.compareKey(lhs.key, rhs.key)
             } else {
                 return indexCmp
             }
@@ -30,7 +30,7 @@ enum FIndex: Equatable, Hashable {
 
             let indexCmp = lhsChild.compare(rhsChild)
             if indexCmp == .orderedSame {
-                return FUtilitiesSwift.compareKey(lhs.key, rhs.key)
+                return FUtilities.compareKey(lhs.key, rhs.key)
             } else {
                 return indexCmp
             }
@@ -40,7 +40,7 @@ enum FIndex: Equatable, Hashable {
 
             let indexCmp = lhsChild.compare(rhsChild)
             if indexCmp == .orderedSame {
-                return FUtilitiesSwift.compareKey(lhs.key, rhs.key)
+                return FUtilities.compareKey(lhs.key, rhs.key)
             } else {
                 return indexCmp
             }
@@ -66,12 +66,12 @@ enum FIndex: Equatable, Hashable {
             // The key for a node never changes.
             return false
         case .value:
-            return !oldNode.isEqual(newNode)
+            return oldNode != newNode
 
         case .priority:
             let oldValue = oldNode.getPriority()
             let newValue = newNode.getPriority()
-            return !oldValue.isEqual(newValue)
+            return oldValue != newValue
 
         case .path(let path):
             let oldValue = oldNode.getChild(path)
@@ -84,13 +84,13 @@ enum FIndex: Equatable, Hashable {
     var maxPost: FNamedNode {
         switch self {
         case .key:
-            return FNamedNode(name: FUtilitiesSwift.maxName, andNode: FEmptyNode.emptyNode)
+            return FNamedNode(name: FUtilities.maxName, andNode: .empty)
         case .value:
             return .max
         case .priority:
-            return makePost(FMaxNode.maxNode, name: FUtilitiesSwift.maxName)
+            return makePost(.max, name: FUtilities.maxName)
         case .path:
-            return makePost(FMaxNode.maxNode, name: FUtilitiesSwift.maxName)
+            return makePost(.max, name: FUtilities.maxName)
         }
     }
 
@@ -102,17 +102,17 @@ enum FIndex: Equatable, Hashable {
 
             // We just use empty node, but it'll never be compared, since our comparator
             // only looks at name.
-            return FNamedNode(name: key ?? "", andNode: FEmptyNode.emptyNode)
+            return FNamedNode(name: key ?? "", andNode: .empty)
 
         case .value:
             return FNamedNode(name: name, andNode: indexValue)
 
         case .priority:
-            let node = FLeafNode(value: "[PRIORITY-POST]" as NSString, withPriority: indexValue)
+            let node = FNode.leaf("[PRIORITY-POST]", priority: indexValue)
             return FNamedNode(name: name, andNode: node)
 
         case .path(let path):
-            let node = FEmptyNode.emptyNode
+            let node = FNode.empty
                 .updateChild(path, withNewChild: indexValue)
             return FNamedNode(name: name, andNode: node)
         }

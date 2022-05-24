@@ -68,10 +68,10 @@ public final class FConnection: FWebSocketDelegate {
     }
 
     // XXX TODO: Verify that this works
-    internal func sendRequestSwift(_ dataMsg: [String: Any?], sensitive: Bool) throws {
+    internal func sendRequestSwift(_ dataMsg: [String: AnyHashable?], sensitive: Bool) throws {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
-        let msg: [String: Any] = [
+        let msg: [String: AnyHashable] = [
             kFWPRequestType: kFWPRequestTypeData,
             kFWPRequestDataPayload: dataMsg
         ]
@@ -80,10 +80,10 @@ public final class FConnection: FWebSocketDelegate {
     }
 
 
-    func sendRequest(_ dataMsg: NSDictionary, sensitive: Bool) throws {
+    func sendRequest(_ dataMsg: [String: AnyHashable], sensitive: Bool) throws {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
-        let msg: [String: Any] = [
+        let msg: [String: AnyHashable] = [
             kFWPRequestType: kFWPRequestTypeData,
             kFWPRequestDataPayload: dataMsg
         ]
@@ -91,7 +91,7 @@ public final class FConnection: FWebSocketDelegate {
         try sendData(msg, sensitive: sensitive)
     }
 
-    func sendData(_ data: [String: Any], sensitive: Bool) throws {
+    func sendData(_ data: [String: AnyHashable], sensitive: Bool) throws {
         if state != .connected {
             /// TODO THROW
 //            @throw [[NSException alloc]
@@ -141,7 +141,7 @@ public final class FConnection: FWebSocketDelegate {
         withMessage message: [String: Any]
     ) {
         if let rawMessageType = message[kFWPAsyncServerEnvelopeType] as? String {
-            if rawMessageType == kFWPAsyncServerDataMessage, let data = message[kFWPAsyncServerEnvelopeData] as? NSDictionary {
+            if rawMessageType == kFWPAsyncServerDataMessage, let data = message[kFWPAsyncServerEnvelopeData] as? [String: AnyHashable] {
                 onDataMessage(data)
             } else if rawMessageType == kFWPAsyncServerControlMessage, let data = message[kFWPAsyncServerEnvelopeData] as? [String: Any] {
                 onControl(data)
@@ -153,7 +153,7 @@ public final class FConnection: FWebSocketDelegate {
         }
     }
 
-    func onDataMessage(_ message: NSDictionary?) {
+    func onDataMessage(_ message: [String: AnyHashable]?) {
         guard let message = message else { return }
         // we don't do anything with data messages, just kick them up a level
         FFLog("I-RDB082010", "Got data message: \(message)")

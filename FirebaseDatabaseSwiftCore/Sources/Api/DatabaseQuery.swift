@@ -94,7 +94,7 @@ public class DatabaseQuery {
         if eventType == .value {
             // Handle FIRDataEventTypeValue specially because they shouldn't have
             // prevName callbacks
-            let handle = FUtilitiesSwift.LUIDGenerator()
+            let handle = FUtilities.LUIDGenerator()
             observeValueEventWithHandle(handle, withBlock: block, cancelCallback: cancelBlock)
             return handle
         } else {
@@ -144,7 +144,7 @@ public class DatabaseQuery {
             instead." userInfo:nil];
             */
         }
-        let handle = FUtilitiesSwift.LUIDGenerator()
+        let handle = FUtilities.LUIDGenerator()
         observeChildEventWithHandle(handle, withCallbacks: [eventType: block], cancelCallback: cancelBlock)
         return handle
     }
@@ -492,7 +492,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * or equal to startValue
      */
-    public func queryStartingAtValue(_ startValue: Any?) -> DatabaseQuery {
+    public func queryStartingAtValue(_ startValue: AnyHashable?) -> DatabaseQuery {
         queryStartingAtInternal(startValue, childKey: nil, from: "queryStartingAtValue:", priorityMethod: false)
     }
 
@@ -511,7 +511,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * or equal to startValue
      */
-    public func queryStartingAtValue(_ startValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryStartingAtValue(_ startValue: AnyHashable?, childKey: String?) -> DatabaseQuery {
         if queryParams.index == .key {
             fatalError("You must use queryStartingAtValue: instead of queryStartingAtValue:childKey: when using queryOrderedByKey:")
         }
@@ -534,7 +534,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value greater
      * startAfterValue
      */
-    public func queryStartingAfterValue(_ startAfterValue: Any?) -> DatabaseQuery {
+    public func queryStartingAfterValue(_ startAfterValue: AnyHashable?) -> DatabaseQuery {
         queryStartingAfterValue(startAfterValue, childKey: nil)
     }
 
@@ -553,7 +553,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value greater than
      * startAfterValue, or equal to startAfterValue with a key greater than childKey
      */
-    public func queryStartingAfterValue(_ startAfterValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryStartingAfterValue(_ startAfterValue: AnyHashable?, childKey: String?) -> DatabaseQuery {
         var startAfterValue = startAfterValue
         var childKey = childKey
         if self.queryParams.index == .key {
@@ -564,16 +564,16 @@ public class DatabaseQuery {
                 startAfterValue = FNextPushId.successor(startAfter)
             }
         } else {
-            childKey = childKey.map { FNextPushId.successor($0) } ?? FUtilitiesSwift.maxName
+            childKey = childKey.map { FNextPushId.successor($0) } ?? FUtilities.maxName
         }
         let methodName = "queryStartingAfterValue:childKey:"
-        if let childKey = childKey, childKey != FUtilitiesSwift.maxName {
+        if let childKey = childKey, childKey != FUtilities.maxName {
             FValidationSwift.validateFrom(methodName, validKey: childKey)
         }
         return queryStartingAtInternal(startAfterValue, childKey: childKey, from: methodName, priorityMethod: false)
     }
 
-    private func queryStartingAtInternal(_ startValue: Any?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
+    private func queryStartingAtInternal(_ startValue: AnyHashable?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
         validateIndexValueType(startValue, fromMethod: methodName)
         if queryParams.hasStart {
             fatalError("Can't call \(methodName) after queryStartingAtValue, queryStartingAfterValue, or queryEqualToValue was previously called")
@@ -595,7 +595,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    public func queryEndingAtValue(_ endValue: Any?) -> DatabaseQuery {
+    public func queryEndingAtValue(_ endValue: AnyHashable?) -> DatabaseQuery {
         queryEndingAtInternal(endValue, childKey: nil, from: "queryEndingAtValue:", priorityMethod: false)
     }
 
@@ -614,7 +614,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    public func queryEndingAtValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEndingAtValue(_ endValue: AnyHashable?, childKey: String?) -> DatabaseQuery {
         if queryParams.index == .key {
             fatalError("You must use queryEndingAtValue: instead of queryEndingAtValue:childKey: when using queryOrderedByKey:")
         }
@@ -636,7 +636,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value less than
      * endValue
      */
-    public func queryEndingBeforeValue(_ endValue: Any?) -> DatabaseQuery {
+    public func queryEndingBeforeValue(_ endValue: AnyHashable?) -> DatabaseQuery {
         queryEndingBeforeValue(endValue, childKey: nil)
     }
 
@@ -653,7 +653,7 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with value less than or
      * equal to endValue
      */
-    public func queryEndingBeforeValue(_ endValue: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEndingBeforeValue(_ endValue: AnyHashable?, childKey: String?) -> DatabaseQuery {
         var endValue = endValue
         var childKey = childKey
         if queryParams.index == .key {
@@ -667,17 +667,17 @@ public class DatabaseQuery {
             if let child = childKey {
                 childKey = FNextPushId.predecessor(child)
             } else {
-                childKey = FUtilitiesSwift.minName
+                childKey = FUtilities.minName
             }
         }
         let methodName = "queryEndingBeforeValue:childKey:"
-        if let childKey = childKey, childKey != FUtilitiesSwift.minName {
+        if let childKey = childKey, childKey != FUtilities.minName {
             FValidationSwift.validateFrom(methodName, validKey: childKey)
         }
         return queryEndingAtInternal(endValue, childKey: childKey, from: methodName, priorityMethod: false)
     }
 
-    private func queryEndingAtInternal(_ endValue: Any?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
+    private func queryEndingAtInternal(_ endValue: AnyHashable?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
         validateIndexValueType(endValue, fromMethod: methodName)
         if queryParams.hasEnd {
             fatalError("Can't call \(methodName) after queryEndingAtValue, queryEndingAfterValue, or queryEqualToValue was previously called")
@@ -698,7 +698,7 @@ public class DatabaseQuery {
      * have
      * @return A FIRDatabaseQuery instance, limited to data with the supplied value.
      */
-    public func queryEqualToValue(_ value: Any?) -> DatabaseQuery {
+    public func queryEqualToValue(_ value: AnyHashable?) -> DatabaseQuery {
         queryEqualToInternal(value, childKey: nil, from: "queryEqualToValue:", priorityMethod: false)
     }
 
@@ -715,14 +715,14 @@ public class DatabaseQuery {
      * @return A FIRDatabaseQuery instance, limited to data with the supplied value
      * and the key.
      */
-    public func queryEqualToValue(_ value: Any?, childKey: String?) -> DatabaseQuery {
+    public func queryEqualToValue(_ value: AnyHashable?, childKey: String?) -> DatabaseQuery {
         if queryParams.index == .key {
             fatalError("You must use queryEqualToValue: instead of queryEqualTo:childKey: when using queryOrderedByKey:")
         }
         return queryEqualToInternal(value, childKey: childKey, from: "queryEqualToValue:childKey:", priorityMethod: false)
     }
 
-    private func queryEqualToInternal(_ value: Any?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
+    private func queryEqualToInternal(_ value: AnyHashable?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
         validateIndexValueType(value, fromMethod: methodName)
         if let childKey = childKey {
             FValidationSwift.validateFrom(methodName, validKey: childKey)
@@ -792,7 +792,7 @@ public class DatabaseQuery {
     private func validateQueryEndpointsForParams(_ params: FQueryParams) {
         if params.index == .key {
             if params.hasStart {
-                if params.indexStartKey != FUtilitiesSwift.minName && params.indexStartKey != FUtilitiesSwift.maxName {
+                if params.indexStartKey != FUtilities.minName && params.indexStartKey != FUtilities.maxName {
                     fatalError("Can't use queryStartingAtValue:childKey:, queryStartingAfterValue:childKey:, or queryEqualTo:andChildKey: in combination with queryOrderedByKey")
                 }
                 if !(params.indexStartValue.val() is String) {
@@ -800,7 +800,7 @@ public class DatabaseQuery {
                 }
             }
             if params.hasEnd {
-                if params.indexEndKey != FUtilitiesSwift.minName && params.indexEndKey != FUtilitiesSwift.maxName {
+                if params.indexEndKey != FUtilities.minName && params.indexEndKey != FUtilities.maxName {
                     fatalError("Can't use queryEndingAtValue:childKey:, queryEndingBeforeValue:childKey:, or queryEqualToValue:childKey: in combination with queryOrderedByKey")
                 }
                 if !(params.indexEndValue.val() is String) {

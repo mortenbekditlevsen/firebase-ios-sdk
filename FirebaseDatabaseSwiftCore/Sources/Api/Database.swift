@@ -145,7 +145,7 @@ public class Database {
      */
     func referenceFromURL(_ databaseUrl: String) -> DatabaseReference {
         let repo = ensureRepo()
-        let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl)
+        let parsedUrl = FUtilities.parseUrl(databaseUrl)
         FValidation.validateFrom("referenceFromURL:", validURL: parsedUrl)
         let isInvalidHost = !parsedUrl.repoInfo.isCustomHost && repoInfo.host != parsedUrl.repoInfo.host
         if isInvalidHost {
@@ -286,7 +286,7 @@ public class Database {
      * @param enabled YES to enable logging, NO to disable.
      */
     class func setLoggingEnabled(_ enabled: Bool) {
-        FUtilitiesSwift.setLoggingEnabled(enabled)
+        FUtilities.setLoggingEnabled(enabled)
         FFLog("I-RDB024001", "BUILD Version: \(buildVersion)")
     }
 

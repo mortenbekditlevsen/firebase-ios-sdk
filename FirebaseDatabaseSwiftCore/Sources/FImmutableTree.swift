@@ -359,6 +359,8 @@ extension FImmutableTree: Equatable where Element: Equatable {
     static func == (lhs: FImmutableTree<Element>, rhs: FImmutableTree<Element>) -> Bool {
         lhs.value == rhs.value && lhs.children == rhs.children
     }
+}
 
-
+extension FImmutableTree: Hashable where Element: Hashable {
+    
 }

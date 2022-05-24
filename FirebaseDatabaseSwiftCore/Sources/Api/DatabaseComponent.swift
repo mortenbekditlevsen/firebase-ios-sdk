@@ -38,7 +38,7 @@ class DatabaseComponent: DatabaseProvider {
         lock.lock()
         defer { lock.unlock() }
 
-        let parsedUrl = FUtilitiesSwift.parseUrl(databaseUrl.absoluteString)
+        let parsedUrl = FUtilities.parseUrl(databaseUrl.absoluteString)
         let urlIndex = "\(parsedUrl.repoInfo.host):\(parsedUrl.path)"
         if let database = instances[urlIndex] {
             return database

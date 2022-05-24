@@ -8,24 +8,6 @@
 import Foundation
 
 struct FWriteRecordImpl: Hashable, Equatable {
-  static func == (lhs: FWriteRecordImpl, rhs: FWriteRecordImpl) -> Bool {
-    let oEqual: Bool
-    if let lo = lhs.overwrite, let ro = rhs.overwrite {
-      oEqual = lo.isEqual(ro)
-    } else if lhs.overwrite == nil && rhs.overwrite == nil {
-      oEqual = true
-    } else {
-      oEqual = false
-    }
-    return (
-      lhs.writeId == rhs.writeId &&
-      lhs.visible == rhs.visible &&
-      lhs.path == rhs.path &&
-      lhs.merge == rhs.merge &&
-      oEqual
-    )
-  }
-
   let writeId: Int
   let path: FPath
   // TODO: Overwrite or merge are mutually exclusive
@@ -54,18 +36,6 @@ struct FWriteRecordImpl: Hashable, Equatable {
 
   var isOverwrite: Bool {
     overwrite != nil
-  }
-
-  func hash(into hasher: inout Hasher) {
-    writeId.hash(into: &hasher)
-    path.hash(into: &hasher)
-    if let overwrite = overwrite {
-      overwrite.hash.hash(into: &hasher)
-    } else {
-      NSNull().hash(into: &hasher)
-    }
-    merge.hash(into: &hasher)
-    visible.hash(into: &hasher)
   }
 
   var debugDescription: String {

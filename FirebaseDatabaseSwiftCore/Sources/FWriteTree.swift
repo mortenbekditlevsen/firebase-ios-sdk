@@ -175,7 +175,7 @@ class FWriteTree {
           // underlying data and no complete shadow
           return nil
         } else {
-          let layeredCache: FNode = completeServerCache ?? FEmptyNode.emptyNode
+          let layeredCache: FNode = completeServerCache ?? .empty
           return subMerge.applyToNode(layeredCache)
         }
       }
@@ -196,7 +196,7 @@ class FWriteTree {
                 (record.path.contains(treePath) || treePath.contains(record.path))
             }
             let mergeAtPath = FWriteTree.layerTreeFromWrites(allWrites, filter: filter, treeRoot: treePath)
-            let layeredCache = completeServerCache ?? FEmptyNode.emptyNode
+            let layeredCache = completeServerCache ?? .empty
             return mergeAtPath.applyToNode(layeredCache)
         }
       }
@@ -209,12 +209,12 @@ class FWriteTree {
      * pre-fill their complete event children snapshot.
      */
   func calculateCompleteEventChildrenAtPath(_ treePath: FPath, completeServerChildren: FNode?) -> FNode {
-      var completeChildren: FNode = FEmptyNode.emptyNode
+      var completeChildren: FNode = .empty
       if let topLevelSet = visibleWrites.completeNodeAtPath(treePath) {
-          if let topChildrenNode = topLevelSet as? FChildrenNode {
+          if case let .children(children) = topLevelSet.type {
               // We're shadowing everything. Return the children.
-              topChildrenNode.enumerateChildren { key, node, stop in
-                  completeChildren = completeChildren.updateImmediateChild(key, withNewChild: node)
+              for (key, node) in children {
+                  completeChildren = completeChildren.updateImmediateChild(key.key, withNewChild: node)
               }
           }
           return completeChildren
