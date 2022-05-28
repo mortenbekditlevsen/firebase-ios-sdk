@@ -136,7 +136,7 @@ class FView {
      * events and changes
      */
     func applyOperation(_ operation: FOperation, writesCache: FWriteTreeRef, serverCache optCompleteServerCache: FNode?) -> FViewOperationResult {
-        if operation.type == .merge && operation.source.queryParams != nil {
+        if case .merge = operation.type, operation.source.queryParams != nil {
             assert(self.viewCache.completeServerSnap != nil,
                      "We should always have a full cache before handling merges")
             assert(self.viewCache.completeEventSnap != nil,

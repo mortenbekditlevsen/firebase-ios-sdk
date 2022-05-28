@@ -29,7 +29,7 @@ final class WebSocketClient {
         }
 
         context.eventLoop.execute {
-            context.close()
+            _ = context.close()
         }
     }
 
@@ -86,8 +86,7 @@ final class WebSocketClient {
                 }
         }
         self.openClosure = {
-            let channel = try bootstrap.connect(host: url.host!, port: url.port ?? 443).wait()
-//            print("CHANNEL", channel)
+            _ = try bootstrap.connect(host: url.host!, port: url.port ?? 443).wait()
         }
     }
 }

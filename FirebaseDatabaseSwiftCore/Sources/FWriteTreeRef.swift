@@ -45,6 +45,16 @@ class FWriteTreeRef {
         )
     }
 
+    // Non-optional version of the above
+    func calculateCompleteEventCache(completeServerCache: FNode) -> FNode {
+        writeTree.calculateCompleteEventCacheAtPath(
+            path,
+            completeServerCache: completeServerCache,
+            excludeWriteIds: nil,
+            includeHiddenWrites: false
+        )
+    }
+
     /**
      * @return If possible, returns a children node containing all of the complete
      * children we have data for. The returned data is a mix of the given server
@@ -72,7 +82,7 @@ class FWriteTreeRef {
      * Either existingEventSnap or existingServerSnap must exist, this is validated
      * via an assert.
      */
-    func calculateEventCacheAfterServerOverwrite(childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
+    func calculateEventCacheAfterServerOverwrite(childPath: FPath, existingEventSnap: FNode, existingServerSnap: FNode) -> FNode? {
         writeTree.calculateEventCacheAfterServerOverwriteAtPath(
             path,
             childPath: childPath,

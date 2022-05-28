@@ -73,26 +73,26 @@ class FLimitedFilter: FNodeFilter {
                     accumulator.trackChildChange(change)
                 }
                 let newIndexed = oldIndexed.updateChild(childKey, withNewChild: .empty)
+
                 // We need to check if the `nextChild` is actually in range before
                 // adding it
 
-                // XXX TODO: REWRITE WITHOUT SO MANY FORCE UNWRAPPINGS
-                let nextChildInRange =
-                (nextChild != nil) &&
-                rangedFilter.matchesKey(nextChild!.name,
-                                        andNode:nextChild!.node)
-                if nextChildInRange {
-                    if let accumulator = optChangeAccumulator {
-                        let change = FChange(type:.childAdded,
-                                             indexedNode:FIndexedNode(node: nextChild!.node),
-                                             childKey:nextChild!.name)
-                        accumulator.trackChildChange(change)
-                    }
-                    return newIndexed.updateChild(nextChild!.name,
-                                      withNewChild:nextChild!.node)
-                } else {
+                guard let nextChild = nextChild else {
                     return newIndexed
                 }
+
+                guard rangedFilter.matchesKey(nextChild.name,
+                                              andNode: nextChild.node) else {
+                    return newIndexed
+                }
+                if let accumulator = optChangeAccumulator {
+                    let change = FChange(type:.childAdded,
+                                         indexedNode:FIndexedNode(node: nextChild.node),
+                                         childKey:nextChild.name)
+                    accumulator.trackChildChange(change)
+                }
+                return newIndexed.updateChild(nextChild.name,
+                                              withNewChild:nextChild.node)
             }
 
         } else if newChildSnap.isEmpty {

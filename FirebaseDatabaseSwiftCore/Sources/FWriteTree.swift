@@ -160,48 +160,80 @@ class FWriteTree {
    * writes with visible set to false
    */
     func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode?, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode? {
-    if excludeWriteIds == nil && !includeHiddenWrites {
-      if let shadowingNode = visibleWrites.completeNodeAtPath(treePath) {
-        return shadowingNode
-      } else {
-        // No cache here. Can't claim complete knowledge.
-        let subMerge =
-        self.visibleWrites.childCompoundWriteAtPath(treePath)
-        if subMerge.isEmpty {
-          return completeServerCache
-        } else if completeServerCache == nil &&
-                    !subMerge.hasCompleteWriteAtPath(.empty) {
-          // We wouldn't have a complete snapshot since there's no
-          // underlying data and no complete shadow
-          return nil
-        } else {
-          let layeredCache: FNode = completeServerCache ?? .empty
-          return subMerge.applyToNode(layeredCache)
-        }
-      }
-    } else {
-      let merge = visibleWrites.childCompoundWriteAtPath(treePath)
-      if !includeHiddenWrites && merge.isEmpty {
-        return completeServerCache
-      } else {
-        // If the server cache is null and we don't have a complete cache,
-        // we need to return nil
-        if (!includeHiddenWrites && completeServerCache == nil &&
-            !merge.hasCompleteWriteAtPath(.empty)) {
-          return nil
-        } else {
-            let filter: (FWriteRecord) -> Bool = { record in
-                (record.visible || includeHiddenWrites) &&
-                (excludeWriteIds?.contains(record.writeId) ?? true) &&
-                (record.path.contains(treePath) || treePath.contains(record.path))
+        if excludeWriteIds == nil && !includeHiddenWrites {
+            if let shadowingNode = visibleWrites.completeNodeAtPath(treePath) {
+                return shadowingNode
+            } else {
+                // No cache here. Can't claim complete knowledge.
+                let subMerge =
+                self.visibleWrites.childCompoundWriteAtPath(treePath)
+                if subMerge.isEmpty {
+                    return completeServerCache
+                } else if completeServerCache == nil &&
+                            !subMerge.hasCompleteWriteAtPath(.empty) {
+                    // We wouldn't have a complete snapshot since there's no
+                    // underlying data and no complete shadow
+                    return nil
+                } else {
+                    let layeredCache: FNode = completeServerCache ?? .empty
+                    return subMerge.applyToNode(layeredCache)
+                }
             }
-            let mergeAtPath = FWriteTree.layerTreeFromWrites(allWrites, filter: filter, treeRoot: treePath)
-            let layeredCache = completeServerCache ?? .empty
-            return mergeAtPath.applyToNode(layeredCache)
+        } else {
+            let merge = visibleWrites.childCompoundWriteAtPath(treePath)
+            if !includeHiddenWrites && merge.isEmpty {
+                return completeServerCache
+            } else {
+                // If the server cache is null and we don't have a complete cache,
+                // we need to return nil
+                if (!includeHiddenWrites && completeServerCache == nil &&
+                    !merge.hasCompleteWriteAtPath(.empty)) {
+                    return nil
+                } else {
+                    let filter: (FWriteRecord) -> Bool = { record in
+                        (record.visible || includeHiddenWrites) &&
+                        (excludeWriteIds?.contains(record.writeId) ?? true) &&
+                        (record.path.contains(treePath) || treePath.contains(record.path))
+                    }
+                    let mergeAtPath = FWriteTree.layerTreeFromWrites(allWrites, filter: filter, treeRoot: treePath)
+                    let layeredCache = completeServerCache ?? .empty
+                    return mergeAtPath.applyToNode(layeredCache)
+                }
+            }
         }
-      }
     }
-  }
+
+    // Non-optional version of the above that eliminates force unwrapping at call site
+    // TODO: Consider if this could be improved and merged back with the above, somehow
+    func calculateCompleteEventCacheAtPath(_ treePath: FPath, completeServerCache: FNode, excludeWriteIds: [Int]?, includeHiddenWrites: Bool) -> FNode {
+        if excludeWriteIds == nil && !includeHiddenWrites {
+            if let shadowingNode = visibleWrites.completeNodeAtPath(treePath) {
+                return shadowingNode
+            } else {
+                // No cache here. Can't claim complete knowledge.
+                let subMerge =
+                self.visibleWrites.childCompoundWriteAtPath(treePath)
+                if subMerge.isEmpty {
+                    return completeServerCache
+                } else {
+                    return subMerge.applyToNode(completeServerCache)
+                }
+            }
+        } else {
+            let merge = visibleWrites.childCompoundWriteAtPath(treePath)
+            if !includeHiddenWrites && merge.isEmpty {
+                return completeServerCache
+            } else {
+                let filter: (FWriteRecord) -> Bool = { record in
+                    (record.visible || includeHiddenWrites) &&
+                    (excludeWriteIds?.contains(record.writeId) ?? true) &&
+                    (record.path.contains(treePath) || treePath.contains(record.path))
+                }
+                let mergeAtPath = FWriteTree.layerTreeFromWrites(allWrites, filter: filter, treeRoot: treePath)
+                return mergeAtPath.applyToNode(completeServerCache)
+            }
+        }
+    }
 
     /**
      * With optional, underlying server data, attempt to return a children node of
@@ -253,8 +285,7 @@ class FWriteTree {
      *
      * Either existingEventSnap or existingServerSnap must exist.
      */
-    // XXX TODO: existingEventSnap never used in original method...
-    func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode?, existingServerSnap: FNode) -> FNode? {
+    func calculateEventCacheAfterServerOverwriteAtPath(_ treePath: FPath, childPath: FPath, existingEventSnap: FNode, existingServerSnap: FNode) -> FNode? {
 
       let path = treePath.child(childPath)
       if visibleWrites.hasCompleteWriteAtPath(path) {

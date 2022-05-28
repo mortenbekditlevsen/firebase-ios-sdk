@@ -6,8 +6,11 @@
 //
 
 import Foundation
+import Logging
 
 var logLevel: FLogLevel = .info
+// XXX TODO: Better id?
+var logger = Logger(label: "com.firebase.database")
 
 public enum FLogLevel: Int {
     case debug = 1
@@ -21,23 +24,21 @@ public enum FLogLevel: Int {
 @_cdecl("FFIsLoggingEnabled")
 func FFIsLoggingEnabled(_ level: Int) -> Bool { level >= logLevel.rawValue }
 
-#warning("TODO: Use actual logging. Perhaps through swift-log.")
 internal func FFLog(_ id: String, _ log: String) {
-//    print(id, log)
+    logger.trace("\(id): \(log)")
 }
 
 internal func FFInfo(_ id: String, _ log: String) {
-//    print(id, log)
+    logger.info("\(id): \(log)")
 }
 
 internal func FFWarn(_ id: String, _ log: String) {
-//    print(id, log)
+    logger.warning("\(id): \(log)")
 }
 
 internal func FFDebug(_ id: String, _ log: String) {
-//    print(id, log)
+    logger.debug("\(id): \(log)")
 }
-
 
 func tryParseStringToInt(_ str: String, integer: inout Int) -> Bool {
     // First do some cheap checks (NOTE: The below checks are significantly
@@ -89,6 +90,7 @@ enum FUtilities {
 
     static func setLoggingEnabled(_ enabled: Bool) {
         logLevel = enabled ? .debug : .info
+        logger.logLevel = enabled ? .debug : .info
     }
 
     static func decodePath(_ pathString: String) -> String {
@@ -279,7 +281,7 @@ enum FUtilities {
     }
 
     static func getJavascriptType(_ obj: Any) -> JavaScriptType {
-        if obj is NSDictionary {
+        if obj is [String: AnyHashable] {
             return .object
         } else if obj is String {
             return .string

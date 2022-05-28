@@ -46,7 +46,7 @@ class FValueEventRegistration: FEventRegistration {
     }
 
     func createCancelEventFromError(_ error: Error, path: FPath) -> FCancelEvent? {
-        guard let cancelCallback = cancelCallback else {
+        guard cancelCallback != nil else {
             return nil
         }
         return FCancelEvent(eventRegistration: self, error: error, path: path)

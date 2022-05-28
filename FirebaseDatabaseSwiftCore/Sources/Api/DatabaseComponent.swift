@@ -30,11 +30,8 @@ class DatabaseComponent: DatabaseProvider {
         guard databaseUrl.path == "" || databaseUrl.path == "/" else {
             fatalError("Configured Database URL '\(databaseUrl)' is invalid. It should point to the root of a Firebase Database but it includes a path: \(databaseUrl.path)")
         }
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(instances)
-//        defer {
-//            objc_sync_exit(instances)
-//        }
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
 
@@ -64,11 +61,8 @@ class DatabaseComponent: DatabaseProvider {
 
     // MARK: - Instance management.
     func appWillBeDeleted(_ app: FIRAppThing) {
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(instances)
-//        defer {
-//            objc_sync_exit(instances)
-//        }
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
         // Clean up the deleted instance in an effort to remove any resources

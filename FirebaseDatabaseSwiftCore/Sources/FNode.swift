@@ -306,14 +306,14 @@ struct FNode: Equatable, Hashable {
                         .priority
                         .compareNamedNode(lhs: a, rhs: b) == .orderedAscending
                 }
-                for var namedNode in array {
+                for namedNode in array {
                     let childHash = namedNode.node.dataHash()
                     if !children.isEmpty {
                         toHash += ":\(namedNode.name):\(childHash)"
                     }
                 }
             } else {
-                for (key, var node) in children {
+                for (key, node) in children {
                     let childHash = node.dataHash()
                     if !childHash.isEmpty {
                         toHash += ":\(key.key):\(childHash)"

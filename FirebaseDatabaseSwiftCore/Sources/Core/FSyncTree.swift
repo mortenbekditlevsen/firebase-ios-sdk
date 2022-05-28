@@ -115,7 +115,7 @@ class FSyncTree {
         if !isVisible {
             return []
         } else {
-            let operation = FOverwrite(source: .userInstance, path: path, snap: newData)
+            let operation: FOperation = .overwrite(source: .user, path: path, snap: newData)
             return applyOperationToSyncPoints(operation)
         }
     }
@@ -127,7 +127,7 @@ class FSyncTree {
     func applyUserMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite, writeId: Int) -> [FEvent] {
         // Record pending merge
         pendingWriteTree.addMergeAtPath(path, changedChildren: changedChildren, writeId: writeId)
-        let operation = FMerge(source: .userInstance, path: path, children: changedChildren)
+        let operation: FOperation = .merge(source: .user, path: path, children: changedChildren)
         return applyOperationToSyncPoints(operation)
     }
 
@@ -166,7 +166,7 @@ class FSyncTree {
                     affectedTree = affectedTree.setValue(true, atPath: path)
                 }
             }
-            let operation = FAckUserWrite(path: write.path, affectedTree: affectedTree, revert: revert)
+            let operation: FOperation = .ackUserWrite(path: write.path, affectedTree: affectedTree, revert: revert)
             return applyOperationToSyncPoints(operation)
         }
         return []
@@ -174,13 +174,13 @@ class FSyncTree {
 
     func applyServerOverwriteAtPath(_ path: FPath, newData: FNode) -> [FEvent] {
         persistenceManager?.updateServerCache(node: newData, forQuery: .defaultQueryAtPath(path))
-        let operation = FOverwrite(source: .serverInstance, path: path, snap: newData)
+        let operation: FOperation = .overwrite(source: .serverInstance, path: path, snap: newData)
         return applyOperationToSyncPoints(operation)
     }
 
     func applyServerMergeAtPath(_ path: FPath, changedChildren: FCompoundWrite) -> [FEvent] {
         persistenceManager?.updateServerCache(merge: changedChildren, atPath: path)
-        let operation = FMerge(source: .serverInstance, path: path, children: changedChildren)
+        let operation: FOperation = .merge(source: .serverInstance, path: path, children: changedChildren)
         return applyOperationToSyncPoints(operation)
     }
 
@@ -209,7 +209,7 @@ class FSyncTree {
     private func applyListenCompleteAtPath(_ path: FPath) -> [FEvent] {
         persistenceManager?.setQueryComplete(.defaultQueryAtPath(path))
 
-        let operation = FListenComplete(source: .serverInstance, path: path)
+        let operation: FOperation = .listenComplete(source: .serverInstance, path: path)
         return applyOperationToSyncPoints(operation)
     }
 
@@ -217,7 +217,7 @@ class FSyncTree {
         if let query = query(for: tagId) {
             persistenceManager?.setQueryComplete(query)
             let relativePath = FPath.relativePath(from: query.path, to: path)
-            let op = FListenComplete(source: .forServerTaggedQuery(query.params), path: relativePath)
+            let op: FOperation = .listenComplete(source: .forServerTaggedQuery(query.params), path: relativePath)
             return applyTaggedOperation(op, atPath: query.path)
         } else {
             // We've already removed the query. No big deal, ignore the update.
@@ -239,7 +239,7 @@ class FSyncTree {
             let relativePath = FPath.relativePath(from: query.path, to: path)
             let queryToOverwrite = relativePath.isEmpty ? query : FQuerySpec.defaultQueryAtPath(path)
             persistenceManager?.updateServerCache(node: newData, forQuery: queryToOverwrite)
-            let operation = FOverwrite(source: .forServerTaggedQuery(query.params), path: relativePath, snap: newData)
+            let operation: FOperation = .overwrite(source: .forServerTaggedQuery(query.params), path: relativePath, snap: newData)
             return applyTaggedOperation(operation, atPath: query.path)
         } else {
             // Query must have been removed already
@@ -253,7 +253,7 @@ class FSyncTree {
         }
         let relativePath = FPath.relativePath(from: query.path, to: path)
         persistenceManager?.updateServerCache(merge: changedChildren, atPath: path)
-        let operation = FMerge(source: .forServerTaggedQuery(query.params), path: relativePath, children: changedChildren)
+        let operation: FOperation = .merge(source: .forServerTaggedQuery(query.params), path: relativePath, children: changedChildren)
         return applyTaggedOperation(operation, atPath: query.path)
     }
 
@@ -473,7 +473,7 @@ class FSyncTree {
         let removedWrites = pendingWriteTree.removeAllWrites()
         if !removedWrites.isEmpty {
             let affectedTree: FImmutableTree<Bool> = .empty.setValue(true, atPath: .empty)
-            return applyOperationToSyncPoints(FAckUserWrite(path: .empty, affectedTree: affectedTree, revert: true))
+            return applyOperationToSyncPoints(.ackUserWrite(path: .empty, affectedTree: affectedTree, revert: true))
         } else {
             return []
         }

@@ -64,8 +64,8 @@ class FLevelDBStorageEngine: FStorageEngine {
     private var basePath: URL
     
     public static var firebaseDir: URL {
-        // XXX TODO: Handle linux (and more) too. Note that for macOS this differs from previously
 #if os(iOS) || os(watchOS) || os(macOS)
+        // XXX TODO: Note that for macOS this differs from previously
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
@@ -75,7 +75,9 @@ class FLevelDBStorageEngine: FStorageEngine {
         let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
         let cachesDir = urls[0] // Yes, it's a hard error if we have no documents directory
         return cachesDir.appendingPathComponent("firebase")
-    #else
+#else
+        // XXX TODO: On linux (Ubuntu) .documentsDirectory is a global /Users/xxx/Documents folder
+        // This needs to be scoped to something like a bundle identifier
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
@@ -319,7 +321,6 @@ class FLevelDBStorageEngine: FStorageEngine {
                 guard let writeId = writeJSON[kFUserWriteId] as? Int else { return }
                 guard let pathString = writeJSON[kFUserWritePath] as? String else { return }
                 let path = FPath(with: pathString)
-                /// XXX TODO: Let FWriteRecord be Decodable!
                 let writeRecord: FWriteRecord
                 if let dictionary = writeJSON[kFUserWriteMerge] as? [String: AnyHashable] {
                     // It's a merge
@@ -362,7 +363,9 @@ class FLevelDBStorageEngine: FStorageEngine {
 
         // HACK to make sure iter is freed now to avoid race conditions (if self.db
         // is deleted before iter, you get an access violation).
-        // XXX TODO: No autoreleasepool without obj c???
+        // NOTE: This hack only works on Darwin platforms (with Objective-C interop)
+        // and as Swift has deterministic release of objects after last use, this
+        // hack should no longer be necessary.
 //        return autoreleasepool {
             let iter = APLevelDBIterator.iterator(levelDB: serverCacheDB)
             _ = iter.seek(toKey: baseKey)
@@ -450,7 +453,7 @@ class FLevelDBStorageEngine: FStorageEngine {
             } else {
                 return NSNumber(value: decimal.int64Value)
             }
-        } else if let number = value as? NSNumber {
+//        } else if let number = value as? NSNumber {
             // The parser for double values in JSONSerialization at the root takes
             // some short-cuts and delivers wrong results (wrong rounding) for some
             // double values, including 2.47. Because we use the exact bytes for
@@ -783,10 +786,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         var set: Set<String> = []
 
         serverCacheDB.enumerateKeys(withPrefix: trackedQueryKeysKeyPrefix(trackedQueryId: queryId), asStrings: { dbKey, actualKey, stop in
-            // XXX TODO: The [NSString stringWithUTF8String: ...] is just added in order to fix
-            // tests since apparently a set of bridged strings compared unequal to a set of unbridged strings
-            set.insert(NSString(utf8String: (actualKey as NSString).utf8String!)! as String)
-//            set.insert(actualKey)
+            set.insert(actualKey)
         })
 
         FFDebug("I-RDB076033", "Loaded \(set.count) tracked keys for query \(queryId) in \(start.timeIntervalSinceNow * -1000)ms")

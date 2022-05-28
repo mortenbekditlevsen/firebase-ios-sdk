@@ -17,11 +17,8 @@ class FRepoManager {
      */
 
     class func getRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> FRepo {
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(configs)
-//        defer {
-//            objc_sync_exit(configs)
-//        }
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
         let repos = configs[config.sessionIdentifier]
@@ -29,19 +26,15 @@ class FRepoManager {
             return repo
         } else {
             // Calling this should create the repo.
-            _ = Database.createDatabaseForTests(repoInfo, config: config)
-            // XXX TODO FORCE UNWRAP
-            return configs[config.sessionIdentifier]![repoInfo]!
+            let (_, repo) = Database.createDatabaseForTests(repoInfo, config: config)
+            return repo
         }
     }
 
     class func createRepo(_ repoInfo: FRepoInfo, config: DatabaseConfig, database: Database) -> FRepo {
         config.freeze()
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(configs)
-//        defer {
-//            objc_sync_exit(configs)
-//        }
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
         var repos = configs[config.sessionIdentifier, default: [:]]

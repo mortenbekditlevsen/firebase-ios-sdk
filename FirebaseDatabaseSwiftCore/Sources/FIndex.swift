@@ -60,7 +60,7 @@ enum FIndex: Equatable, Hashable {
         }
     }
 
-    func indexedValueChanged(between oldNode: FNode, and newNode: FNode) -> Bool {
+    func indexedValueChanged(between oldNode: FNode?, and newNode: FNode) -> Bool {
         switch self {
         case .key:
             // The key for a node never changes.
@@ -69,14 +69,14 @@ enum FIndex: Equatable, Hashable {
             return oldNode != newNode
 
         case .priority:
-            let oldValue = oldNode.getPriority()
+            let oldValue = oldNode?.getPriority()
             let newValue = newNode.getPriority()
             return oldValue != newValue
 
         case .path(let path):
-            let oldValue = oldNode.getChild(path)
+            let oldValue = oldNode?.getChild(path)
             let newValue = newNode.getChild(path)
-            return oldValue.compare(newValue) != .orderedSame
+            return oldValue != newValue
         }
     }
 

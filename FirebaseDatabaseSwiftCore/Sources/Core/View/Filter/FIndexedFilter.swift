@@ -66,7 +66,6 @@ class FIndexedFilter: FNodeFilter {
         newSnap.node.enumerateChildren { childKey, childNode, stop in
             if oldSnap.node.hasChild(childKey) {
                 let oldChildSnap = oldSnap.node.getImmediateChild(childKey)
-                // XXX TODO, COULD FNODE BE MADE EQUATABLE
                 if oldChildSnap != childNode {
                     let change = FChange(type: .childChanged, indexedNode: FIndexedNode(node: childNode), childKey: childKey, oldIndexedNode: FIndexedNode(node: oldChildSnap))
                     optChangeAccumulator.trackChildChange(change)

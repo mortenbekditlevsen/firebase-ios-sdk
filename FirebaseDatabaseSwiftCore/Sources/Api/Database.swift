@@ -318,10 +318,10 @@ public class Database {
         self.config = config
     }
 
-    class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> Database {
+    class func createDatabaseForTests(_ repoInfo: FRepoInfo, config: DatabaseConfig) -> (Database, FRepo) {
         let db = Database(app: nil, repoInfo: repoInfo, config: config)
-        db.ensureRepo()
-        return db
+        let repo = db.ensureRepo()
+        return (db, repo)
     }
 
     public static var buildVersion: String {

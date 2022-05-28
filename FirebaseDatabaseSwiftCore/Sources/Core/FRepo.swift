@@ -463,7 +463,7 @@ class FRepo: FPersistentConnectionDelegate {
             let success = status == kFWPResponseForActionStatusOk
             let clearEvents = serverSyncTree.ackUserWriteWithWriteId(writeId, revert: !success, persist: true, clock: serverClock)
             if !clearEvents.isEmpty {
-                _ = rerunTransactionsForPath(path)
+                rerunTransactionsForPath(path)
             }
             eventRaiser.raiseEvents(clearEvents)
         }
@@ -683,20 +683,9 @@ offline for more details.
         transaction.currentInputSnapshot = currentState
         let mutableCurrent = MutableData(node: currentState)
         let result = transaction.update(mutableCurrent)
-        if !result.isSuccess {
-            // Abort the transaction
-            transaction.unwatcher()
-            transaction.currentOutputSnapshotRaw = nil
-            transaction.currentOutputSnapshotResolved = nil
-            if let onComplete = transaction.onComplete {
-                let ref = DatabaseReference(repo: self, path: transaction.path)
-                let indexedNode = FIndexedNode(node: currentState) // XXX TODO: Assume this is the same as transaction.currentInputSnapshot, but not 100000% convinced
-                let snap = DataSnapshot(ref: ref, indexedNode: indexedNode)
-                eventRaiser.raiseCallback {
-                    onComplete(nil, false, snap)
-                }
-            }
-        } else {
+        do {
+            let update = try result.result.get()
+
             // Note: different from js. We don't need to validate, FIRMutableData
             // does validation. We also don't have to worry about priorities. Just
             // mark as run and add to queue.
@@ -711,7 +700,7 @@ offline for more details.
             // transaction state, since the user could start new transactions from
             // the event callbacks
             let serverValues = FServerValues.generateServerValues(serverClock)
-            let newValUnresolved = result.update!.nodeValue // XXX TODO
+            let newValUnresolved = update.nodeValue
             let newVal = FServerValues.resolveDeferredValueSnapshot(newValUnresolved, withExisting: currentState, serverValues: serverValues)
             transaction.currentOutputSnapshotRaw = newValUnresolved
             transaction.currentOutputSnapshotResolved = newVal
@@ -721,6 +710,20 @@ offline for more details.
             let events = serverSyncTree.applyUserOverwriteAtPath(path, newData: newVal, writeId: currentWriteId, isVisible: transaction.applyLocally)
             eventRaiser.raiseEvents(events)
             sendAllReadyTransactions()
+        } catch {
+            // Abort the transaction
+            transaction.unwatcher()
+            transaction.currentOutputSnapshotRaw = nil
+            transaction.currentOutputSnapshotResolved = nil
+            if let onComplete = transaction.onComplete {
+                let ref = DatabaseReference(repo: self, path: transaction.path)
+                let indexedNode = FIndexedNode(node: currentState) // XXX TODO: Assume this is the same as transaction.currentInputSnapshot, but not 100000% convinced
+                let snap = DataSnapshot(ref: ref, indexedNode: indexedNode)
+                eventRaiser.raiseCallback {
+                    onComplete(nil, false, snap)
+                }
+            }
+
         }
     }
 
@@ -763,7 +766,7 @@ offline for more details.
     private func sendTransactionQueue(_ queue: [FTupleTransaction], atPath path: FPath) {
         // Mark transactions as sent and bump the retry count
         let writeIdsToExclude: [Int] = queue.compactMap(\.currentWriteId)
-        var latestState = latestStateAtPath(path, excludeWriteIds: writeIdsToExclude)
+        let latestState = latestStateAtPath(path, excludeWriteIds: writeIdsToExclude)
         var snapToSend = latestState
         var latestHash = latestState.dataHash()
         for transaction in queue {
@@ -834,7 +837,7 @@ offline for more details.
 
                     }
                 }
-                _ = self.rerunTransactionsForPath(path)
+                self.rerunTransactionsForPath(path)
                 self.eventRaiser.raiseEvents(events)
             }
         }
@@ -844,22 +847,19 @@ offline for more details.
      * Finds all transactions dependent on the data at changed Path and reruns them.
      *
      * Should be called any time cached data changes.
-     *
-     * Return the highest path that was affected by rerunning transactions. This is
-     * the path at which events need to be raised for.
      */
-    private func rerunTransactionsForPath(_ changedPath: FPath) -> FPath {
+
+    private func rerunTransactionsForPath(_ changedPath: FPath) {
         // For the common case that there are no transactions going on, skip all
         // this!
-        if transactionQueueTree.isEmpty {
-            return changedPath
-        } else {
-            let rootMostTransactionNode = getAncestorTransactionNodeForPath(changedPath)
-            let path = rootMostTransactionNode.path
-            let queue = buildTransactionQueueAtNode(rootMostTransactionNode)
-            rerunTransactionQueue(queue, atPath: path)
-            return path
+        guard !transactionQueueTree.isEmpty else {
+            return
         }
+
+        let rootMostTransactionNode = getAncestorTransactionNodeForPath(changedPath)
+        let path = rootMostTransactionNode.path
+        let queue = buildTransactionQueueAtNode(rootMostTransactionNode)
+        rerunTransactionQueue(queue, atPath: path)
     }
 
     /**
@@ -882,7 +882,7 @@ offline for more details.
         var writeIdsToExclude = queue.compactMap(\.currentWriteId)
 
         for transaction in queue {
-            let relativePath = FPath.relativePath(from: path, to: transaction.path)
+//            let relativePath = FPath.relativePath(from: path, to: transaction.path)
             var abortTransaction = false
 
             switch transaction.status {
@@ -904,10 +904,10 @@ offline for more details.
                     transaction.currentInputSnapshot = currentNode
                     let mutableCurrent = MutableData(node: currentNode)
                     let result = transaction.update(mutableCurrent)
-                    if result.isSuccess {
+                    if case let .success(update) = result.result {
                         let oldWriteId = transaction.currentWriteId!
                         let serverValues = FServerValues.generateServerValues(serverClock)
-                        let newVal = result.update!.nodeValue
+                        let newVal = update.nodeValue
                         let newValResolved = FServerValues.resolveDeferredValueSnapshot(newVal, withExisting: transaction.currentInputSnapshot, serverValues: serverValues)
                         transaction.currentOutputSnapshotRaw = newVal
                         transaction.currentOutputSnapshotResolved = newValResolved
@@ -1029,7 +1029,7 @@ offline for more details.
         }
         let affectedPath = getAncestorTransactionNodeForPath(path).path
         let transactionNode = transactionQueueTree.subTree(path)
-        transactionNode.forEachAncestor { ancestor in
+        _ = transactionNode.forEachAncestor { ancestor in
             abortTransactionsAtNode(ancestor, error: error)
             return false
         }

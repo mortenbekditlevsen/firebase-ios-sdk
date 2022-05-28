@@ -73,13 +73,11 @@ class FViewProcessor {
         let newViewCache: FViewCache
 
         switch operation.type {
-        case .overwrite:
-            // XXX TODO: TYPE SAFETIFY THIS
-            let overwrite = operation as! FOverwrite
+        case .overwrite(let snap):
             if operation.source.fromUser {
                 newViewCache = applyUserOverwriteTo(oldViewCache,
-                                                    changePath: overwrite.path,
-                                                    changedSnap: overwrite.snap,
+                                                    changePath: operation.path,
+                                                    changedSnap: snap,
                                                     writesCache: writesCache,
                                                     completeCache: completeCache,
                                                     accumulator: accumulator)
@@ -88,23 +86,22 @@ class FViewProcessor {
                 // We filter the node if it's a tagged update or the node has been
                 // previously filtered  and the update is not at the root in which
                 // case it is ok (and necessary) to mark the node unfiltered again
-                let filterServerNode = overwrite.source.isTagged ||
+                let filterServerNode = operation.source.isTagged ||
                                         (oldViewCache.cachedServerSnap.isFiltered &&
-                                         !overwrite.path.isEmpty)
+                                         !operation.path.isEmpty)
                 newViewCache = applyServerOverwriteTo(oldViewCache,
-                                                      changePath: overwrite.path,
-                                                      snap: overwrite.snap,
+                                                      changePath: operation.path,
+                                                      snap: snap,
                                                       writesCache: writesCache,
                                                       completeCache: completeCache,
                                                       filterServerNode: filterServerNode,
                                                       accumulator: accumulator)
             }
-        case .merge:
-            let merge = operation as! FMerge
+        case .merge(let children):
             if operation.source.fromUser {
                 newViewCache = applyUserMergeTo(oldViewCache,
-                                                path:merge.path,
-                                     changedChildren:merge.children,
+                                                path:operation.path,
+                                     changedChildren:children,
                                          writesCache:writesCache,
                                        completeCache:completeCache,
                                          accumulator:accumulator)
@@ -112,30 +109,29 @@ class FViewProcessor {
                 assert(operation.source.fromServer, "Unknown source for merge.")
                 // We filter the node if it's a tagged update or the node has been
                 // previously filtered
-                let filterServerNode = merge.source.isTagged ||
+                let filterServerNode = operation.source.isTagged ||
                                         oldViewCache.cachedServerSnap.isFiltered
                 newViewCache = applyServerMergeTo(oldViewCache,
-                                                   path:merge.path,
-                                        changedChildren:merge.children,
+                                                   path:operation.path,
+                                        changedChildren:children,
                                             writesCache:writesCache,
                                           completeCache:completeCache,
                                        filterServerNode:filterServerNode,
                                             accumulator:accumulator)
 
             }
-        case .ackUserWrite:
-            let ackWrite = operation as! FAckUserWrite
-            if !ackWrite.revert {
+        case .ackUserWrite(let affectedTree, let revert):
+            if !revert {
 
                 newViewCache = ackUserWriteOn(oldViewCache,
-                                              ackPath:ackWrite.path,
-                                              affectedTree:ackWrite.affectedTree,
+                                              ackPath:operation.path,
+                                              affectedTree:affectedTree,
                                               writesCache:writesCache,
                                               completeCache:completeCache,
                                               accumulator:accumulator)
             } else {
                 newViewCache = revertUserWriteOn(oldViewCache,
-                                                 path: ackWrite.path,
+                                                 path: operation.path,
                                                  writesCache: writesCache,
                                                  completeCache: completeCache,
                                                  accumulator: accumulator)
@@ -224,6 +220,8 @@ class FViewProcessor {
         } else {
             // changePath is empty
             // TODO: figure out how this plays with "sliding ack windows"
+
+
             assert(
                 viewCache.cachedServerSnap.isFullyInitialized,
                 "If change path is empty, we must have complete server data")
@@ -242,9 +240,7 @@ class FViewProcessor {
                 }
                 nodeWithLocalWrites = writesCache.calculateCompleteEventChildren(completeServerChildren: completeChildren)
             } else {
-
-                /// XXX TODO: FORCE UNWRAP MAY HIDE A BUG
-                nodeWithLocalWrites = writesCache.calculateCompleteEventCache(completeServerCache: viewCache.completeServerSnap)!
+                nodeWithLocalWrites =  writesCache.calculateCompleteEventCache(completeServerCache: viewCache.cachedServerSnap.node)
             }
             let indexedNode = FIndexedNode(node: nodeWithLocalWrites, index: filter.index)
             newEventCache = filter.updateFullNode(viewCache.cachedEventSnap.indexedNode, withNewNode: indexedNode, accumulator: accumulator)
@@ -564,8 +560,7 @@ class FViewProcessor {
         if path.isEmpty || path.getFront() == ".priority" {
             let newNode: FNode
             if viewCache.cachedServerSnap.isFullyInitialized {
-                // XXX TODO: THIS FORCE UNWRAP MIGHT ACTUALLY BE A HIDDEN BUG!
-                newNode = writesCache.calculateCompleteEventCache(completeServerCache: viewCache.completeServerSnap)!
+                newNode = writesCache.calculateCompleteEventCache(completeServerCache: viewCache.cachedServerSnap.node)
             } else {
                 newNode = writesCache.calculateCompleteEventChildren(completeServerChildren: viewCache.cachedServerSnap.node)
             }

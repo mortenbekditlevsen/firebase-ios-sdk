@@ -12,14 +12,15 @@ import Foundation
  * container for the results of the transaction.
  */
 class TransactionResult {
-    internal init(isSuccess: Bool, update: MutableData?) {
-        self.isSuccess = isSuccess
-        self.update = update
+    internal enum AbortedError: Error {
+        case aborted
+    }
+    internal init(result: Result<MutableData, AbortedError>) {
+        self.result = result
     }
 
 
-    var isSuccess: Bool
-    var update: MutableData?
+    var result: Result<MutableData, AbortedError>
 
     /**
      * Used for runTransactionBlock:. Indicates that the new value should be saved
@@ -30,7 +31,7 @@ class TransactionResult {
      * from the block given to runTransactionBlock:
      */
     class func successWithValue(_ value: MutableData) -> TransactionResult {
-        TransactionResult(isSuccess: true, update: value)
+        .init(result: .success(value))
     }
 
     /**
@@ -41,6 +42,6 @@ class TransactionResult {
      * from the block given to runTransactionBlock:
      */
     class func abort() -> TransactionResult {
-        .init(isSuccess: false, update: nil)
+        .init(result: .failure(.aborted))
     }
 }

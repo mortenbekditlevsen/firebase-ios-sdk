@@ -130,13 +130,13 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
     var lock = NSLock()
 
     deinit {
-        // TODO: Will this work on Linux?
+        // XXX TODO: Will this work on Linux?
         // NOTE: Maybe it doesn't need to. Auth will be likely be bridged
         // in some other way
         // Otherwise we need some other synchronization method
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(self)
-//        defer { objc_sync_exit(self) }
+
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
         for observer in self.appCheckNotificationObservers {
@@ -209,9 +209,8 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
                 listener(appCheckToken)
             }
 
-        // XXX TODO: NO objc_sync on non-Darwin
-//        objc_sync_enter(self)
-//        defer { objc_sync_exit(self) }
+        // NOTE: Using an NSLock is a replacement for objc @synchronized
+        // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
         defer { lock.unlock() }
         self.appCheckNotificationObservers.append(observer)

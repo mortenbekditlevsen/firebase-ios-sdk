@@ -72,7 +72,7 @@ class FSyncPoint {
             eventCacheComplete = true
             eventCache = calculated
         } else {
-            eventCache = writesCache.calculateCompleteEventChildren(completeServerChildren: serverCache.node /* XXX TODO, OBJC CODE ASSUMES THAT SERVERCACHENODE CAN BE NIL ... ?? .empty */)
+            eventCache = writesCache.calculateCompleteEventChildren(completeServerChildren: serverCache.node)
             eventCacheComplete = false
         }
         let indexed = FIndexedNode(node: eventCache, index: query.index)

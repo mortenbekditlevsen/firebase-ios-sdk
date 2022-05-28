@@ -619,10 +619,7 @@ class FPersistentConnection: FConnectionDelegate {
         sendAction(kFWPRequestActionAuth, body: requestData, sensitive: true, callback: { data in
             self.connectionState = .connected
             let status = data?[kFWPResponseForActionStatus] as? String
-            var responseData = data?[kFWPResponseForActionData]
-            if responseData == nil {
-                responseData = "error"
-            }
+            let responseData = data?[kFWPResponseForActionData] ?? ("error" as AnyHashable)
             let statusOk = status == kFWPResponseForActionStatusOk
             if statusOk {
                 if restoreStateAfterComplete {
@@ -632,9 +629,9 @@ class FPersistentConnection: FConnectionDelegate {
                 self.authToken = nil
                 self.forceTokenRefreshes = true
                 if status == "expired_token" {
-                    FFLog("I-RDB034017", "Authentication failed: \(status) (\(responseData))")
+                    FFLog("I-RDB034017", "Authentication failed: \(status ?? "-") (\(responseData))")
                 } else {
-                    FFWarn("I-RDB034018", "Authentication failed: \(status) (\(responseData))")
+                    FFWarn("I-RDB034018", "Authentication failed: \(status ?? "-") (\(responseData))")
                 }
                 self.realtime?.close()
             }
@@ -791,7 +788,7 @@ class FPersistentConnection: FConnectionDelegate {
     func getDataAtPath(_ pathString: String,
                                withParams queryWireProtocolParams: [String: AnyHashable],
                                withCallback onComplete: @escaping (String, AnyHashable?, String?) -> Void) {
-        var request: [String: AnyHashable] = [
+        let request: [String: AnyHashable] = [
             kFWPRequestPath: pathString,
             kFWPRequestQueries: queryWireProtocolParams
         ]
@@ -828,7 +825,6 @@ class FPersistentConnection: FConnectionDelegate {
         // Only bother to send query if it's non-default
         if let tagId = listenSpec.tagId {
             request[kFWPRequestQueries] = query.params.wireProtocolParams
-            // XXX TODO: NSNUmber?
             request[kFWPRequestTag] = tagId
         }
         request[kFWPRequestHash] = listenSpec.syncTreeHash.simpleHash
@@ -845,7 +841,7 @@ class FPersistentConnection: FConnectionDelegate {
             request[kFWPRequestCompoundHash] = hashDict
         }
         let onResponse: ([String: Any]?) -> Void = { response in
-            FFLog("I-RDB034027", "Listen response \(response)")
+            FFLog("I-RDB034027", "Listen response \(response ?? [:])")
             // warn in any case, even if the listener was removed
             self.warnOnListenWarningsForQuery(query, payload: response?[kFWPResponseForActionData])
             let currentListenSpec = self.listens[query]
@@ -874,7 +870,7 @@ class FPersistentConnection: FConnectionDelegate {
 
     private func warnOnListenWarningsForQuery(_ query: FQuerySpec, payload: Any?) {
         guard let payloadDict = payload as? [String: Any] else { return }
-        guard let warnings = payloadDict[kFWPResponseDataWarnings] as? [String] else { return }
+        guard payloadDict[kFWPResponseDataWarnings] as? [String] != nil else { return }
         let indexSpec = "\".indexOn\": \"\(query.params.index.queryDefinition)\""
         let indexPath = query.path.description
         FFWarn("I-RDB034028", """
@@ -1115,7 +1111,7 @@ better performance
             let errorReason = data?[kFWPResponseForActionData] as? String
             let statusOk = status == kFWPResponseForActionStatusOk
             if !statusOk {
-                FFLog("I-RDB034042", "Failed to send stats: \(errorReason)")
+                FFLog("I-RDB034042", "Failed to send stats: \(errorReason ?? "-")")
             }
         }
     }
@@ -1177,9 +1173,9 @@ better performance
                 self.authToken = nil
                 self.forceTokenRefreshes = true
                 if status == "invalid_token" {
-                    FFLog("I-RDB034045", "App check failed: \(status) (\(responseData))")
+                    FFLog("I-RDB034045", "App check failed: \(status ?? "-") (\(responseData))")
                 } else {
-                    FFWarn("I-RDB034046", "App check failed: \(status) (\(responseData))")
+                    FFWarn("I-RDB034046", "App check failed: \(status ?? "-") (\(responseData))")
                 }
                 self.realtime?.close()
             }

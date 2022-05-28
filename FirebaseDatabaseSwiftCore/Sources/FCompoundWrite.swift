@@ -227,18 +227,4 @@ struct FCompoundWrite: Hashable {
     var description: String {
         valForExport(true).description
     }
-
-//    func isEqual(_ object: Any?) -> Bool {
-//        guard let other = object as? FCompoundWrite else { return false }
-//        return valForExport(true).isEqual(other.valForExport(true))
-//    }
-//
-//    static func == (lhs: FCompoundWrite, rhs: FCompoundWrite) -> Bool {
-//        // XXX TODO: Optimize when FNode is a value type
-//        lhs.valForExport(true) == rhs.valForExport(true)
-//    }
-//
-//    func hash(into hasher: inout Hasher) {
-//        valForExport(true).hash(into: &hasher)
-//    }
 }

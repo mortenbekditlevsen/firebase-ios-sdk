@@ -28,16 +28,15 @@ class FEventGenerator {
      * @return NSArray of FEvent.
      */
     func generateEventsForChanges(_ changes: [FChange],
-                                          eventCache: FIndexedNode,
-                                          eventRegistrations: [FEventRegistration]) -> [FEvent] {
+                                  eventCache: FIndexedNode,
+                                  eventRegistrations: [FEventRegistration]) -> [FEvent] {
         var events: [FEvent] = []
         // child_moved is index-specific, so check all our child_changed events to
         // see if we need to materialize child_moved events with this view's index
         var moves: [FChange] = []
         for change in changes {
             if change.type == .childChanged &&
-/* XXX TODO AAARGH, YET ANOTHER FORCE UNWRAP I CAN'T EXPLAIN */
-                query.index.indexedValueChanged(between: change.oldIndexedNode!.node, and: change.indexedNode.node) {
+                query.index.indexedValueChanged(between: change.oldIndexedNode?.node, and: change.indexedNode.node) {
                 let moveChange = FChange(type: .childMoved,
                                          indexedNode: change.indexedNode,
                                          childKey: change.childKey,

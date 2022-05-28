@@ -42,11 +42,12 @@ class FSparseSnapshotTree {
     }
 
     func forgetPath(_ path: FPath) -> Bool {
-        if path.isEmpty {
+        guard let childKey = path.getFront() else {
             value = nil
             children = [:]
             return true
-        } else if let value = value {
+        }
+        if let value = value {
             if value.isLeafNode() {
                 // non-empty path at leaf. the path leads to nowhere
                 return false
@@ -61,7 +62,6 @@ class FSparseSnapshotTree {
                 return self.forgetPath(path)
             }
         } else if !children.isEmpty {
-            let childKey = path.getFront()! // XXX TODO: FORCE UNWRAP IS SAFE HERE, BUT NOT NICE TO LOOK AT
             let p = path.popFront()
             if let child = children[childKey] {
                 let safeToRemove = child.forgetPath(p)

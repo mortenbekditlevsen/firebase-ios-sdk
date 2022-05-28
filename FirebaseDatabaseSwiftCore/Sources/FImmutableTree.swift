@@ -323,22 +323,6 @@ internal struct FImmutableTree<Element> {
         }
     }
 
-
-//    override func isEqual(_ object: Any?) -> Bool {
-//        guard let other = object as? FImmutableTree else {
-//            return false
-//        }
-//        // XXX TODO, THIS MAY BE WRONG
-//        if let objcValue = value as? NSObject, let otherObjcValue = value as? NSObject {
-//            return objcValue.isEqual(otherObjcValue) && children == other.children
-//        }
-//        return children == other.children
-//    }
-//
-//    public override var hash: Int {
-//      return self.children.hash * 31 + [self.value hash];
-
-//    }
     var description: String {
         var string = "FImmutableTree { value=\(value.map { "\($0)" } ?? "<nil>")"
         string += ", children={"

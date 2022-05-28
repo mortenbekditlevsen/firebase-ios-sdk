@@ -206,6 +206,11 @@ let package = Package(
         url: "https://github.com/apple/swift-crypto.git",
         "1.0.0" ..< "3.0.0"
     ),
+    .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+    .package(
+      url: "https://github.com/apple/swift-atomics.git",
+      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
+    ),
     .package(
       name: "GCDWebServer",
       url: "https://github.com/SlaunchaMan/GCDWebServer.git",
@@ -548,13 +553,15 @@ let package = Package(
     .target(
       name: "FirebaseDatabaseSwiftCore",
       dependencies: [ "leveldb",
+                      .product(name: "Atomics", package: "swift-atomics"),
+                      .product(name: "Logging", package: "swift-log"),
                       .product(name: "SortedCollections", package: "swift-collections"),
                       .product(name: "NIOWebSocket", package: "swift-nio"),
                       .product(name: "NIOSSL", package: "swift-nio-ssl"),
                       .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux, .windows, .android]))],
       path: "FirebaseDatabaseSwiftCore/Sources",
       exclude: [
-        "LevelDB/LICENSE",
+        "third_party/LevelDB/LICENSE",
       ]
     ),
     .target(

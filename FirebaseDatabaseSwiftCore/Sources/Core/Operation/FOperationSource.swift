@@ -7,30 +7,44 @@
 
 import Foundation
 
-class FOperationSource {
-    public let fromUser: Bool
-    public let fromServer: Bool
-    public let isTagged: Bool
-    public let queryParams: FQueryParams?
-    init(fromUser isFromUser: Bool, fromServer isFromServer: Bool, queryParams: FQueryParams?, tagged isTagged: Bool) {
-        self.isTagged = isTagged
-        self.fromUser = isFromUser
-        self.fromServer = isFromServer
-        self.queryParams = queryParams
+enum FOperationSource {
+    case user
+    case server(taggedParams: FQueryParams?)
+
+    static var serverInstance: FOperationSource {
+        .server(taggedParams: nil)
     }
 
-    public static var userInstance: FOperationSource = .init(fromUser: true,
-                                                                   fromServer: false,
-                                                                   queryParams: nil,
-                                                                   tagged: false)
-
-    public static var serverInstance: FOperationSource = .init(fromUser: false,
-                                                                   fromServer: true,
-                                                                   queryParams: nil,
-                                                                   tagged: false)
-
     static func forServerTaggedQuery(_ params: FQueryParams) -> FOperationSource {
-        .init(fromUser: false, fromServer: true, queryParams: params, tagged: true)
+        .server(taggedParams: params)
+    }
+
+    var fromUser: Bool {
+        if case .user = self {
+            return true
+        }
+        return false
+    }
+
+    var fromServer: Bool {
+        if case .server = self {
+            return true
+        }
+        return false
+    }
+
+    var isTagged: Bool {
+        if case .server(let taggedParams) = self, taggedParams != nil {
+            return true
+        }
+        return false
+    }
+
+    var queryParams: FQueryParams? {
+        if case .server(let taggedParams) = self {
+            return taggedParams
+        }
+        return nil
     }
 
     var description: String {

@@ -51,7 +51,7 @@ class FChildEventRegistration: FEventRegistration {
     }
 
     func createCancelEventFromError(_ error: Error, path: FPath) -> FCancelEvent? {
-        if let cancelCallback = cancelCallback {
+        if cancelCallback != nil {
             return FCancelEvent(eventRegistration: self, error: error, path: path)
         } else {
             return nil

@@ -18,9 +18,6 @@ import Foundation
 
 public struct FIndexedNode {
     struct IndexedNamedNode: Comparable, Equatable {
-        static func == (lhs: IndexedNamedNode, rhs: IndexedNamedNode) -> Bool {
-            lhs.wrapped == rhs.wrapped && lhs.index == rhs.index
-        }
 
         static func < (lhs: IndexedNamedNode, rhs: IndexedNamedNode) -> Bool {
             lhs.index.compareNamedNode(lhs: lhs.wrapped, rhs: rhs.wrapped) == .orderedAscending
@@ -93,7 +90,6 @@ public struct FIndexedNode {
                 return FIndexedNode(node: newNode, index: index, indexed: Wrapper.fallback)
             } else {
                 // No need to index yet, index lazily
-                #warning("Does this not actually produce the same as the above? Given that the fallback case has a zero cost?")
                 return FIndexedNode(node: newNode, index: index)
             }
         case .indexed(var set):

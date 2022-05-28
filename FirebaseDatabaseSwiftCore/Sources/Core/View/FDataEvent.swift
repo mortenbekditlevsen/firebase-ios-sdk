@@ -42,6 +42,10 @@ class FDataEvent: FEvent {
     var isCancelEvent: Bool { false }
 
     var description: String {
-        "event \(eventType), data: \(snapshot.value)"
+        if let value = snapshot.value {
+            return "event \(eventType), data: \(value)"
+        } else {
+            return "event \(eventType), data: nil"
+        }
     }
 }

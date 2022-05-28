@@ -83,10 +83,6 @@ class FNextPushId {
         fatalError("Existing implementation crashes if 'source' character is not included in PUSH_CHARS, so we may as well do the same...")
     }
 
-    // `key` is assumed to be non-empty
-    #warning("It would perhaps be good to assert this, or even to support this, because even though keys can't be empty, queryBefore for instance may make sence on an empty String...")
-    // In this implementation 'key' is not assumed to be non-empty, but the key that comes
-    // before the empty string is Int32.max
     static func predecessor(_ key: String) -> String {
         var keyAsInt: Int = 0
         if tryParseStringToInt(key, integer: &keyAsInt) {

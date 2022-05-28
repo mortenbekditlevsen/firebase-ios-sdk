@@ -59,14 +59,13 @@ class FSnapshotUtilities {
         return compoundWrite
     }
 
-    // Move to enum and remove this once swift conversion of usage points is done
-    #warning("TODO - MOVE")
     static func estimateSerializedNodeSize(_ node: FNode) -> Int {
-        if node.isEmpty {
+        switch node.type {
+        case .empty:
             return 4 // null keyword
-        } else if node.isLeafNode() {
-            return estimateLeafNodeSize(node)
-        } else if case let .children(children) = node.type {
+        case let .leaf(value):
+            return estimateLeafNodeSize(value, priority: node.getPriority())
+        case let .children(children):
             var sum = 1 // opening brackets
             for (key, child) in children {
                 sum += key.key.count
@@ -74,37 +73,32 @@ class FSnapshotUtilities {
                 sum += estimateSerializedNodeSize(child)
             }
             return sum
-
-        } else {
-            assert(false, "Unexpected node type: \(type(of: node))")
-            return 0
         }
     }
-    // Move to enum and remove this once swift conversion of usage points is done
-    #warning("TODO - MOVE")
-    static func estimateLeafNodeSize(_ node: FNode) -> Int {
+
+    static func estimateLeafNodeSize(_ value: AnyHashable, priority: FNode) -> Int {
         // These values are somewhat arbitrary, but we don't need an exact value so
         // prefer performance over exact value
         let valueSize: Int
-        switch FUtilities.getJavascriptType(node.val()) {
+        switch FUtilities.getJavascriptType(value) {
         case .number:
             valueSize = 8 // estimate each float with 8 bytes
         case .boolean:
             valueSize = 4 // true or false need roughly 4 bytes
         case .string:
             // If we are measuring bytes here then we should use the utf8 view here, right?
-            valueSize = 2 + ((node.val() as? String)?.utf8.count ?? 0) // add 2 for quotes
+            valueSize = 2 + ((value as? String)?.utf8.count ?? 0) // add 2 for quotes
         default:
-            fatalError("Unknown leaf type: \(node)")
+            fatalError("Unknown leaf value type: \(value)")
         }
-        if node.getPriority().isEmpty {
+        if priority.isEmpty {
             return valueSize
         } else {
             // Account for extra overhead due to the extra JSON object and the
             // ".value" and ".priority" keys, colons, comma
             let leafPriorityOverhead = 2 + 8 + 11 + 2 + 1;
             return leafPriorityOverhead + valueSize +
-            estimateLeafNodeSize(node.getPriority())
+            estimateLeafNodeSize(priority.val(), priority: .empty)
         }
     }
 }
@@ -264,7 +258,7 @@ public enum FSnapshotUtilitiesSwift {
     static func validatePriorityNode(_ priorityNode: FNode) {
         if priorityNode.isLeafNode() {
             let val = priorityNode.val()
-            if let valDict = val as? NSDictionary {
+            if let valDict = val as? [String: AnyHashable] {
                 assert(valDict[kServerValueSubKey] != nil, "Priority can't be object unless it's a deferred value")
             } else {
                 let jsType = FUtilities.getJavascriptType(val)
