@@ -146,10 +146,11 @@ class FSyncTree {
             }
             if !revert {
                 let serverValues = FServerValues.generateServerValues(clock)
-                if let overwrite = write.overwrite {
+                switch write.record {
+                case .overwrite(let overwrite):
                     let resolvedNode = FServerValues.resolveDeferredValueSnapshot(overwrite, withSyncTree: self, atPath: write.path, serverValues: serverValues)
                     persistenceManager?.applyUserWrite(resolvedNode, toServerCacheAtPath: write.path)
-                } else if let merge = write.merge {
+                case .merge(let merge):
                     let resolvedMerge = FServerValues.resolveDeferredValueCompoundWrite(merge, withSyncTree: self, atPath: write.path, serverValues: serverValues)
                     persistenceManager?.applyUserMerge(resolvedMerge, toServerCacheAtPath: write.path)
                 }
@@ -159,9 +160,10 @@ class FSyncTree {
             return []
         } else if let write = write {
             var affectedTree: FImmutableTree<Bool> = .empty
-            if write.isOverwrite {
+            switch write.record {
+            case .overwrite:
                 affectedTree = affectedTree.setValue(true, atPath: .empty)
-            } else if let merge = write.merge {
+            case .merge(let merge):
                 merge.enumerateWrites { path, node, stop in
                     affectedTree = affectedTree.setValue(true, atPath: path)
                 }
@@ -372,11 +374,11 @@ class FSyncTree {
      * eventRegistration. If eventRegistration is null, we'll remove all callbacks
      * for the specified query/queries.
      *
-     * @param eventRegistration if nil, all callbacks are removed
+     * @param matcher if .all, all callbacks are removed
      * @param cancelError If provided, appropriate cancel events will be returned
      * @return NSArray of FEvent to raise.
      */
-    func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
+    func removeEventRegistration(_ matcher: FEventRegistrationMatcher, forQuery query: FQuerySpec, cancelError: Error?) -> [FEvent] {
         // Find the syncPoint first. Then deal with whether or not it has matching
         // listeners
         let path = query.path
@@ -387,7 +389,7 @@ class FSyncTree {
         // does *not* affect all queries at that location. So this check must be for
         // 'default', and not loadsAllData:
         if let maybeSyncPoint = maybeSyncPoint, query.isDefault || maybeSyncPoint.viewExistsForQuery(query) {
-            let removedAndEvents = maybeSyncPoint.removeEventRegistration(eventRegistration, forQuery: query, cancelError: cancelError)
+            let removedAndEvents = maybeSyncPoint.removeEventRegistration(matcher, forQuery: query, cancelError: cancelError)
             if maybeSyncPoint.isEmpty {
                 syncPointTree = syncPointTree.removeValue(atPath: path)
             }
@@ -457,13 +459,14 @@ class FSyncTree {
         return cancelEvents
     }
 
+
     func keepQuery(_ query: FQuerySpec, synced keepSynced: Bool) {
         // Only do something if we actually need to add/remove an event registration
         if keepSynced && !keepSyncedQueries.contains(query) {
             _ = addEventRegistration(FKeepSyncedEventRegistration.instance, forQuery: query)
             keepSyncedQueries.insert(query)
         } else if !keepSynced && keepSyncedQueries.contains(query) {
-            _ = removeEventRegistration(FKeepSyncedEventRegistration.instance, forQuery: query, cancelError: nil)
+            _ = removeEventRegistration(.keepSynced, forQuery: query, cancelError: nil)
             keepSyncedQueries.remove(query)
         }
     }
@@ -633,7 +636,7 @@ class FSyncTree {
                 // filtered children
                 let error = FUtilities.error(for: status, reason: nil)
                 FFWarn("I-RDB038012", "Listener at \(query.path) failed: \(status)")
-                return self.removeEventRegistration(nil, forQuery: query, cancelError: error)
+                return self.removeEventRegistration(.all, forQuery: query, cancelError: error)
             }
         }
         return listenContainer

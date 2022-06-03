@@ -45,7 +45,7 @@ public struct FIndexedNode {
         node.enumerateChildren { key, node, stop in
             sawChild = sawChild || self.index.isDefined(on: node)
             if sawChild {
-                stop.pointee = ObjCBool(booleanLiteral: true)
+                stop = true
             }
         }
         if sawChild {
@@ -137,8 +137,6 @@ public struct FIndexedNode {
     func predecessorForChildKey(_ childKey: String, childNode: FNode, index: FIndex) -> String? {
         if self.index != index {
             fatalError("Index not available in IndexedNode!")
-//            [NSException raise:NSInvalidArgumentException
-//                        format:@"Index not available in IndexedNode!"];
         }
         switch indexed {
         case .fallback:
@@ -152,23 +150,23 @@ public struct FIndexedNode {
         }
     }
 
-    func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildrenReverse(_ reverse: Bool, usingBlock block: @escaping (String, FNode, inout Bool) -> Void) {
         switch indexed {
         case .fallback:
             node.enumerateChildrenReverse(reverse, usingBlock: block)
         case .indexed(let set):
-            var stop = ObjCBool(booleanLiteral: false)
+            var stop = false
             if reverse {
                 for key in set.reversed() {
                     block(key.wrapped.name, key.wrapped.node, &stop)
-                    if stop.boolValue {
+                    if stop {
                         break
                     }
                 }
             } else {
                 for key in set {
                     block(key.wrapped.name, key.wrapped.node, &stop)
-                    if stop.boolValue {
+                    if stop {
                         break
                     }
                 }

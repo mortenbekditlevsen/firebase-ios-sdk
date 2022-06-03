@@ -115,7 +115,7 @@ class FServerValues {
                                                      withValueProvider existing: ValueProvider, serverValues: [String: AnyHashable]) -> FNode {
 
         let priorityVal = FServerValues.resolveDeferredValue(node.getPriority().val(), withExisting: existing.getChild(".priority"), serverValues: serverValues)
-        let priority = FSnapshotUtilitiesSwift.nodeFrom(priorityVal)
+        let priority = FSnapshotUtilities.nodeFrom(priorityVal)
         switch node.type {
         case .empty:
             return .empty

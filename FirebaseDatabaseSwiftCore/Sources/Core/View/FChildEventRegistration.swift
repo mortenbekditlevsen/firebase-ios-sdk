@@ -35,13 +35,13 @@ class FChildEventRegistration: FEventRegistration {
 
     func fireEvent(_ event: FEvent, queue: DispatchQueue) {
         if let cancelEvent = event as? FCancelEvent {
-            FFLog("I-RDB061001", "Raising cancel value event on \(event.path)")
+            FFLog("I-RDB061001", "Raising cancel value event on \(event.path?.description ?? "nil")")
             assert(cancelCallback != nil, "Raising a cancel event on a listener with no cancel callback")
             queue.async {
                 self.cancelCallback?(cancelEvent.error)
             }
         } else if let dataEvent = event as? FDataEvent {
-            FFLog("I-RDB061002", "Raising event callback (\(dataEvent.eventType)) on \(dataEvent.path)")
+            FFLog("I-RDB061002", "Raising event callback (\(dataEvent.eventType)) on \(dataEvent.path?.description ?? "nil")")
             if let callback: (DataSnapshot, String?) -> Void = callbacks[dataEvent.eventType] {
                 queue.async {
                     callback(dataEvent.snapshot, dataEvent.prevName)
@@ -58,9 +58,15 @@ class FChildEventRegistration: FEventRegistration {
         }
     }
 
-    // XXX TODO: NSNotFound is not so nice
-    func matches(_ other: FEventRegistration) -> Bool {
-        handle == NSNotFound || other.handle == NSNotFound || handle == other.handle
+    func matches(_ other: FEventRegistrationMatcher) -> Bool {
+        switch other {
+        case .all, .allRegular:
+            return true
+        case .handle(let otherHandle):
+            return otherHandle == handle
+        case .keepSynced:
+            return false
+        }
     }
 }
 

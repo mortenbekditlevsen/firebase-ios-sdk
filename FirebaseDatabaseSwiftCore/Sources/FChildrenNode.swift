@@ -197,7 +197,7 @@ struct KeyIndex: Comparable, Hashable {
 //
 //        if !getPriority().isEmpty {
 //            toHash += "priority:"
-//            FSnapshotUtilitiesSwift
+//            FSnapshotUtilities
 //                .appendHashRepresentation(for: self.getPriority(),
 //                                             to: &toHash,
 //                                             hashVersion: .v1)

@@ -80,14 +80,14 @@ class MutableData {
     }
 
     func setValue(_ value: AnyHashable?) {
-        let node = FSnapshotUtilitiesSwift.nodeFrom(value,
+        let node = FSnapshotUtilities.nodeFrom(value,
                                                     withValidationFrom: "setValue:")
         data.updateSnapshot(prefixPath, withNewSnapshot: node)
     }
 
     func setPriority(_ priority: AnyHashable) {
         var node = data.getNode(prefixPath)
-        let pri = FSnapshotUtilitiesSwift.nodeFrom(priority)
+        let pri = FSnapshotUtilities.nodeFrom(priority)
         node = node.updatePriority(pri)
         data.updateSnapshot(prefixPath, withNewSnapshot: node)
     }

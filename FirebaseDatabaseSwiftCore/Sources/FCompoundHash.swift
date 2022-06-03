@@ -97,7 +97,7 @@ class FCompoundHashBuilder {
   }
 
   func appendKey(_ key: String, toString: inout String) {
-    FSnapshotUtilitiesSwift.appendHashV2Representation(for: key, to: &toString)
+    FSnapshotUtilities.appendHashV2Representation(for: key, to: &toString)
   }
 
   func ensureRange() {
@@ -117,7 +117,7 @@ class FCompoundHashBuilder {
       ensureRange()
 
       lastLeafDepth = currentPathDepth
-      FSnapshotUtilitiesSwift.appendHashRepresentation(for: leafNode, to: &optHashValueBuilder!, hashVersion: .v2)
+      FSnapshotUtilities.appendHashRepresentation(for: leafNode, to: &optHashValueBuilder!, hashVersion: .v2)
       needsComma = true
       if splitStrategy(self) {
           endRange()
@@ -125,41 +125,41 @@ class FCompoundHashBuilder {
   }
 
     func startChild(key: String) {
-      ensureRange()
+        ensureRange()
 
-      if needsComma {
-          optHashValueBuilder! += ","
-      }
+        if needsComma {
+            optHashValueBuilder! += ","
+        }
         appendKey(key, toString: &optHashValueBuilder!)
         optHashValueBuilder! += ":("
-      if currentPathDepth == _currentPath.count {
-          _currentPath.append(key)
-      } else {
-          _currentPath[currentPathDepth] = key
-      }
-      currentPathDepth += 1
-      needsComma = false
-  }
+        if currentPathDepth == _currentPath.count {
+            _currentPath.append(key)
+        } else {
+            _currentPath[currentPathDepth] = key
+        }
+        currentPathDepth += 1
+        needsComma = false
+    }
 
-  func endChild() {
-      currentPathDepth -= 1
-      if isBuildingRange {
-          optHashValueBuilder! += ")"
-      }
-      needsComma = true
-  }
+    func endChild() {
+        currentPathDepth -= 1
+        if isBuildingRange {
+            optHashValueBuilder! += ")"
+        }
+        needsComma = true
+    }
 
-  func finishHashing() {
-      assert(currentPathDepth == 0,
-             "Can't finish hashing in the middle of processing a child")
-      if isBuildingRange {
-          endRange()
-      }
+    func finishHashing() {
+        assert(currentPathDepth == 0,
+               "Can't finish hashing in the middle of processing a child")
+        if isBuildingRange {
+            endRange()
+        }
 
-      // Always close with the empty hash for the remaining range to allow simple
-      // appending
-      currentHashes.append("")
-  }
+        // Always close with the empty hash for the remaining range to allow simple
+        // appending
+        currentHashes.append("")
+    }
 
   func endRange() {
       assert(isBuildingRange,
@@ -217,9 +217,9 @@ struct FCompoundHash {
             ()
         case .leaf:
             builder.processLeaf(leafNode: node)
-        case .children(let children):
-            for (key, node) in children {
-                builder.startChild(key: key.key)
+        case .children:
+            node.enumerateChildrenAndPriority { key, node, stop in
+                builder.startChild(key: key)
                 self.processNode(node, builder: builder)
                 builder.endChild()
             }

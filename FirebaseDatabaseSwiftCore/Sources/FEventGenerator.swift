@@ -100,8 +100,12 @@ class FEventGenerator {
         if change.type == .value || change.type == .childRemoved {
             materializedChange = change
         } else {
-            /// XXX TODO: FORCE UNWRAP. MUST A CHILD ADDED OR CHANGED ALWAYS HAVE A CHILD KEY?
-            let prevChildKey = eventCache.predecessorForChildKey(change.childKey!, childNode: change.indexedNode.node, index: query.index)
+            let prevChildKey: String?
+            if let childKey = change.childKey {
+                prevChildKey = eventCache.predecessorForChildKey(childKey, childNode: change.indexedNode.node, index: query.index)
+            } else {
+                prevChildKey = nil
+            }
             materializedChange = change.change(prevKey: prevChildKey)
         }
         return registration.createEventFrom(materializedChange, query: query)

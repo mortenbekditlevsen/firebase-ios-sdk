@@ -7,8 +7,8 @@
 
 import Foundation
 
-public class FIRAppThing: Equatable {
-    public static func == (lhs: FIRAppThing, rhs: FIRAppThing) -> Bool {
+public class FirebaseApp: Equatable {
+    public static func == (lhs: FirebaseApp, rhs: FirebaseApp) -> Bool {
         lhs.name == rhs.name && lhs.options == rhs.options
     }
 
@@ -31,9 +31,9 @@ public class FIRAppThing: Equatable {
     }
     static var isDefaultAppConfigured: Bool { defaultApp != nil }
     public static func configure(name: String? = nil, options: Options) {
-        defaultApp = FIRAppThing(options: options, name: name ?? "[DEFAULT]")
+        defaultApp = FirebaseApp(options: options, name: name ?? "[DEFAULT]")
     }
-    static private(set) var defaultApp: FIRAppThing?
+    static private(set) var defaultApp: FirebaseApp?
 }
 
 /**
@@ -53,10 +53,10 @@ public class Database {
      */
     public class func database() -> Database {
 
-        if !FIRAppThing.isDefaultAppConfigured {
+        if !FirebaseApp.isDefaultAppConfigured {
             fatalError("The default FirebaseApp instance must be configured before the default Database instance can be initialized. One way to ensure this is to call `FirebaseApp.configure()` in the App Delegate's `application(_:didFinishLaunchingWithOptions:)` (or the `@main` struct's initializer in SwiftUI).")
         }
-        return Database.database(app: FIRAppThing.defaultApp!)
+        return Database.database(app: FirebaseApp.defaultApp!)
     }
 
     /**
@@ -66,7 +66,7 @@ public class Database {
      * @return A FIRDatabase instance.
      */
     public class func database(url: String) -> Database {
-        guard let app = FIRAppThing.defaultApp else {
+        guard let app = FirebaseApp.defaultApp else {
             fatalError("Failed to get default Firebase Database instance. Must call `[FIRApp configure]` (`FirebaseApp.configure()` in Swift) before using Firebase Database.")
         }
         return Database.database(app: app, url: url)
@@ -80,7 +80,7 @@ public class Database {
      * @param url The URL to the Firebase Database instance you want to access.
      * @return A FIRDatabase instance.
      */
-    public class func database(app: FIRAppThing, url: String) -> Database {
+    public class func database(app: FirebaseApp, url: String) -> Database {
         let provider = DatabaseComponent(app: app)
         return provider.databaseForApp(app, URL: url)
         // XXX TODO:
@@ -96,7 +96,7 @@ public class Database {
      * @param app The FIRApp to get a FIRDatabase for.
      * @return A FIRDatabase instance.
      */
-    public class func database(app: FIRAppThing) -> Database {
+    public class func database(app: FirebaseApp) -> Database {
         let url: String
         if let dbURL = app.options.databaseURL {
             url = dbURL
@@ -111,7 +111,7 @@ public class Database {
     }
 
     /** The FIRApp instance to which this FIRDatabase belongs. */
-    public weak var app: FIRAppThing?
+    public weak var app: FirebaseApp?
 
     /**
      * Gets a FIRDatabaseReference for the root of your Firebase Database.
@@ -285,7 +285,7 @@ public class Database {
      *
      * @param enabled YES to enable logging, NO to disable.
      */
-    class func setLoggingEnabled(_ enabled: Bool) {
+    public class func setLoggingEnabled(_ enabled: Bool) {
         FUtilities.setLoggingEnabled(enabled)
         FFLog("I-RDB024001", "BUILD Version: \(buildVersion)")
     }
@@ -312,7 +312,7 @@ public class Database {
         self.repoInfo = emulatorInfo
     }
 
-    init(app: FIRAppThing?, repoInfo: FRepoInfo, config: DatabaseConfig) {
+    init(app: FirebaseApp?, repoInfo: FRepoInfo, config: DatabaseConfig) {
         self.app = app
         self.repoInfo = repoInfo
         self.config = config

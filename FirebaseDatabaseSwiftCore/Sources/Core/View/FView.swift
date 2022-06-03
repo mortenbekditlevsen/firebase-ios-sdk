@@ -105,15 +105,15 @@ class FView {
     }
 
     /**
-     * @param eventRegistration If null, remove all callbacks.
+     * @param matcher If .all, remove all callbacks.
      * @param cancelError If a cancelError is provided, appropriate cancel events
      * will be returned.
      * @return Cancel events, if cancelError was provided.
      */
-    func removeEventRegistration(_ eventRegistration: FEventRegistration?, cancelError: Error?) -> [FEvent] {
+    func removeEventRegistration(_ matcher: FEventRegistrationMatcher, cancelError: Error?) -> [FEvent] {
         var cancelEvents: [FEvent] = []
         if let cancelError = cancelError {
-            assert(eventRegistration == nil, "A cancel should cancel all event registrations.")
+            assert(matcher == .all, "A cancel should cancel all event registrations.")
             let path = query.path
             for registration in eventRegistrations {
                 if let event = registration.createCancelEventFromError(cancelError, path: path) {
@@ -121,15 +121,16 @@ class FView {
                 }
             }
         }
-        if let eventRegistration = eventRegistration {
-            eventRegistrations.removeAll { existing in
-                existing.matches(eventRegistration)
-            }
-        } else {
+        if matcher == .all {
             eventRegistrations = []
+        } else {
+            eventRegistrations.removeAll { existing in
+                existing.matches(matcher)
+            }
         }
         return cancelEvents
     }
+
 
     /**
      * Applies the given Operation, updates our cache, and returns the appropriate

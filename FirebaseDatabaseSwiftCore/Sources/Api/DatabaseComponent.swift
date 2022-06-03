@@ -12,18 +12,18 @@ import Foundation
 protocol DatabaseProvider {
     /// Gets a FirebaseDatabase instance for the specified URL, using the specified
     /// FirebaseApp.
-    func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database
+    func databaseForApp(_ app: FirebaseApp, URL url: String) -> Database
 }
 
 /// A concrete implementation for FIRDatabaseProvider to create Database
 /// instances.
 class DatabaseComponent: DatabaseProvider {
     var lock: NSLock = NSLock()
-    internal init(app: FIRAppThing) {
+    internal init(app: FirebaseApp) {
         self.app = app
     }
     
-    func databaseForApp(_ app: FIRAppThing, URL url: String) -> Database {
+    func databaseForApp(_ app: FirebaseApp, URL url: String) -> Database {
         guard let databaseUrl = URL(string: url) else {
             fatalError("The Database URL '\(url)' cannot be parsed. Specify a valid DatabaseURL within FIRApp or from your databaseForApp:URL: call.")
         }
@@ -40,7 +40,7 @@ class DatabaseComponent: DatabaseProvider {
         if let database = instances[urlIndex] {
             return database
         }
-        // XXX TODO: Inject auth and app check interop somehow
+        // XXX TODO: Inject auth and app check interop
         let contextProvider = DatabaseConnectionContextProvider.contextProvider(auth: nil, appCheck: nil, dispatchQueue: DatabaseQuery.sharedQueue)
 
         // If this is the default app, don't set the session persistence key
@@ -48,7 +48,7 @@ class DatabaseComponent: DatabaseProvider {
         // default ("[DEFAULT]") so that we preserve the default location
         // used by the legacy Firebase SDK.
         var sessionIdentifier = "default"
-        if !FIRAppThing.isDefaultAppConfigured || app != FIRAppThing.defaultApp {
+        if !FirebaseApp.isDefaultAppConfigured || app != FirebaseApp.defaultApp {
             sessionIdentifier = app.name
         }
         let config = DatabaseConfig(sessionIdentifier: sessionIdentifier,
@@ -60,7 +60,7 @@ class DatabaseComponent: DatabaseProvider {
     }
 
     // MARK: - Instance management.
-    func appWillBeDeleted(_ app: FIRAppThing) {
+    func appWillBeDeleted(_ app: FirebaseApp) {
         // NOTE: Using an NSLock is a replacement for objc @synchronized
         // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
@@ -74,7 +74,7 @@ class DatabaseComponent: DatabaseProvider {
         instances.removeAll()
     }
 
-    private var app: FIRAppThing
+    private var app: FirebaseApp
     private var instances: [String: Database] = [:]
 
     /*

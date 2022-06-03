@@ -310,9 +310,12 @@ public class DatabaseQuery {
      * which we are trying to remove.
      */
     public func removeObserverWithHandle(_ handle: DatabaseHandle) {
-        let event = FValueEventRegistration(repo: repo, handle: handle, callback: nil, cancelCallback: nil)
+        removeObserverWithMatcher(.handle(handle))
+    }
+
+    private func removeObserverWithMatcher(_ matcher: FEventRegistrationMatcher) {
         DatabaseQuery.sharedQueue.async {
-            self.repo.removeEventRegistration(event, forQuery: self.querySpec)
+            self.repo.removeEventRegistration(matcher, forQuery: self.querySpec)
         }
     }
 
@@ -321,8 +324,8 @@ public class DatabaseQuery {
      * observeEventType:withBlock:
      */
     public func removeAllObservers() {
-        //  XXX TODO: Use optionality instead? Or something completely different?
-        removeObserverWithHandle(NSNotFound)
+        // Remove all except 'keep synced'
+        removeObserverWithMatcher(.allRegular)
     }
 
     /**
@@ -578,7 +581,7 @@ public class DatabaseQuery {
         if queryParams.hasStart {
             fatalError("Can't call \(methodName) after queryStartingAtValue, queryStartingAfterValue, or queryEqualToValue was previously called")
         }
-        let startNode = FSnapshotUtilitiesSwift.nodeFrom(startValue)
+        let startNode = FSnapshotUtilities.nodeFrom(startValue)
         let params = queryParams.startAt(startNode, childKey: childKey)
         validateQueryEndpointsForParams(params)
         return .init(repo: repo, path: path, params: params, orderByCalled: orderByCalled, priorityMethodCalled: priorityMethod || priorityMethodCalled)
@@ -682,7 +685,7 @@ public class DatabaseQuery {
         if queryParams.hasEnd {
             fatalError("Can't call \(methodName) after queryEndingAtValue, queryEndingAfterValue, or queryEqualToValue was previously called")
         }
-        let endNode = FSnapshotUtilitiesSwift.nodeFrom(endValue)
+        let endNode = FSnapshotUtilities.nodeFrom(endValue)
         let params = queryParams.startAt(endNode, childKey: childKey)
         validateQueryEndpointsForParams(params)
         return .init(repo: repo, path: path, params: params, orderByCalled: orderByCalled, priorityMethodCalled: priorityMethod || priorityMethodCalled)
@@ -730,7 +733,7 @@ public class DatabaseQuery {
         if queryParams.hasEnd || queryParams.hasStart {
             fatalError("Can't call \(methodName) after queryStartingAtValue, queryStartingAfterValue, queryEndingAtValue, queryEndingBeforeValue or queryEqualToValue was previously called")
         }
-        let node = FSnapshotUtilitiesSwift.nodeFrom(value)
+        let node = FSnapshotUtilities.nodeFrom(value)
         let params = queryParams.startAt(node, childKey: childKey).endAt(node, childKey: childKey)
         validateQueryEndpointsForParams(params)
         return .init(repo: repo, path: path, params: params, orderByCalled: orderByCalled, priorityMethodCalled: priorityMethod || priorityMethodCalled)
@@ -831,7 +834,6 @@ public class DatabaseQuery {
     }
 
     private func validateIndexValueType(_ value: Any?, fromMethod method: String) {
-        // XXX TODO: IS THIS ACTUALLY CORRECT? TRY IF WE COULD IN FACT USE INTs and DOUBLES and more directly
         if value != nil && !(value is NSNumber) && !(value is Int) && !(value is Double) && !(value is String) && !(value is NSNull) {
             fatalError("You can only pass nil, NSString or NSNumber to \(method)")
         }

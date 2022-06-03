@@ -187,24 +187,19 @@ class FPersistentConnection: FConnectionDelegate {
     public static var userAgent: String {
         var systemVersion: String = ""
         var deviceName: String = ""
-        var hasUIDeviceClass = false
 
-        // Targetted compilation is ONLY for testing. UIKit is weak-linked in actual
-        // release build.
 #if os(iOS) || os(tvOS)
         systemVersion = UIDevice.current.systemVersion
         deviceName = UIDevice.current.model
-        hasUIDeviceClass = true
-#endif
-        if !hasUIDeviceClass {
-            /// XXX TODO: Boring to convert
-//            NSDictionary *systemVersionDictionary = [NSDictionary
-//                                                     dictionaryWithContentsOfFile:
-//                                                        @"/System/Library/CoreServices/SystemVersion.plist"];
-//            systemVersion =
-//            [systemVersionDictionary objectForKey:@"ProductVersion"];
-//            deviceName = [systemVersionDictionary objectForKey:@"ProductName"];
+#elseif os(macOS)
+        let systemVersionDictionary = NSDictionary(contentsOfFile: "/System/Library/CoreServices/SystemVersion.plist")
+        if let version = systemVersionDictionary["ProductVersion"] as? String {
+            systemVersion = version
         }
+        if let name = systemVersionDictionary["ProductName"] as? String {
+            deviceName = name
+        }
+#endif
         var bundleIdentifier = Bundle.main.bundleIdentifier ?? "-"
 
         // Sanitize '/'s in deviceName and bundleIdentifier for stats
@@ -221,20 +216,10 @@ class FPersistentConnection: FConnectionDelegate {
         FPersistentConnection.userAgent
     }
 
-    // XXX TODO: the type described below doesn't seem right
-    /**
-     * Note that the listens dictionary has a type of Map[String (pathString),
-     * Map[FQueryParams, FOutstandingQuery]]
-     *
-     * This means, for each path we care about, there are sets of queryParams that
-     * correspond to an FOutstandingQuery object. There can be multiple sets at a
-     * path since we overlap listens for a short time while adding or removing a
-     * query from a location in the tree.
-     */
     func listen(_ query: FQuerySpec,
-                             tagId: Int?,
-                             hash: FSyncTreeHash,
-                             onComplete: @escaping (String) -> Void) {
+                tagId: Int?,
+                hash: FSyncTreeHash,
+                onComplete: @escaping (String) -> Void) {
         FFLog("I-RDB034001", "Listen called for \(query)")
         assert(self.listens[query] == nil,
                "listen() called twice for the same query")
@@ -380,7 +365,7 @@ class FPersistentConnection: FConnectionDelegate {
 
     // MARK: -
     // MARK: FConnection delegate methods
-    func onReady(_ fconnection: AnyObject, atTime timestamp: NSNumber, sessionID: String) {
+    func onReady(_ connection: FConnection, atTime timestamp: Double, sessionID: String) {
         FFLog("I-RDB034003", "On ready");
         lastConnectionEstablishedTime = Date().timeIntervalSince1970
         handleTimestamp(timestamp)
@@ -396,7 +381,7 @@ class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    func onDataMessage(_ fconnection: AnyObject, withMessage message: [String: AnyHashable]) {
+    func onDataMessage(_ connection: FConnection, withMessage message: [String: AnyHashable]) {
         if let number = message[kFWPRequestNumber] as? NSNumber {
             // this is a response to a request we sent
             let rn = number.intValue
@@ -414,7 +399,7 @@ class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason) {
+    func onDisconnect(_ connection: FConnection, withReason reason: FDisconnectReason) {
         FFLog("I-RDB034004", "Got on disconnect due to \(reason.description)")
         connectionState = .disconnected
         // Drop the realtime connection
@@ -430,7 +415,7 @@ class FPersistentConnection: FConnectionDelegate {
             } else {
                 lastConnectionWasSuccessful = false
             }
-            if reason == .DISCONNECT_REASON_SERVER_RESET || lastConnectionWasSuccessful {
+            if reason == .serverReset || lastConnectionWasSuccessful {
                 retryHelper.signalSuccess()
             }
             tryScheduleReconnect()
@@ -439,7 +424,7 @@ class FPersistentConnection: FConnectionDelegate {
         delegate?.onDisconnect(self)
     }
 
-    func onKill(_ fconnection: AnyObject, withReason reason: String) {
+    func onKill(_ connection: FConnection, withReason reason: String) {
         FFWarn("I-RDB034005",
                "Firebase Database connection was forcefully killed by the server. Will not attempt reconnect. Reason: \(reason)")
         interruptForReason(kFInterruptReasonServerKill)
@@ -493,16 +478,10 @@ class FPersistentConnection: FConnectionDelegate {
             self.connectionState = .gettingToken
             self.currentFetchTokenAttempt += 1
             let thisFetchTokenAttempt = self.currentFetchTokenAttempt
-            self.contextProvider.fetchContextForcingRefresh(forceRefresh) { context, error in
+            self.contextProvider.fetchContextForcingRefresh(forceRefresh) { result in
                 if thisFetchTokenAttempt == self.currentFetchTokenAttempt {
-                    if let error = error {
-                        self.connectionState = .disconnected
-                        FFLog("I-RDB034010",
-                              "Error fetching token: \(error)")
-                        self.tryScheduleReconnect()
-                    } else {
-                        // XXX TODO: Model Result explicitly - or async call
-                        let context = context!
+                    do {
+                        let context = try result.get()
                         // Someone could have interrupted us while
                         // fetching the token, marking the
                         // connection as Disconnected
@@ -514,6 +493,11 @@ class FPersistentConnection: FConnectionDelegate {
                             assert(self.connectionState == .disconnected, "Expected connection state disconnected, but got \(self.connectionState)")
                             FFLog("I-RDB034012", "Not opening connection after token refresh, because  connection was set to disconnected.")
                         }
+                    } catch {
+                        self.connectionState = .disconnected
+                        FFLog("I-RDB034010",
+                              "Error fetching token: \(error)")
+                        self.tryScheduleReconnect()
                     }
                 } else {
                     FFLog("I-RDB034013",
@@ -584,28 +568,48 @@ class FPersistentConnection: FConnectionDelegate {
                            object: nil, queue: nil) { [weak self] _ in
             self?.enteringForeground()
         }
-        // XXX TODO REACHABILITY STUFF
-        /*
-         // An empty address is interpreted a generic internet access
-         struct sockaddr_in zeroAddress;
-         bzero(&zeroAddress, sizeof(zeroAddress));
-         zeroAddress.sin_len = sizeof(zeroAddress);
-         zeroAddress.sin_family = AF_INET;
-         reachability = SCNetworkReachabilityCreateWithAddress(
-             kCFAllocatorDefault, (const struct sockaddr *)&zeroAddress);
-         SCNetworkReachabilityContext ctx = {0, (__bridge void *)(self), NULL, NULL,
-                                             NULL};
-         if (SCNetworkReachabilitySetCallback(reachability, reachabilityCallback,
-                                              &ctx)) {
-             SCNetworkReachabilitySetDispatchQueue(reachability, self.dispatchQueue);
-         } else {
-             FFLog(@"I-RDB034016",
-                   @"Failed to set up network reachability monitoring");
-             CFRelease(reachability);
-             reachability = NULL;
-         }
 
-         */
+        // An empty address is interpreted a generic internet access
+        var zeroAddress = sockaddr()
+        zeroAddress.sa_len = UInt8(MemoryLayout<sockaddr>.size)
+        zeroAddress.sa_family = sa_family_t(AF_INET)
+
+        guard let reachability = SCNetworkReachabilityCreateWithAddress(nil, &zeroAddress) else {
+            return
+        }
+
+        let reachabilityCallback: SCNetworkReachabilityCallBack = { (reachability, flags, info) in
+            guard let info = info else { return }
+            if flags.contains(.reachable) {
+                FFLog("I-RDB034014",
+                      "Network became reachable. Trigger a connection attempt")
+                let aSelf = Unmanaged<FPersistentConnection>.fromOpaque(info).takeUnretainedValue()
+
+                // Reset reconnect delay
+                aSelf.retryHelper.signalSuccess()
+                if aSelf.connectionState == .disconnected {
+                    aSelf.tryScheduleReconnect()
+                }
+            } else {
+                FFLog("I-RDB034015", "Network is not reachable")
+            }
+        }
+
+        // Not handling retain release seems optimistic, but this is what is done in the
+        // Objective-C version. Look to https://github.com/ashleymills/Reachability.swift for
+        // something more thorough.
+        let opaqueWeakifiedReachability = Unmanaged<FPersistentConnection>.passUnretained(self).toOpaque()
+        var ctx = SCNetworkReachabilityContext(version: 0,
+                                               info: UnsafeMutableRawPointer(opaqueWeakifiedReachability),
+                                               retain: nil,
+                                               release: nil,
+                                               copyDescription: nil)
+        if SCNetworkReachabilitySetCallback(reachability, reachabilityCallback, &ctx) {
+            SCNetworkReachabilitySetDispatchQueue(reachability, self.dispatchQueue)
+        } else {
+            FFLog("I-RDB034016",
+                  "Failed to set up network reachability monitoring")
+        }
 #endif
     }
 
@@ -634,6 +638,7 @@ class FPersistentConnection: FConnectionDelegate {
                     FFWarn("I-RDB034018", "Authentication failed: \(status ?? "-") (\(responseData))")
                 }
                 self.realtime?.close()
+                self.realtime = nil
             }
         })
     }
@@ -642,14 +647,14 @@ class FPersistentConnection: FConnectionDelegate {
         sendAction(kFWPRequestActionUnauth, body: [:], sensitive: false, callback: nil)
     }
 
-    private func onAuthRevokedWithStatus(_ status: String, andReason reason: String) {
+    private func onAuthRevokedWithStatus(_ status: String?, andReason reason: String?) {
         // This might be for an earlier token than we just recently sent. But since
         // we need to close the connection anyways, we can set it to null here and
         // we will refresh the token later on reconnect
         if status == "expired_token" {
-            FFLog("I-RDB034019", "Auth token revoked: \(status) (\(reason))")
+            FFLog("I-RDB034019", "Auth token revoked: \(status ?? "nil") (\(reason ?? "nil"))")
         } else {
-            FFWarn("I-RDB034020", "Auth token revoked: \(status) (\(reason))")
+            FFWarn("I-RDB034020", "Auth token revoked: \(status ?? "nil") (\(reason ?? "nil"))")
         }
         self.authToken = nil
         self.forceTokenRefreshes = true
@@ -755,7 +760,6 @@ class FPersistentConnection: FConnectionDelegate {
         var request: [String: AnyHashable] = [path.description: kFWPRequestPath]
         if let tagId = tagId {
             request[kFWPRequestQueries] = queryParams.wireProtocolParams
-            // XXX TODO: Ensure that this works or if it needs to be an NSNumber
             request[kFWPRequestTag] = tagId
         }
         sendAction(kFWPRequestActionTaggedUnlisten,
@@ -891,11 +895,9 @@ better performance
         // Hold onto the onMessage callback for this request before firing it off
         let rn = getNextRequestNumber()
         let msg: [String: AnyHashable] = [kFWPRequestNumber: rn, kFWPRequestAction: action, kFWPRequestPayloadBody: body]
-        do {
-            try realtime.sendRequestSwift(msg, sensitive: sensitive)
-        } catch {
-            // XXX TODO, error handling
-        }
+
+        realtime.sendRequest(msg, sensitive: sensitive)
+
         if let callback = callback {
             // Debug message without a callback; bump the rn, but don't hold onto
             // the cb
@@ -948,7 +950,7 @@ better performance
                 let startString = range[kFWPAsyncServerDataUpdateStartPath] as? String
                 let endString = range[kFWPAsyncServerDataUpdateEndPath] as? String
                 let updateData = range[kFWPAsyncServerDataUpdateRangeMerge]
-                let updates = FSnapshotUtilitiesSwift.nodeFrom(updateData)
+                let updates = FSnapshotUtilities.nodeFrom(updateData)
                 let start = startString.map(FPath.init(with:))
                 let end = endString.map(FPath.init(with:))
                 let merge = FRangeMerge(start: start, end: end, updates: updates)
@@ -958,18 +960,10 @@ better performance
         case kFWPAsyncServerAuthRevoked:
             let status = body[kFWPResponseForActionStatus] as? String
             let reason = body[kFWPResponseForActionData] as? String
-            if let status = status, let reason = reason {
-                self.onAuthRevokedWithStatus(status, andReason: reason)
-            } else {
-                // XXX TODO: log error
-            }
+            self.onAuthRevokedWithStatus(status, andReason: reason)
         case kFWPASyncServerListenCancelled:
-            if let pathString = body[kFWPAsyncServerDataUpdateBodyPath] as? String {
-                onListenRevoked(FPath(with: pathString))
-            } else {
-                // XXX TODO: log error
-
-            }
+            guard let pathString = body[kFWPAsyncServerDataUpdateBodyPath] as? String else { return }
+            onListenRevoked(FPath(with: pathString))
         case kFWPAsyncServerSecurityDebug:
             if let msg = body["msg"] as? String {
                 let msgs = msg.components(separatedBy: "\n")
@@ -1007,14 +1001,13 @@ better performance
             sendListen(outstandingListen)
         }
         let putKeys = outstandingPuts.keys.sorted()
-        for (i, key) in putKeys.enumerated() {
+        for key in putKeys {
             // if-branch will always be true, right?
             if outstandingPuts[key] != nil {
-                // XXX TODO: Why log the index? Why not the key?
-                FFLog("I-RDB034037", "Restoring put: \(i)")
+                FFLog("I-RDB034037", "Restoring put: \(key)")
                 sendPut(key)
             } else {
-                FFLog("I-RDB034038", "Restoring put: skipped nil: \(i)")
+                FFLog("I-RDB034038", "Restoring put: skipped nil: \(key)")
             }
         }
 
@@ -1092,10 +1085,10 @@ better performance
         putsToAck.removeAll()
     }
 
-    private func handleTimestamp(_ timestamp: NSNumber) {
+    private func handleTimestamp(_ timestamp: Double) {
         FFLog("I-RDB034041", "Handling timestamp: \(timestamp)")
-        let timestampDeltaMs = timestamp.doubleValue - Date().timeIntervalSince1970 * 1000
-        delegate?.onServerInfoUpdate(self, updates: [kDotInfoServerTimeOffset: NSNumber(value: timestampDeltaMs)])
+        let timestampDeltaMs = timestamp - Date().timeIntervalSince1970 * 1000
+        delegate?.onServerInfoUpdate(self, updates: [kDotInfoServerTimeOffset: timestampDeltaMs])
     }
 
     private func sendStats(_ stats: [String: AnyHashable]) {
@@ -1132,14 +1125,11 @@ better performance
         }
 #endif
         let sdkVersion = Database.sdkVersion.replacingOccurrences(of: ".", with: "-")
-        // XXX TODO: objc -> swift? :-)
-        let sdkStatName = "sdk.objc.\(sdkVersion)"
+        let sdkStatName = "sdk.swift.\(sdkVersion)"
         stats[sdkStatName] = 1
         FFLog("I-RDB034044", "Sending first connection stats")
         sendStats(stats)
     }
-    /*
-     */
 
     // Testing methods
     func dumpListens() -> [FQuerySpec: FOutstandingQuery] {

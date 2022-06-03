@@ -117,7 +117,7 @@ class FSyncPoint {
      *
      * @return FTupleRemovedQueriesEvents removed queries and any cancel events
      */
-    func removeEventRegistration(_ eventRegistration: FEventRegistration?, forQuery query: FQuerySpec, cancelError: Error?) -> FTupleRemovedQueriesEvents {
+    func removeEventRegistration(_ matcher: FEventRegistrationMatcher, forQuery query: FQuerySpec, cancelError: Error?) -> FTupleRemovedQueriesEvents {
         var removedQueries: [FQuerySpec] = []
         var cancelEvents: [FEvent] = []
         let hadCompleteView = self.hasCompleteView
@@ -125,7 +125,7 @@ class FSyncPoint {
             // When you do [ref removeObserverWithHandle:], we search all views for
             // the registration to remove.
             for (viewQueryParams, view) in views {
-                cancelEvents.append(contentsOf: view.removeEventRegistration(eventRegistration, cancelError: cancelError))
+                cancelEvents.append(contentsOf: view.removeEventRegistration(matcher, cancelError: cancelError))
                 if view.isEmpty {
                     views.removeValue(forKey: viewQueryParams)
 
@@ -138,7 +138,7 @@ class FSyncPoint {
         } else {
             // remove the callback from the specific view
             if let view = views[query.params] {
-                cancelEvents.append(contentsOf: view.removeEventRegistration(eventRegistration, cancelError: cancelError))
+                cancelEvents.append(contentsOf: view.removeEventRegistration(matcher, cancelError: cancelError))
                 if view.isEmpty {
                     views.removeValue(forKey: query.params)
 

@@ -23,16 +23,14 @@ class FKeepSyncedEventRegistration: FEventRegistration {
         // Don't create cancel events....
         fatalError()
     }
-    var handle: DatabaseHandle {
-        // TODO[offline]: returning arbitray, can't return NSNotFound since that is
-        // used to match other event registrations We should really redo this to
-        // match on different kind of events (single observer, all observers,
-        // cancelled) rather than on a NSNotFound handle...
-        NSNotFound - 1
+
+    func matches(_ other: FEventRegistrationMatcher) -> Bool {
+        switch other {
+        case .all, .keepSynced:
+            return true
+        case .allRegular, .handle:
+            return false
+        }
     }
 
-    func matches(_ other: FEventRegistration) -> Bool {
-        // Only matches singleton instance
-        self === other
-    }
 }

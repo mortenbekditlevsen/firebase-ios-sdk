@@ -7,10 +7,10 @@
 
 import Foundation
 
-enum FConnectionState : Int {
-    case connecting = 0
-    case connected = 1
-    case disconnected = 2
+enum FConnectionState {
+    case connecting
+    case connected
+    case disconnected
 }
 
 public final class FConnection: FWebSocketDelegate {
@@ -49,26 +49,24 @@ public final class FConnection: FWebSocketDelegate {
     }
 
     func close(with reason: FDisconnectReason) {
-        if state != .disconnected {
-            FFLog("I-RDB082002", "Closing realtime connection.")
-            state = .disconnected
+        guard state != .disconnected else { return }
+        FFLog("I-RDB082002", "Closing realtime connection.")
+        state = .disconnected
 
-            if let conn = conn {
-                FFLog("I-RDB082003", "Calling close again.")
-                conn.close()
-                self.conn = nil
-            }
-
-            delegate?.onDisconnect(self, withReason: reason)
+        if let conn = conn {
+            FFLog("I-RDB082003", "Calling close again.")
+            conn.close()
+            self.conn = nil
         }
+
+        delegate?.onDisconnect(self, withReason: reason)
     }
 
     func close() {
-        close(with: .DISCONNECT_REASON_OTHER)
+        close(with: .other)
     }
 
-    // XXX TODO: Verify that this works
-    internal func sendRequestSwift(_ dataMsg: [String: AnyHashable?], sensitive: Bool) throws {
+    func sendRequest(_ dataMsg: [String: AnyHashable], sensitive: Bool) {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
         let msg: [String: AnyHashable] = [
@@ -76,28 +74,12 @@ public final class FConnection: FWebSocketDelegate {
             kFWPRequestDataPayload: dataMsg
         ]
 
-        try sendData(msg, sensitive: sensitive)
+        sendData(msg, sensitive: sensitive)
     }
 
-
-    func sendRequest(_ dataMsg: [String: AnyHashable], sensitive: Bool) throws {
-        // since this came from the persistent connection, wrap it in a data message
-        // envelope
-        let msg: [String: AnyHashable] = [
-            kFWPRequestType: kFWPRequestTypeData,
-            kFWPRequestDataPayload: dataMsg
-        ]
-
-        try sendData(msg, sensitive: sensitive)
-    }
-
-    func sendData(_ data: [String: AnyHashable], sensitive: Bool) throws {
+    private func sendData(_ data: [String: AnyHashable], sensitive: Bool) {
         if state != .connected {
-            /// TODO THROW
-//            @throw [[NSException alloc]
-//                initWithName:@"InvalidConnectionState"
-//                      reason:@"Tried to send data on an unconnected FConnection"
-//                    userInfo:nil];
+            fatalError("Tried to send data on an unconnected FConnection")
         } else {
             if (sensitive) {
                 FFLog("I-RDB082004", "Sending data (contents hidden)")
@@ -106,7 +88,6 @@ public final class FConnection: FWebSocketDelegate {
             }
             self.conn?.send(data)
         }
-
     }
 
     // MARK: -
@@ -123,13 +104,13 @@ public final class FConnection: FWebSocketDelegate {
     ) {
 
         self.conn = nil;
-        if (!everConnected && state == .connecting) {
+        if !everConnected && state == .connecting {
             FFLog("I-RDB082006", "Realtime connection failed.")
 
             // Since we failed to connect at all, clear any cached entry for this
             // namespace in case the machine went away
             repoInfo.clearInternalHostCache()
-        } else if (state == .connected) {
+        } else if state == .connected {
             FFLog("I-RDB082007", "Realtime connection lost.")
         }
         self.close()
@@ -196,30 +177,28 @@ public final class FConnection: FWebSocketDelegate {
 
         // Explicitly close the connection with SERVER_RESET so calling code knows
         // to reconnect immediately.
-        self.close(with: .DISCONNECT_REASON_SERVER_RESET)
+        self.close(with: .serverReset)
     }
 
     func onHandshake(handshake: [String: Any]) {
-        guard let conn = self.conn,
-              let timestamp = handshake[kFWPAsyncServerHelloTimestamp] as? NSNumber,
-              let host = handshake[kFWPAsyncServerHelloConnectedHost] as? String,
+        guard let timestamp = handshake[kFWPAsyncServerHelloTimestamp] as? Double,
               let sessionID = handshake[kFWPAsyncServerHelloSession] as? String else {
-                  // XXX TODO, log error?
-                  return
-              }
+            return
+        }
 
-        self.repoInfo.internalHost = host
+        if let host = handshake[kFWPAsyncServerHelloConnectedHost] as? String {
+            self.repoInfo.internalHost = host
+        }
 
         if state == .connecting {
             self.conn?.start()
-            self.onConnection(conn: conn, readyAtTime: timestamp, sessionID: sessionID)
+            self.onConnection(readyAtTime: timestamp, sessionID: sessionID)
         }
     }
 
-    func onConnection(conn: FWebSocketConnection, readyAtTime time: NSNumber, sessionID: String) {
+    private func onConnection(readyAtTime time: Double, sessionID: String) {
         FFLog("I-RDB082014", "Realtime connection established")
         state = .connected
-        self.delegate?.onReady(conn, atTime: time, sessionID: sessionID)
+        self.delegate?.onReady(self, atTime: time, sessionID: sessionID)
     }
-
 }

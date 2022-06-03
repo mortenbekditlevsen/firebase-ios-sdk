@@ -22,7 +22,7 @@ class DatabaseConnectionContext {
 }
 
 protocol DatabaseConnectionContextProviderProtocol {
-    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void)
+    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (Result<DatabaseConnectionContext, Error>) -> Void)
 
     /// Adds a listener to the Auth token updates.
     /// @param listener A block that will be invoked each time the Auth token is
@@ -130,11 +130,6 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
     var lock = NSLock()
 
     deinit {
-        // XXX TODO: Will this work on Linux?
-        // NOTE: Maybe it doesn't need to. Auth will be likely be bridged
-        // in some other way
-        // Otherwise we need some other synchronization method
-
         // NOTE: Using an NSLock is a replacement for objc @synchronized
         // Perhaps switch to a non-NS-prefixed alternative later
         lock.lock()
@@ -144,12 +139,10 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
         }
     }
 
-    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (DatabaseConnectionContext?, Error?) -> Void) {
+    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (Result<DatabaseConnectionContext, Error>) -> Void) {
         guard self.auth != nil || self.appCheck != nil else {
             // Nothing to fetch. Finish straight away.
-            // XXX TODO: HACK TO MAKE TESTING WORK
-            callback(DatabaseConnectionContext(authToken: nil, appCheckToken: nil), nil)
-//            callback(nil, nil)
+            callback(.success(DatabaseConnectionContext(authToken: nil, appCheckToken: nil)))
             return
         }
         // Use dispatch group to call the callback when both Auth and FAC operations
@@ -177,11 +170,18 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
             }
         }
         dispatchGroup.notify(queue: dispatchQueue, execute: {
-            let context = DatabaseConnectionContext(authToken: authToken, appCheckToken: appCheckToken)
             // Pass only a possible Auth error. App Check errors should not change the
             // database SDK behaviour at this point as the App Check enforcement is
             // controlled on the backend.
-            callback(context, authError)
+            // NOTE: Converted from an (optional, optional) callback, but the consumer
+            // always checks the error first, so failing in the presence of an error is
+            // the right thing to do.
+            if let authError = authError {
+                callback(.failure(authError))
+            } else {
+                let context = DatabaseConnectionContext(authToken: authToken, appCheckToken: appCheckToken)
+                callback(.success(context))
+            }
         })
     }
 

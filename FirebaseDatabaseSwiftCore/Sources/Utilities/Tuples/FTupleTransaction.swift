@@ -8,7 +8,7 @@
 import Foundation
 
 class FTupleTransaction {
-    internal init(path: FPath, update: @escaping (MutableData) -> TransactionResult, onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, status: FTransactionStatus, order: Int, applyLocally: Bool, retryCount: Int, unwatcher: @escaping () -> Void, abortStatus: String? = nil, abortReason: String? = nil, currentWriteId: Int?, currentInputSnapshot: FNode?, currentOutputSnapshotRaw: FNode?, currentOutputSnapshotResolved: FNode?) {
+    internal init(path: FPath, update: @escaping (MutableData) -> TransactionResult, onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, status: FTransactionStatus, order: Int, applyLocally: Bool, retryCount: Int, unwatcher: @escaping () -> Void, abortStatus: String? = nil, abortReason: String? = nil, currentWriteId: Int, currentInputSnapshot: FNode, currentOutputSnapshotRaw: FNode, currentOutputSnapshotResolved: FNode) {
         self.path = path
         self.update = update
         self.onComplete = onComplete
@@ -68,20 +68,20 @@ class FTupleTransaction {
     }
 
 
-    var currentWriteId: Int?
+    var currentWriteId: Int
 
     /**
      * Stores the input snapshot, before the update
      */
-    var currentInputSnapshot: FNode?
+    var currentInputSnapshot: FNode
 
     /**
      * Stores the unresolved (for server values) output snapshot, after the update
      */
-    var currentOutputSnapshotRaw: FNode?
+    var currentOutputSnapshotRaw: FNode
 
     /**
      * Stores the resolved (for server values) output snapshot, after the update
      */
-    var currentOutputSnapshotResolved: FNode?
+    var currentOutputSnapshotResolved: FNode
 }

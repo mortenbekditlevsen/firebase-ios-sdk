@@ -165,7 +165,8 @@ class FRepo: FPersistentConnectionDelegate {
             }
             lastWriteId = writeId
             self.writeIdCounter = writeId + 1
-            if let overwrite = write.overwrite {
+            switch write.record {
+            case .overwrite(let overwrite):
                 FFLog("I-RDB038001", "Restoring overwrite with id \(writeId)")
                 connection.putData(overwrite.val(forExport: true),
                                    forPath: write.path.description,
@@ -177,7 +178,7 @@ class FRepo: FPersistentConnectionDelegate {
                                                             writeId: writeId,
                                                             isVisible: true)
 
-            } else if let merge = write.merge {
+            case .merge(let merge):
                 FFLog("I-RDB038002", "Restoring merge with id \(writeId)")
                 self.connection.mergeData(merge,
                                           forPath: write.path.description,
@@ -385,7 +386,7 @@ class FRepo: FPersistentConnectionDelegate {
 
             } else {
                 // status OK
-                let node = FSnapshotUtilitiesSwift.nodeFrom(data)
+                let node = FSnapshotUtilities.nodeFrom(data)
                 let events = self.serverSyncTree.applyServerOverwriteAtPath(querySpec.path, newData: node)
                 self.eventRaiser.raiseEvents(events)
                 self.eventRaiser.raiseCallback {
@@ -410,19 +411,20 @@ class FRepo: FPersistentConnectionDelegate {
         self.eventRaiser.raiseEvents(events)
     }
 
-    internal func removeEventRegistration(_ eventRegistration: FEventRegistration, forQuery query: FQuerySpec) {
+    internal func removeEventRegistration(_ matcher: FEventRegistrationMatcher, forQuery query: FQuerySpec) {
         // These are guaranteed not to raise events, since we're not passing in a
         // cancelError. However we can future-proof a little bit by handling the
         // return values anyways.
-        FFLog("I-RDB038011", "Removing event registration with hande: \(eventRegistration.handle)")
+        FFLog("I-RDB038011", "Removing event registration with matcher: \(matcher)")
         let events: [FEvent]
         if query.path.getFront() == kDotInfoPrefix {
-            events = infoSyncTree.removeEventRegistration(eventRegistration, forQuery: query, cancelError: nil)
+            events = infoSyncTree.removeEventRegistration(matcher, forQuery: query, cancelError: nil)
         } else {
-            events = serverSyncTree.removeEventRegistration(eventRegistration, forQuery: query, cancelError: nil)
+            events = serverSyncTree.removeEventRegistration(matcher, forQuery: query, cancelError: nil)
         }
         eventRaiser.raiseEvents(events)
     }
+
 
     internal func keepQuery(_ query: FQuerySpec, synced: Bool) {
         assert(query.path.getFront() != kDotInfoPrefix,
@@ -438,7 +440,7 @@ class FRepo: FPersistentConnectionDelegate {
             self.serverClock = FOffsetClock(clock: FSystemClock.clock, offset: offset)
         }
         let path = FPath(with: "\(kDotInfoPrefix)/\(pathString)")
-        let newNode = FSnapshotUtilitiesSwift.nodeFrom(value)
+        let newNode = FSnapshotUtilities.nodeFrom(value)
         infoData.updateSnapshot(path, withNewSnapshot: newNode)
         let events = infoSyncTree.applyServerOverwriteAtPath(path, newData: newNode)
         eventRaiser.raiseEvents(events)
@@ -492,7 +494,7 @@ class FRepo: FPersistentConnectionDelegate {
                 let taggedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
                 events = serverSyncTree.applyTaggedQueryMergeAtPath(path, changedChildren: taggedChildren, tagId: tagId)
             } else {
-                let taggedSnap = FSnapshotUtilitiesSwift.nodeFrom(data)
+                let taggedSnap = FSnapshotUtilities.nodeFrom(data)
                 events = serverSyncTree.applyTaggedQueryOverwriteAtPath(path, newData: taggedSnap, tagId: tagId)
             }
         } else {
@@ -500,7 +502,7 @@ class FRepo: FPersistentConnectionDelegate {
                 let changedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
                 events = serverSyncTree.applyServerMergeAtPath(path, changedChildren: changedChildren)
             } else {
-                let snap = FSnapshotUtilitiesSwift.nodeFrom(data)
+                let snap = FSnapshotUtilities.nodeFrom(data)
                 events = serverSyncTree.applyServerOverwriteAtPath(path, newData: snap)
             }
         }
@@ -664,27 +666,37 @@ offline for more details.
         watchRef.repo.addEventRegistration(registration, forQuery: watchRef.querySpec)
         let unwatcher: () -> Void = { watchRef.removeObserverWithHandle(handle) }
         // Save all the data that represents this transaction
-        let transaction = FTupleTransaction(
-            path: path,
-            update: update,
-            onComplete: onComplete,
-            status: FTransactionStatus.initializing,
-            order: FUtilities.LUIDGenerator(),
-            applyLocally: applyLocally,
-            retryCount: 0,
-            unwatcher: unwatcher,
-            currentWriteId: nil,
-            currentInputSnapshot: nil,
-            currentOutputSnapshotRaw: nil,
-            currentOutputSnapshotResolved: nil
-        )
+
         // Run transaction initially
         let currentState = latestStateAtPath(path, excludeWriteIds: [])
-        transaction.currentInputSnapshot = currentState
         let mutableCurrent = MutableData(node: currentState)
-        let result = transaction.update(mutableCurrent)
+        let result = update(mutableCurrent)
         do {
-            let update = try result.result.get()
+            let updated = try result.result.get()
+            let currentWriteId = nextWriteId()
+
+            // Update visibleData and raise events
+            // Note: We intentionally raise events after updating all of our
+            // transaction state, since the user could start new transactions from
+            // the event callbacks
+            let serverValues = FServerValues.generateServerValues(serverClock)
+            let newValUnresolved = updated.nodeValue
+            let newVal = FServerValues.resolveDeferredValueSnapshot(newValUnresolved, withExisting: currentState, serverValues: serverValues)
+
+            let transaction = FTupleTransaction(
+                path: path,
+                update: update,
+                onComplete: onComplete,
+                status: FTransactionStatus.initializing,
+                order: FUtilities.LUIDGenerator(),
+                applyLocally: applyLocally,
+                retryCount: 0,
+                unwatcher: unwatcher,
+                currentWriteId: currentWriteId,
+                currentInputSnapshot: currentState,
+                currentOutputSnapshotRaw: newValUnresolved,
+                currentOutputSnapshotResolved: newVal
+            )
 
             // Note: different from js. We don't need to validate, FIRMutableData
             // does validation. We also don't have to worry about priorities. Just
@@ -695,29 +707,15 @@ offline for more details.
             nodeQueue.append(transaction)
             queueNode.setValue(nodeQueue)
 
-            // Update visibleData and raise events
-            // Note: We intentionally raise events after updating all of our
-            // transaction state, since the user could start new transactions from
-            // the event callbacks
-            let serverValues = FServerValues.generateServerValues(serverClock)
-            let newValUnresolved = update.nodeValue
-            let newVal = FServerValues.resolveDeferredValueSnapshot(newValUnresolved, withExisting: currentState, serverValues: serverValues)
-            transaction.currentOutputSnapshotRaw = newValUnresolved
-            transaction.currentOutputSnapshotResolved = newVal
-            let currentWriteId = nextWriteId()
-            transaction.currentWriteId = currentWriteId
-
             let events = serverSyncTree.applyUserOverwriteAtPath(path, newData: newVal, writeId: currentWriteId, isVisible: transaction.applyLocally)
             eventRaiser.raiseEvents(events)
             sendAllReadyTransactions()
         } catch {
             // Abort the transaction
-            transaction.unwatcher()
-            transaction.currentOutputSnapshotRaw = nil
-            transaction.currentOutputSnapshotResolved = nil
-            if let onComplete = transaction.onComplete {
-                let ref = DatabaseReference(repo: self, path: transaction.path)
-                let indexedNode = FIndexedNode(node: currentState) // XXX TODO: Assume this is the same as transaction.currentInputSnapshot, but not 100000% convinced
+            unwatcher()
+            if let onComplete = onComplete {
+                let ref = DatabaseReference(repo: self, path: path)
+                let indexedNode = FIndexedNode(node: currentState)
                 let snap = DataSnapshot(ref: ref, indexedNode: indexedNode)
                 eventRaiser.raiseCallback {
                     onComplete(nil, false, snap)
@@ -765,7 +763,7 @@ offline for more details.
      */
     private func sendTransactionQueue(_ queue: [FTupleTransaction], atPath path: FPath) {
         // Mark transactions as sent and bump the retry count
-        let writeIdsToExclude: [Int] = queue.compactMap(\.currentWriteId)
+        let writeIdsToExclude: [Int] = queue.map(\.currentWriteId)
         let latestState = latestStateAtPath(path, excludeWriteIds: writeIdsToExclude)
         var snapToSend = latestState
         var latestHash = latestState.dataHash()
@@ -776,7 +774,7 @@ offline for more details.
             transaction.retryCount += 1
             let relativePath = FPath.relativePath(from: path, to: transaction.path)
             // If we've gotten to this point, the output snapshot must be defined.
-            snapToSend = snapToSend.updateChild(relativePath, withNewChild: transaction.currentOutputSnapshotRaw!)
+            snapToSend = snapToSend.updateChild(relativePath, withNewChild: transaction.currentOutputSnapshotRaw)
             let dataToSend = snapToSend.val(forExport: true)
             let pathToSend = path.description
             latestHash = hijackHash ? "badhash" : latestHash
@@ -794,11 +792,11 @@ offline for more details.
                     var callbacks: [() -> Void] = []
                     for transaction in queue {
                         transaction.status = .completed
-                        events.append(contentsOf: self.serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId!, revert: false, persist: false, clock: self.serverClock))
+                        events.append(contentsOf: self.serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId, revert: false, persist: false, clock: self.serverClock))
                         if let onComplete = transaction.onComplete  {
                             // We never unset the output snapshot, and given that this
                             // transaction is complete, it should be set
-                            let node = transaction.currentOutputSnapshotResolved!
+                            let node = transaction.currentOutputSnapshotResolved
                             let indexedNode = FIndexedNode.indexedNode(node: node)
                             let ref = DatabaseReference(repo: self, path: transaction.path)
                             let snapshot = DataSnapshot(ref: ref, indexedNode: indexedNode)
@@ -879,7 +877,7 @@ offline for more details.
         // all of them. However, we want to include the results of new sets
         // triggered as part of this re-run, so we don't want to ignore a range,
         // just these specific sets.
-        var writeIdsToExclude = queue.compactMap(\.currentWriteId)
+        var writeIdsToExclude = queue.map(\.currentWriteId)
 
         for transaction in queue {
 //            let relativePath = FPath.relativePath(from: path, to: transaction.path)
@@ -889,14 +887,14 @@ offline for more details.
             case .needsAbort:
                 abortTransaction = true
                 if transaction.abortStatus != kFErrorWriteCanceled {
-                    let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId ?? 0, revert: true, persist: false, clock: serverClock)
+                    let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId, revert: true, persist: false, clock: serverClock)
                     events.append(contentsOf: ackEvents)
                 }
             case .run:
                 if transaction.retryCount >= kFTransactionMaxRetries {
                     abortTransaction = true
                     transaction.setAbortStatus(abortStatus: kFTransactionTooManyRetries, reason: nil)
-                    let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId ?? 0, revert: true, persist: false, clock: serverClock)
+                    let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId, revert: true, persist: false, clock: serverClock)
                     events.append(contentsOf: ackEvents)
                 } else {
                     // This code reruns a transaction
@@ -905,7 +903,7 @@ offline for more details.
                     let mutableCurrent = MutableData(node: currentNode)
                     let result = transaction.update(mutableCurrent)
                     if case let .success(update) = result.result {
-                        let oldWriteId = transaction.currentWriteId!
+                        let oldWriteId = transaction.currentWriteId
                         let serverValues = FServerValues.generateServerValues(serverClock)
                         let newVal = update.nodeValue
                         let newValResolved = FServerValues.resolveDeferredValueSnapshot(newVal, withExisting: transaction.currentInputSnapshot, serverValues: serverValues)
@@ -915,7 +913,7 @@ offline for more details.
                         transaction.currentWriteId = self.nextWriteId()
                         // Mutates writeIdsToExclude in place
                         writeIdsToExclude.removeAll(where: { $0 == oldWriteId })
-                        let overwriteEvents = serverSyncTree.applyUserOverwriteAtPath(transaction.path, newData: transaction.currentOutputSnapshotResolved!, writeId: transaction.currentWriteId!, isVisible: transaction.applyLocally)
+                        let overwriteEvents = serverSyncTree.applyUserOverwriteAtPath(transaction.path, newData: transaction.currentOutputSnapshotResolved, writeId: transaction.currentWriteId, isVisible: transaction.applyLocally)
                         events.append(contentsOf: overwriteEvents)
                         let ackEvents = serverSyncTree.ackUserWriteWithWriteId(oldWriteId, revert: true, persist: false, clock: serverClock)
                         events.append(contentsOf: ackEvents)
@@ -925,7 +923,7 @@ offline for more details.
                         // "nodata" abort, but it's not an error, so we don't send
                         // them an error.
                         transaction.setAbortStatus(abortStatus: nil, reason: nil)
-                        let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId ?? 0, revert: true, persist: false, clock: serverClock)
+                        let ackEvents = serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId, revert: true, persist: false, clock: serverClock)
                         events.append(contentsOf: ackEvents)
                     }
                 }
@@ -941,7 +939,7 @@ offline for more details.
                 transaction.unwatcher()
                 if let onComplete = transaction.onComplete {
                     let ref = DatabaseReference(repo: self, path: transaction.path)
-                    let lastInput = FIndexedNode(node: transaction.currentInputSnapshot!) // XXX TODO
+                    let lastInput = FIndexedNode(node: transaction.currentInputSnapshot)
                     let snap = DataSnapshot(ref: ref, indexedNode: lastInput)
                     callbacks.append {
                         // Unlike JS, no need to check for "nodata" because ObjC has
@@ -1072,8 +1070,7 @@ offline for more details.
                 // we can abort this immediately
                 transaction.unwatcher()
                 if error == kFTransactionSet {
-                    // XXX TODO: Force unwrap
-                    events.append(contentsOf: serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId!, revert: true, persist: false, clock: serverClock))
+                    events.append(contentsOf: serverSyncTree.ackUserWriteWithWriteId(transaction.currentWriteId, revert: true, persist: false, clock: serverClock))
                 } else {
                     // If it was cancelled it was already removed from the sync
                     // tree, no need to ack

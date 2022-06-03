@@ -32,7 +32,7 @@ class FValueEventRegistration: FEventRegistration {
 
     func fireEvent(_ event: FEvent, queue: DispatchQueue) {
         if let cancelEvent = event as? FCancelEvent {
-            FFLog("I-RDB065001", "Raising cancel value event on \(event.path)")
+            FFLog("I-RDB065001", "Raising cancel value event on \(event.path?.description ?? "nil")")
             queue.async {
                 self.cancelCallback?(cancelEvent.error)
             }
@@ -52,8 +52,14 @@ class FValueEventRegistration: FEventRegistration {
         return FCancelEvent(eventRegistration: self, error: error, path: path)
     }
 
-    // XXX TODO: NSNotFound
-    func matches(_ other: FEventRegistration) -> Bool {
-        handle == NSNotFound || other.handle == NSNotFound || handle == other.handle
+    func matches(_ other: FEventRegistrationMatcher) -> Bool {
+        switch other {
+        case .all, .allRegular:
+            return true
+        case .handle(let otherHandle):
+            return otherHandle == handle
+        case .keepSynced:
+            return false
+        }
     }
 }

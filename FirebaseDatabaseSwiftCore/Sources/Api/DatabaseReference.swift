@@ -19,7 +19,7 @@ import Foundation
  */
 public class DatabaseReference: DatabaseQuery {
     convenience internal init(config: DatabaseConfig) {
-        let parsedUrl = FUtilities.parseUrl(FIRAppThing.defaultApp!.options.databaseURL!)
+        let parsedUrl = FUtilities.parseUrl(FirebaseApp.defaultApp!.options.databaseURL!)
         FValidationSwift.validateFrom("initWithUrl:", validURL: parsedUrl)
         self.init(repo: FRepoManager.getRepo(parsedUrl.repoInfo, config: config), path: parsedUrl.path)
     }
@@ -135,7 +135,7 @@ public class DatabaseReference: DatabaseQuery {
 
     private func setValueInternal(_ value: AnyHashable?, andPriority priority: AnyHashable?, completionBlock: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: self.path)
-        let newNode = FSnapshotUtilitiesSwift.nodeFrom(value, priority: priority, withValidationFrom: fn)
+        let newNode = FSnapshotUtilities.nodeFrom(value, priority: priority, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.set(self.path, withNode: newNode, withCallback: completionBlock)
         }
@@ -211,7 +211,7 @@ public class DatabaseReference: DatabaseQuery {
     private func setPriorityInternal(_ priority: AnyHashable?, withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: self.path)
         DatabaseQuery.sharedQueue.async {
-            self.repo.set(self.path.child(fromString: ".priority"), withNode: FSnapshotUtilitiesSwift.nodeFrom(priority), withCallback: block)
+            self.repo.set(self.path.child(fromString: ".priority"), withNode: FSnapshotUtilities.nodeFrom(priority), withCallback: block)
         }
     }
 
@@ -239,7 +239,7 @@ public class DatabaseReference: DatabaseQuery {
 
     private func updateChildValuesInternal(_ values: [String: AnyHashable], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: self.path)
-        let merge = FSnapshotUtilitiesSwift.compoundWriteFromDictionary(values, withValidationFrom: fn)
+        let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.update(self.path, withNodes: merge, withCallback: block)
         }
@@ -682,7 +682,7 @@ public class DatabaseReference: DatabaseQuery {
 
     private func onDisconnectSetValueInternal(_ value: AnyHashable?, andPriority priority: AnyHashable?, withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: path)
-        let newNodeUnresolved = FSnapshotUtilitiesSwift.nodeFrom(value, priority: priority, withValidationFrom: fn)
+        let newNodeUnresolved = FSnapshotUtilities.nodeFrom(value, priority: priority, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectSet(self.path, withNode: newNodeUnresolved, withCallback: block)
         }
@@ -745,7 +745,7 @@ public class DatabaseReference: DatabaseQuery {
 
     private func onDisconnectUpdateChildValuesInternal(_ values: [String: AnyHashable], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: path)
-        let merge = FSnapshotUtilitiesSwift.compoundWriteFromDictionary(values, withValidationFrom: fn)
+        let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectUpdate(self.path, withNodes: merge, withCallback: block)
         }

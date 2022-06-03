@@ -26,13 +26,13 @@ class FDataEvent: FEvent {
         self.prevName = prevName
     }
 
-    var path: FPath {
+    var path: FPath? {
         // Used for logging, so delay calculation
-        let ref = self.snapshot.ref;
+        let ref = self.snapshot.ref
         if (eventType == .value) {
             return ref.path
         } else {
-            return ref.parent!.path // XXX TODO FORCE UNWRAP?
+            return ref.parent?.path
         }
     }
 

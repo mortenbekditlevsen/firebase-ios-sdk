@@ -99,7 +99,7 @@
 //            return lazyHash
 //        }
 //        var toHash = ""
-//        FSnapshotUtilitiesSwift.appendHashRepresentation(for: self, to: &toHash, hashVersion: .v1)
+//        FSnapshotUtilities.appendHashRepresentation(for: self, to: &toHash, hashVersion: .v1)
 //        let calculatedHash = FStringUtilities.base64EncodedSha1(toHash)
 //        lazyHash = calculatedHash
 //        return calculatedHash;
@@ -193,7 +193,7 @@
 //
 //    init(value: Any, withPriority priority: FNode) {
 //        self.value = value
-//        FSnapshotUtilitiesSwift.validatePriorityNode(priority)
+//        FSnapshotUtilities.validatePriorityNode(priority)
 //
 //        self.priority = priority
 //    }

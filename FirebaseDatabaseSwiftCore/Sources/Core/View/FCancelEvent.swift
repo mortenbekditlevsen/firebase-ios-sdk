@@ -11,12 +11,15 @@ import Foundation
 class FCancelEvent: FEvent {
     var eventRegistration: FEventRegistration
     var error: Error
-    var path: FPath
+    var path: FPath? {
+        _path
+    }
+    let _path: FPath
 
     init(eventRegistration: FEventRegistration, error: Error, path: FPath) {
         self.eventRegistration = eventRegistration
         self.error = error
-        self.path = path
+        self._path = path
     }
 
     func fireEventOnQueue(_ queue: DispatchQueue) {
@@ -24,6 +27,6 @@ class FCancelEvent: FEvent {
     }
     var isCancelEvent: Bool { true }
     var description: String {
-        "\(path): cancel"
+        "\(_path): cancel"
     }
 }

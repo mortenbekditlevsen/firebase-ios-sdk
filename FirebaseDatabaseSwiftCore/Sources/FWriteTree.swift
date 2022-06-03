@@ -120,7 +120,7 @@ class FWriteTree {
      } else {
          // There's no shadowing.  We can safely just remove the write(s) from
          // visibleWrites.
-       if let merge = writeToRemove.merge {
+         if case let .merge(merge) = writeToRemove.record {
          merge.enumerateWrites { path, _, _ in
            self.visibleWrites = self.visibleWrites.removeWriteAtPath(writeToRemove.path.child(path))
          }
@@ -361,7 +361,9 @@ class FWriteTree {
       var currentNextKey: String? = nil
       var currentNextNode: FNode? = nil
       toIterate.enumerateChildren { key, node, stop in
-          if index.compare(lhs: (key: key, node: node), rhs: (key: post.name, node: post.node), reversed: reverse).rawValue > ComparisonResult.orderedSame.rawValue &&
+          if index.compare(lhs: (key: key, node: node),
+                           rhs: (key: post.name, node: post.node),
+                           reversed: reverse).rawValue > ComparisonResult.orderedSame.rawValue &&
                 (currentNextKey == nil || index.compare(lhs: (key: key, node: node), rhs: (key: currentNextKey!, node: currentNextNode!), reversed: reverse).rawValue < ComparisonResult.orderedSame.rawValue) {
               currentNextKey = key
               currentNextNode = node
@@ -379,11 +381,11 @@ class FWriteTree {
   // MARK: Private Methods
 
   private func record(_ record: FWriteRecord, containsPath path: FPath) -> Bool {
-    if let merge = record.merge {
+      if case let .merge(merge) = record.record {
       var contains = false
       merge.enumerateWrites { childPath, node, stop in
         contains = record.path.child(childPath).contains(path)
-        stop.pointee = .init(contains)
+        stop = contains
       }
       return contains
     } else {
@@ -429,43 +431,45 @@ class FWriteTree {
       // transaction
       if (filter(record)) {
         let writePath = record.path
-        if let overwrite = record.overwrite {
-          if treeRoot.contains(writePath) {
-            let relativePath = FPath.relativePath(from: treeRoot, to:writePath)
-            compoundWrite = compoundWrite.addWrite(overwrite,
-                                                   atPath:relativePath)
-          } else if writePath.contains(treeRoot) {
-            let child = overwrite.getChild(FPath.relativePath(from:writePath, to:treeRoot))
-            compoundWrite = compoundWrite.addWrite(child,
-                                                   atPath: .empty)
-          } else {
-            // There is no overlap between root path and write path,
-            // ignore write
-          }
-        } else if let merge = record.merge {
-          if treeRoot.contains(writePath) {
-            let relativePath = FPath.relativePath(from: treeRoot, to: writePath)
-            compoundWrite = compoundWrite.addCompoundWrite(merge,
-                                                           atPath:relativePath)
-          } else if writePath.contains(treeRoot) {
-            let relativePath = FPath.relativePath(from: writePath, to: treeRoot)
-            if relativePath.isEmpty {
-              compoundWrite = compoundWrite.addCompoundWrite(merge,
-                                                             atPath: .empty)
-            } else {
-              if let child = merge.completeNodeAtPath(relativePath) {
-                // There exists a child in this node that matches the
-                // root path
-                let deepNode = child.getChild(relativePath.popFront())
-                compoundWrite = compoundWrite.addWrite(deepNode,
+          switch record.record {
+          case .overwrite(let overwrite):
+              if treeRoot.contains(writePath) {
+                let relativePath = FPath.relativePath(from: treeRoot, to:writePath)
+                compoundWrite = compoundWrite.addWrite(overwrite,
+                                                       atPath:relativePath)
+              } else if writePath.contains(treeRoot) {
+                let child = overwrite.getChild(FPath.relativePath(from:writePath, to:treeRoot))
+                compoundWrite = compoundWrite.addWrite(child,
                                                        atPath: .empty)
+              } else {
+                // There is no overlap between root path and write path,
+                // ignore write
               }
-            }
-          } else {
-            // There is no overlap between root path and write path,
-            // ignore write
+          case .merge(let merge):
+              if treeRoot.contains(writePath) {
+                let relativePath = FPath.relativePath(from: treeRoot, to: writePath)
+                compoundWrite = compoundWrite.addCompoundWrite(merge,
+                                                               atPath:relativePath)
+              } else if writePath.contains(treeRoot) {
+                let relativePath = FPath.relativePath(from: writePath, to: treeRoot)
+                if relativePath.isEmpty {
+                  compoundWrite = compoundWrite.addCompoundWrite(merge,
+                                                                 atPath: .empty)
+                } else {
+                  if let child = merge.completeNodeAtPath(relativePath) {
+                    // There exists a child in this node that matches the
+                    // root path
+                    let deepNode = child.getChild(relativePath.popFront())
+                    compoundWrite = compoundWrite.addWrite(deepNode,
+                                                           atPath: .empty)
+                  }
+                }
+              } else {
+                // There is no overlap between root path and write path,
+                // ignore write
+              }
+
           }
-        }
       }
     }
     return compoundWrite

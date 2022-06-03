@@ -26,7 +26,7 @@ struct FCompoundWrite: Hashable {
     static func compoundWrite(valueDictionary dictionary: [String: AnyHashable]) -> FCompoundWrite {
         var writeTree: FImmutableTree<FNode> = .empty
         for (path, value) in dictionary {
-            let node = FSnapshotUtilitiesSwift.nodeFrom(value)
+            let node = FSnapshotUtilities.nodeFrom(value)
             let tree = FImmutableTree<FNode>(value: node)
             writeTree = writeTree.setTree(tree, atPath: FPath(with: path))
         }
@@ -197,11 +197,11 @@ struct FCompoundWrite: Hashable {
                           toNode: node)
     }
 
-    func enumerateWrites(_ block: @escaping (FPath, FNode,UnsafeMutablePointer<ObjCBool>) -> Void) {
-        var stop: ObjCBool = false
+    func enumerateWrites(_ block: @escaping (FPath, FNode, inout Bool) -> Void) {
+        var stop = false
         // TODO: add stop to tree iterator...
         writeTree.forEach { path, value in
-            if !stop.boolValue {
+            if !stop {
                 block(path, value, &stop)
             }
         }

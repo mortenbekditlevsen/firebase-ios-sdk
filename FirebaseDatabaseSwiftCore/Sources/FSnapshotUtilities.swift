@@ -8,113 +8,7 @@
 import SortedCollections
 import Foundation
 
-class FSnapshotUtilities {
-    static func nodeFrom(_ val: AnyHashable?) -> FNode {
-        FSnapshotUtilitiesSwift.nodeFrom(val, priority: nil)
-    }
-
-    static func nodeFrom(_ val: AnyHashable?, withValidationFrom fn: String) -> FNode {
-        FSnapshotUtilitiesSwift.nodeFrom(val, withValidationFrom: fn)
-    }
-    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?) -> FNode {
-        FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority)
-    }
-    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String) -> FNode {
-        FSnapshotUtilitiesSwift.nodeFrom(val, priority: priority, withValidationFrom: fn)
-    }
-
-    static func appendHashV2Representation(for string: String, to mutableString: NSMutableString) {
-        var mutable: String = String(mutableString)
-        FSnapshotUtilitiesSwift.appendHashV2Representation(for: string, to: &mutable)
-        mutableString.setString(mutable)
-    }
-
-    static func appendHashRepresentationV2ForLeafNode(_ node: FNode, to mutableString: NSMutableString) {
-        var mutable: String = String(mutableString)
-        FSnapshotUtilitiesSwift.appendHashRepresentation(for: node, to: &mutable, hashVersion: .v2)
-        mutableString.setString(mutable)
-    }
-
-    static func compoundWriteFromDictionary(_ values: [String: AnyHashable], withValidationFrom fn: String) -> FCompoundWrite {
-        var compoundWrite = FCompoundWrite.emptyWrite
-        var updatePaths: [FPath] = []
-        for (keyId, value) in values {
-            let key = FValidationSwift.validateFrom(fn, validUpdateDictionaryKey: keyId, withValue: value as Any)
-            let path = FPath(with: key)
-            let node = FSnapshotUtilitiesSwift.nodeFrom(value, withValidationFrom: fn)
-            updatePaths.append(path)
-            compoundWrite = compoundWrite.addWrite(node, atPath: path)
-        }
-        // Check that the update paths are not descendants of each other.
-        updatePaths.sort { a, b in
-            a.compare(b) == .orderedAscending
-        }
-        var prevPath: FPath? = nil
-        for path in updatePaths {
-            if let prev = prevPath, prev.contains(path) {
-                fatalError("(\(fn)) Invalid path in object. Path (\(prev)) is an ancestor of (\(path)).")
-            }
-            prevPath = path
-        }
-        return compoundWrite
-    }
-
-    static func estimateSerializedNodeSize(_ node: FNode) -> Int {
-        switch node.type {
-        case .empty:
-            return 4 // null keyword
-        case let .leaf(value):
-            return estimateLeafNodeSize(value, priority: node.getPriority())
-        case let .children(children):
-            var sum = 1 // opening brackets
-            for (key, child) in children {
-                sum += key.key.count
-                sum += 4 // quotes around key and colon and (comma or closing bracket)
-                sum += estimateSerializedNodeSize(child)
-            }
-            return sum
-        }
-    }
-
-    static func estimateLeafNodeSize(_ value: AnyHashable, priority: FNode) -> Int {
-        // These values are somewhat arbitrary, but we don't need an exact value so
-        // prefer performance over exact value
-        let valueSize: Int
-        switch FUtilities.getJavascriptType(value) {
-        case .number:
-            valueSize = 8 // estimate each float with 8 bytes
-        case .boolean:
-            valueSize = 4 // true or false need roughly 4 bytes
-        case .string:
-            // If we are measuring bytes here then we should use the utf8 view here, right?
-            valueSize = 2 + ((value as? String)?.utf8.count ?? 0) // add 2 for quotes
-        default:
-            fatalError("Unknown leaf value type: \(value)")
-        }
-        if priority.isEmpty {
-            return valueSize
-        } else {
-            // Account for extra overhead due to the extra JSON object and the
-            // ".value" and ".priority" keys, colons, comma
-            let leafPriorityOverhead = 2 + 8 + 11 + 2 + 1;
-            return leafPriorityOverhead + valueSize +
-            estimateLeafNodeSize(priority.val(), priority: .empty)
-        }
-    }
-}
-
-//struct Sko: Decodable {
-//    var node: FNode
-//    init(from decoder: Decoder) throws {
-//        do {
-//            let container = try decoder.singleValueContainer()
-//            let null = container.decode(NSNull.self)
-//        }
-//    }
-//
-//}
-
-public enum FSnapshotUtilitiesSwift {
+public enum FSnapshotUtilities {
     enum FDataHashVersion {
         case v1
         case v2
@@ -148,7 +42,7 @@ public enum FSnapshotUtilitiesSwift {
         for (keyId, value) in values {
             let key = FValidationSwift.validateFrom(fn, validUpdateDictionaryKey: keyId, withValue: value)
             let path = FPath(with: key)
-            let node = FSnapshotUtilitiesSwift.nodeFrom(value, withValidationFrom: fn)
+            let node = FSnapshotUtilities.nodeFrom(value, withValidationFrom: fn)
             updatePaths.append(path)
             compoundWrite = compoundWrite.addWrite(node, atPath: path)
         }
@@ -180,7 +74,7 @@ public enum FSnapshotUtilitiesSwift {
          }
          var value = val
          FValidationSwift.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
-         var priority = FSnapshotUtilitiesSwift.nodeFrom(priority)
+         var priority = FSnapshotUtilities.nodeFrom(priority)
          var isLeafNode = false
          if let dict = val as? [String: AnyHashable] {
              if let rawPriority = dict[kPayloadPriority] {
@@ -270,6 +164,50 @@ public enum FSnapshotUtilitiesSwift {
         // Don't call getPriority() on MAX_NODE to avoid hitting assertion.
         assert (priorityNode == .max || priorityNode.getPriority().isEmpty, "Priority nodes can't have a priority of their own.")
     }
+
+    static func estimateSerializedNodeSize(_ node: FNode) -> Int {
+        switch node.type {
+        case .empty:
+            return 4 // null keyword
+        case let .leaf(value):
+            return estimateLeafNodeSize(value, priority: node.getPriority())
+        case let .children(children):
+            var sum = 1 // opening brackets
+            for (key, child) in children {
+                sum += key.key.count
+                sum += 4 // quotes around key and colon and (comma or closing bracket)
+                sum += estimateSerializedNodeSize(child)
+            }
+            return sum
+        }
+    }
+
+    static func estimateLeafNodeSize(_ value: AnyHashable, priority: FNode) -> Int {
+        // These values are somewhat arbitrary, but we don't need an exact value so
+        // prefer performance over exact value
+        let valueSize: Int
+        switch FUtilities.getJavascriptType(value) {
+        case .number:
+            valueSize = 8 // estimate each float with 8 bytes
+        case .boolean:
+            valueSize = 4 // true or false need roughly 4 bytes
+        case .string:
+            // If we are measuring bytes here then we should use the utf8 view here, right?
+            valueSize = 2 + ((value as? String)?.utf8.count ?? 0) // add 2 for quotes
+        default:
+            fatalError("Unknown leaf value type: \(value)")
+        }
+        if priority.isEmpty {
+            return valueSize
+        } else {
+            // Account for extra overhead due to the extra JSON object and the
+            // ".value" and ".priority" keys, colons, comma
+            let leafPriorityOverhead = 2 + 8 + 11 + 2 + 1;
+            return leafPriorityOverhead + valueSize +
+            estimateLeafNodeSize(priority.val(), priority: .empty)
+        }
+    }
+
 
 //    static func appendHashRepresentation(for leafNode: FNode, to output: inout String, hashVersion: FDataHashVersion) {
 //        if !leafNode.getPriority().isEmpty {

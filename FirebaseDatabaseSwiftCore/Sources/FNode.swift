@@ -198,7 +198,8 @@ struct FNode: Equatable, Hashable {
         numChildren()
     }
 
-    // XXX TODO: Ought to be 'some' collection in the future
+    // XXX TODO: Ought to be an opaque collection in the future
+    // Alternatively, children should just return an iterator...
     var children: SortedDictionary<KeyIndex, FNode> {
         switch type {
         case .leaf, .empty:
@@ -207,6 +208,7 @@ struct FNode: Equatable, Hashable {
             return children
         }
     }
+
     func val(forExport exp: Bool = false) -> AnyHashable {
         switch type {
         case .leaf(let value):
@@ -274,7 +276,7 @@ struct FNode: Equatable, Hashable {
         switch type {
         case .leaf:
             var toHash = ""
-            FSnapshotUtilitiesSwift.appendHashRepresentation(for: self, to: &toHash, hashVersion: .v1)
+            FSnapshotUtilities.appendHashRepresentation(for: self, to: &toHash, hashVersion: .v1)
             calculatedHash = FStringUtilities.base64EncodedSha1(toHash)
 
         case .empty:
@@ -285,7 +287,7 @@ struct FNode: Equatable, Hashable {
 
             if !getPriority().isEmpty {
                 toHash += "priority:"
-                FSnapshotUtilitiesSwift
+                FSnapshotUtilities
                     .appendHashRepresentation(for: self.getPriority(),
                                                  to: &toHash,
                                                  hashVersion: .v1)
@@ -329,38 +331,58 @@ struct FNode: Equatable, Hashable {
         return calculatedHash;
     }
 
-    func enumerateChildren(usingBlock block: @escaping (_ key: String, _ node: FNode, _ stop: UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateChildrenAndPriority(usingBlock block: @escaping (_ key: String, _ node: FNode, _ stop: inout Bool) -> Void) {
+        guard !self.getPriority().isEmpty else {
+            enumerateChildren(usingBlock: block)
+            return
+        }
+        var passedPriorityKey = false
+        enumerateChildren { key, node, stop in
+            if !passedPriorityKey && FUtilities.compareKey(key, ".priority") == .orderedDescending {
+                passedPriorityKey = true
+                var stopAfterPriority = false
+                block(".priority", self.getPriority(), &stopAfterPriority)
+                if stopAfterPriority {
+                    return
+                }
+            }
+            block(key, node, &stop)
+        }
+    }
+
+
+    func enumerateChildren(usingBlock block: @escaping (_ key: String, _ node: FNode, _ stop: inout Bool) -> Void) {
         switch type {
         case .leaf, .empty:
             // Nothing to iterate over
             ()
         case .children(let children):
-            var stop = ObjCBool(booleanLiteral: false)
+            var stop = false
             for (key, value) in children {
                 block(key.key, value, &stop)
-                if stop.boolValue { break }
+                if stop { break }
             }
         }
     }
         func enumerateChildrenReverse(
                 _ reverse: Bool,
-                usingBlock block: @escaping (_ key: String, _ node: FNode, _ stop: UnsafeMutablePointer<ObjCBool>) -> Void
+                usingBlock block: @escaping (_ key: String, _ node: FNode, _ stop: inout Bool) -> Void
         ) {
             switch type {
             case .leaf, .empty:
                 // Nothing to iterate over
                 ()
             case .children(let children):
-                var stop = ObjCBool(booleanLiteral: false)
+                var stop = false
                 if reverse {
                     for (key, value) in children.reversed() {
                         block(key.key, value, &stop)
-                        if stop.boolValue { break }
+                        if stop { break }
                     }
                 } else {
                     for (key, value) in children {
                         block(key.key, value, &stop)
-                        if stop.boolValue { break }
+                        if stop { break }
                     }
                 }
             }

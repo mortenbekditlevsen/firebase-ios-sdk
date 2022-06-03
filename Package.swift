@@ -564,6 +564,11 @@ let package = Package(
         "third_party/LevelDB/LICENSE",
       ]
     ),
+    .testTarget(
+      name: "DatabaseSwiftCoreUnit",
+      dependencies: ["FirebaseDatabaseSwiftCore"],
+      path: "FirebaseDatabaseSwiftCore/Tests/Unit"
+    ),
     .target(
       name: "FirebaseDatabaseSwift",
       dependencies: ["FirebaseDatabase"],

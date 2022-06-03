@@ -243,26 +243,26 @@ private  func createHeaders(with url: String,
     return headers
 }
 
-public enum FDisconnectReason: Int {
-    case DISCONNECT_REASON_SERVER_RESET = 0
-    case DISCONNECT_REASON_OTHER = 1
+enum FDisconnectReason {
+    case serverReset
+    case other
 
     var description: String {
         switch self {
-        case .DISCONNECT_REASON_OTHER:
+        case .other:
             return "other"
-        case .DISCONNECT_REASON_SERVER_RESET:
+        case .serverReset:
             return "server_reset"
         }
     }
 }
 
 protocol FConnectionDelegate: AnyObject {
-    func onReady(_ fconnection: AnyObject,
-                       atTime timestamp: NSNumber,
-                       sessionID: String)
+    func onReady(_ connection: FConnection,
+                 atTime timestamp: Double,
+                 sessionID: String)
 
-    func onDataMessage(_ fconnection: AnyObject, withMessage message: [String: AnyHashable])
-    func onDisconnect(_ fconnection: AnyObject, withReason reason: FDisconnectReason)
-    func onKill(_ fconnection: AnyObject, withReason: String)
+    func onDataMessage(_ connection: FConnection, withMessage message: [String: AnyHashable])
+    func onDisconnect(_ connection: FConnection, withReason reason: FDisconnectReason)
+    func onKill(_ connection: FConnection, withReason: String)
 }

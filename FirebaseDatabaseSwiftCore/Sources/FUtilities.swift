@@ -8,21 +8,7 @@
 import Foundation
 import Logging
 
-var logLevel: FLogLevel = .info
-// XXX TODO: Better id?
 var logger = Logger(label: "com.firebase.database")
-
-public enum FLogLevel: Int {
-    case debug = 1
-    case info = 2
-    case warn = 3
-    case error = 4
-    case none = 5
-}
-
-
-@_cdecl("FFIsLoggingEnabled")
-func FFIsLoggingEnabled(_ level: Int) -> Bool { level >= logLevel.rawValue }
 
 internal func FFLog(_ id: String, _ log: String) {
     logger.trace("\(id): \(log)")
@@ -89,7 +75,6 @@ enum FUtilities {
     }
 
     static func setLoggingEnabled(_ enabled: Bool) {
-        logLevel = enabled ? .debug : .info
         logger.logLevel = enabled ? .debug : .info
     }
 

@@ -64,8 +64,7 @@ class FLevelDBStorageEngine: FStorageEngine {
     private var basePath: URL
     
     public static var firebaseDir: URL {
-#if os(iOS) || os(watchOS) || os(macOS)
-        // XXX TODO: Note that for macOS this differs from previously
+#if os(iOS) || os(watchOS)
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
@@ -75,9 +74,11 @@ class FLevelDBStorageEngine: FStorageEngine {
         let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
         let cachesDir = urls[0] // Yes, it's a hard error if we have no documents directory
         return cachesDir.appendingPathComponent("firebase")
+#elseif os(macOS)
+        return NSHomeDirectory().appendingPathComponent(".firebase")
 #else
-        // XXX TODO: On linux (Ubuntu) .documentsDirectory is a global /Users/xxx/Documents folder
-        // This needs to be scoped to something like a bundle identifier
+        // On other platforms like linux .documentsDirectory is a global /Users/xxx/Documents folder
+        // This is likely ok since the database names include the firebase database url too.
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
@@ -239,7 +240,6 @@ class FLevelDBStorageEngine: FStorageEngine {
     }
 
     func close() {
-        // XXX TODO: Original code contained an autorelease around the following to ensure connection is dropped
         serverCacheDB.close()
         serverCacheDB = nil
         writesDB.close()
@@ -327,7 +327,7 @@ class FLevelDBStorageEngine: FStorageEngine {
                     let merge = FCompoundWrite.compoundWrite(valueDictionary: dictionary)
                     writeRecord = FWriteRecord(path: path, merge: merge, writeId: writeId)
                 } else if let overwrite = writeJSON[kFUserWriteOverwrite] {
-                    let node = FSnapshotUtilitiesSwift.nodeFrom(overwrite)
+                    let node = FSnapshotUtilities.nodeFrom(overwrite)
                     writeRecord = FWriteRecord(path: path, overwrite: node, writeId: writeId, visible: true)
                 } else {
                     fatalError("Persisted write did not contain merge or overwrite!")
@@ -353,7 +353,7 @@ class FLevelDBStorageEngine: FStorageEngine {
     func serverCache(atPath path: FPath) -> FNode {
         let start = Date()
         let data = internalNestedData(for: path)
-        let node = FSnapshotUtilitiesSwift.nodeFrom(data)
+        let node = FSnapshotUtilities.nodeFrom(data)
         FFDebug("I-RDB076015", "Loaded node with \(node.numChildren()) children at \(path) in \(start.timeIntervalSinceNow * -1000)ms")
         return node
     }
@@ -518,7 +518,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         var node: FNode = .empty
         for key in keys {
             let data = internalNestedData(for: path.child(fromString: key))
-            node = node.updateImmediateChild(key, withNewChild: FSnapshotUtilitiesSwift.nodeFrom(data))
+            node = node.updateImmediateChild(key, withNewChild: FSnapshotUtilities.nodeFrom(data))
         }
         FFDebug("I-RDB076016",
                 "Loaded node with \(node.numChildren()) children for \(keys.count) keys at \(path) in \(start.timeIntervalSinceNow * -1000)ms")
