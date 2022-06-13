@@ -8,7 +8,7 @@
 import Foundation
 import Logging
 
-var logger = Logger(label: "com.firebase.database")
+var logger = Logger(label: "[FirebaseDatabase]")
 
 internal func FFLog(_ id: String, _ log: String) {
     logger.trace("\(id): \(log)")
@@ -187,12 +187,9 @@ enum FUtilities {
         } else {
             desc = status
         }
-        if let errorCode = errorCodes[status] {
-            code = errorCode
-        } else {
-            // XXX what to do here?
-            code = 9999
-        }
+
+        // XXX TODO: Is 9999 a good default?
+        code = errorCodes[status] ?? 9999
         return NSError(domain: kFErrorDomain,
                        code: code,
                        userInfo: [NSLocalizedDescriptionKey: desc])

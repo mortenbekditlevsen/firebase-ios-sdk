@@ -36,8 +36,8 @@ let kFTrackedQueryKeysPrefix = "/tracked_query_keys/"
 // deserializing
 let kFNanFailureCode = 3840
 
-enum XXXDummyError: Error {
-    case internalError
+enum FLevelDBStorageEngineError: Error {
+    case decodingError
 }
 
 private func writeRecordKey(writeId: Int) -> String { "\(writeId)" }
@@ -647,28 +647,28 @@ class FLevelDBStorageEngine: FStorageEngine {
         serverCacheDB.enumerateKeys(withPrefix: kFTrackedQueriesPrefix, asData: { key, data, stop in
             do {
                 guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 guard let queryId = queryJSON[kFTrackedQueryId] as? Int else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 guard let pathString = queryJSON[kFTrackedQueryPath] as? String else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 let path = FPath(with: pathString)
                 guard let queryObject = queryJSON[kFTrackedQueryParams] as? [String: AnyHashable] else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 let params = FQueryParams.fromQueryObject(queryObject)
                 let query = FQuerySpec(path: path, params: params)
                 guard let isComplete = queryJSON[kFTrackedQueryIsComplete] as? Bool else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 guard let isActive = queryJSON[kFTrackedQueryIsActive] as? Bool else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 guard let lastUse = queryJSON[kFTrackedQueryLastUse] as? TimeInterval else {
-                    throw XXXDummyError.internalError
+                    throw FLevelDBStorageEngineError.decodingError
                 }
                 let trackedQuery = FTrackedQuery(id: queryId,
                                                  query: query,

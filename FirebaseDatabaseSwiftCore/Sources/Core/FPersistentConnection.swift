@@ -390,7 +390,6 @@ class FPersistentConnection: FConnectionDelegate {
                 callback(message[kFWPResponseForRNData] as? [String: AnyHashable])
             }
         } else if let error = message[kFWPRequestError] as? String {
-            // XXX TODO THROW ERROR HERE?
             fatalError("FirebaseDatabaseServerError: \(error)")
         } else if let action = message[kFWPAsyncServerAction] as? String,
             let body = message[kFWPAsyncServerPayloadBody] as? [String: AnyHashable] {
@@ -522,26 +521,6 @@ class FPersistentConnection: FConnectionDelegate {
         connection.open()
         realtime = connection
     }
-
-#if os(iOS) || os(tvOS) || os(macOS)
-    static func reachabilityCallback(_ ref: SCNetworkReachability, _ flags: SCNetworkReachabilityFlags, _ info: UnsafeRawPointer) {
-
-//        if flags.contains(.reachable) {
-//            FFLog("I-RDB034014",
-//                  "Network became reachable. Trigger a connection attempt")
-//            let self = XXXDummyError
-//            // Reset reconnect delay
-//            self.retryHelper.signalSuccess()
-//            if self.connectionState == .disconnected {
-//                self.tryScheduleReconnect()
-//            }
-//
-//        } else {
-//            FFLog("I-RDB034015", "Network is not reachable")
-//
-//        }
-    }
-#endif
 
     private func enteringForeground() {
         dispatchQueue.async {
