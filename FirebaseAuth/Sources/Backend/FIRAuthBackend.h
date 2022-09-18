@@ -16,8 +16,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "FirebaseAuth/Sources/Backend/FIRAuthRPCRequest.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthRPCResponse.h"
+
+@import FirebaseAuthSwiftCore;
 
 @class FIRAuthRequestConfiguration;
 @class FIRCreateAuthURIRequest;
@@ -57,6 +58,8 @@
 
 @protocol FIRAuthBackendImplementation;
 @protocol FIRAuthBackendRPCIssuer;
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

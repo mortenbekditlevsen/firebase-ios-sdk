@@ -16,7 +16,7 @@
 
 #import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterRequest.h"
 
-#import "FirebaseAuth/Sources/Utilities/NSData+FIRBase64.h"
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -58,10 +58,10 @@ static NSString *const kSignInWithGameCenterEndPoint = @"signInWithGameCenter";
     postBody[@"publicKeyUrl"] = _publicKeyURL.absoluteString;
   }
   if (_signature) {
-    postBody[@"signature"] = [_signature fir_base64URLEncodedStringWithOptions:0];
+      postBody[@"signature"] = [TemporaryThing fir_base64URLEncodedStringWithData: _signature options: 0];
   }
   if (_salt) {
-    postBody[@"salt"] = [_salt fir_base64URLEncodedStringWithOptions:0];
+      postBody[@"salt"] = [TemporaryThing fir_base64URLEncodedStringWithData: _salt options: 0];
   }
   if (_timestamp != 0) {
     postBody[@"timestamp"] = [NSNumber numberWithUnsignedLongLong:_timestamp];

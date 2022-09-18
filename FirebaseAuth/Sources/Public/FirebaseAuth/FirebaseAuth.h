@@ -38,7 +38,6 @@
 #import "FIROAuthProvider.h"
 #import "FIRTwitterAuthProvider.h"
 #import "FIRUser.h"
-#import "FIRUserInfo.h"
 #import "FIRUserMetadata.h"
 
 #import "FIRAuthAPNSTokenType.h"

@@ -15,7 +15,8 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "FirebaseAuth/Sources/Public/FirebaseAuth/FIRUserInfo.h"
+
+@import FirebaseAuthSwiftCore;
 
 @class FIRGetAccountInfoResponseProviderUserInfo;
 

@@ -411,6 +411,7 @@ let package = Package(
       name: "FirebaseAuth",
       dependencies: [
         "FirebaseCore",
+        "FirebaseAuthSwiftCore",
         .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
         .product(name: "GULEnvironment", package: "GoogleUtilities"),
         .product(name: "GTMSessionFetcherCore", package: "GTMSessionFetcher"),
@@ -549,6 +550,10 @@ let package = Package(
       cSettings: [
         .headerSearchPath("../.."),
       ]
+    ),
+    .target(
+        name: "FirebaseAuthSwiftCore",
+        path: "FirebaseAuthSwiftCore/Sources"
     ),
     .target(
       name: "FirebaseDatabaseSwiftCore",

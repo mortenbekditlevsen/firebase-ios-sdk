@@ -19,13 +19,13 @@
 #import "FIRAuth.h"
 #import "FIRAuthDataResult.h"
 #import "FIRMultiFactor.h"
-#import "FIRUserInfo.h"
 
-@class FIRAuthTokenResult;
 @class FIRPhoneAuthCredential;
 @class FIRUserProfileChangeRequest;
 @class FIRUserMetadata;
 @protocol FIRAuthUIDelegate;
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

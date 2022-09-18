@@ -16,7 +16,7 @@
 
 #import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenRequest.h"
 
-#import "FirebaseAuth/Sources/Backend/FIRAuthRequestConfiguration.h"
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

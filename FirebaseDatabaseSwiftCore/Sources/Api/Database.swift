@@ -267,9 +267,13 @@ public class Database {
             fatalError("Calls to \(methodName) must be made before any other usage of FIRDatabase instance.")
         }
     }
+    var lock: NSLock = NSLock()
 
     @discardableResult
     private func ensureRepo() -> FRepo {
+        lock.lock()
+        defer { lock.unlock() }
+
         if let repo = repo {
             return repo
         }
