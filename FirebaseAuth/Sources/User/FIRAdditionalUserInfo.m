@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
 #import "FirebaseAuth/Sources/User/FIRAdditionalUserInfo_Internal.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -28,14 +28,14 @@ private let kLocalIDKey = "localId"
     /** @var _accessToken
         @brief The STS Access Token of the authenticated user.
      */
-    let accessToken: String
+    @objc public let accessToken: String
 
     /** @var _localID
         @brief The localID of the user.
      */
-    let localID: String
+    @objc public let localID: String
 
-    init(localID: String, accessToken: String, requestConfiguration: AuthRequestConfiguration) {
+    @objc public init(localID: String, accessToken: String, requestConfiguration: AuthRequestConfiguration) {
         self.localID = localID
         self.accessToken = accessToken
         super.init(endpoint: kDeleteAccountEndpoint, requestConfiguration: requestConfiguration)

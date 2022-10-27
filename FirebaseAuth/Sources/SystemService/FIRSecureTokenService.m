@@ -21,10 +21,10 @@
 #import "FirebaseAuth/Sources/Auth/FIRAuthSerialTaskQueue.h"
 #import "FirebaseAuth/Sources/Auth/FIRAuth_Internal.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenResponse.h"
 
 #import "FirebaseCore/Sources/Private/FirebaseCoreInternal.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

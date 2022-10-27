@@ -7,18 +7,18 @@
 
 import Foundation
 
-let kHttpsProtocol = "https:"
-let kHttpProtocol = "http:"
+private let kHttpsProtocol = "https:"
+private let kHttpProtocol = "http:"
 
-let kEmulatorHostAndPrefixFormat = "%@/%@"
+private let kEmulatorHostAndPrefixFormat = "%@/%@"
 
-let gAPIHost = "www.googleapis.com"
+private let gAPIHost = "www.googleapis.com"
 
-let kFirebaseAuthAPIHost = "www.googleapis.com"
-let kIdentityPlatformAPIHost = "identitytoolkit.googleapis.com"
+private let kFirebaseAuthAPIHost = "www.googleapis.com"
+private let kIdentityPlatformAPIHost = "identitytoolkit.googleapis.com"
 
-let kFirebaseAuthStagingAPIHost = "staging-www.sandbox.googleapis.com"
-let kIdentityPlatformStagingAPIHost =
+private let kFirebaseAuthStagingAPIHost = "staging-www.sandbox.googleapis.com"
+private let kIdentityPlatformStagingAPIHost =
 "staging-identitytoolkit.sandbox.googleapis.com"
 
 

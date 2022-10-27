@@ -18,9 +18,11 @@
 
 #import "FirebaseAuth/Sources/AuthProvider/FIRAuthCredential_Internal.h"
 #import "FirebaseAuth/Sources/AuthProvider/OAuth/FIROAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthExceptionUtils.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

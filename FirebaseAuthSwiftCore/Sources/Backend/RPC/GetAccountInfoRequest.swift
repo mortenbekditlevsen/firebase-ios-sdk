@@ -41,7 +41,7 @@ private let kIDTokenKey = "idToken"
         @param accessToken The Access Token of the authenticated user.
         @param requestConfiguration An object containing configurations to be added to the request.
      */
-    init(accessToken: String, requestConfiguration: AuthRequestConfiguration) {
+    @objc public init(accessToken: String, requestConfiguration: AuthRequestConfiguration) {
         self.accessToken = accessToken
         super.init(endpoint: kGetAccountInfoEndpoint, requestConfiguration: requestConfiguration)
     }

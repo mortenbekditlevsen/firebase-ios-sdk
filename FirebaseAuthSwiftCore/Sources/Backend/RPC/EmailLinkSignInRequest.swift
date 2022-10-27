@@ -50,20 +50,20 @@ private let kTenantIDKey = "tenantId";
 
 @objc(FIREmailLinkSignInRequest) public class EmailLinkSignInRequest: IdentityToolkitRequest, AuthRPCRequest {
 
-    let email: String
+    @objc public let email: String
 
     /** @property oobCode
         @brief The OOB code used to complete the email link sign-in flow.
      */
-    let oobCode: String
+    @objc public let oobCode: String
 
     /** @property IDToken
         @brief The ID Token code potentially used to complete the email link sign-in flow.
      */
 
-    var IDToken: String?
+    @objc public var IDToken: String?
 
-    init(email: String, oobCode: String, requestConfiguration: AuthRequestConfiguration) {
+    @objc public init(email: String, oobCode: String, requestConfiguration: AuthRequestConfiguration) {
         self.email = email
         self.oobCode = oobCode
         super.init(endpoint: kEmailLinkSigninEndpoint, requestConfiguration: requestConfiguration)

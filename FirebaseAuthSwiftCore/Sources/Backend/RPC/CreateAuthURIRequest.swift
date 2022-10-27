@@ -61,42 +61,42 @@ private let kTenantIDKey = "tenantId";
     /** @property identifier
         @brief The email or federated ID of the user.
      */
-    let identifier: String
+    @objc public let identifier: String
 
     /** @property continueURI
         @brief The URI to which the IDP redirects the user after the federated login flow.
      */
-    let continueURI: String
+    @objc public let continueURI: String
 
     /** @property openIDRealm
         @brief Optional realm for OpenID protocol. The sub string "scheme://domain:port" of the param
             "continueUri" is used if this is not set.
      */
-    var openIDRealm: String?
+    @objc public var openIDRealm: String?
 
     /** @property providerID
         @brief The IdP ID. For white listed IdPs it's a short domain name e.g. google.com, aol.com,
             live.net and yahoo.com. For other OpenID IdPs it's the OP identifier.
      */
-    var providerID: String?
+    @objc public var providerID: String?
 
     /** @property clientID
         @brief The relying party OAuth client ID.
      */
-    var clientID: String?
+    @objc public var clientID: String?
 
     /** @property context
         @brief The opaque value used by the client to maintain context info between the authentication
             request and the IDP callback.
      */
-    var context: String?
+    @objc public var context: String?
 
     /** @property appID
         @brief The iOS client application's bundle identifier.
      */
-    var appID: String?
+    @objc public var appID: String?
 
-    init(identifier: String, continueURI: String, requestConfiguration: AuthRequestConfiguration) {
+    @objc public init(identifier: String, continueURI: String, requestConfiguration: AuthRequestConfiguration) {
         self.identifier = identifier
         self.continueURI = continueURI
         super.init(endpoint: kCreateAuthURIEndpoint, requestConfiguration: requestConfiguration)

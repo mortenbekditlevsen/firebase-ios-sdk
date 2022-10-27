@@ -158,54 +158,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSError *)emailAlreadyInUseErrorWithEmail:(nullable NSString *)email;
 
-/** @fn userDisabledErrorWithMessageWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeUserDisabled code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)userDisabledErrorWithMessage:(nullable NSString *)message;
-
-/** @fn wrongPasswordErrorWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeWrongPassword code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)wrongPasswordErrorWithMessage:(nullable NSString *)message;
-
-/** @fn tooManyRequestsErrorWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeTooManyRequests Code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)tooManyRequestsErrorWithMessage:(nullable NSString *)message;
-
-/** @fn invalidCustomTokenErrorWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeInvalidCustomToken code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)invalidCustomTokenErrorWithMessage:(nullable NSString *)message;
-
-/** @fn customTokenMistmatchErrorWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeCustomTokenMismatch code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)customTokenMistmatchErrorWithMessage:(nullable NSString *)message;
-
-/** @fn invalidCredentialErrorWithMessage:
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeInvalidCredential code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)invalidCredentialErrorWithMessage:(nullable NSString *)message;
-
-/** @fn requiresRecentLoginError
-    @brief Constructs an @c NSError with the @c FIRAuthErrorCodeRequiresRecentLogin code.
-    @param message Error message from the backend, if any.
-    @return The NSError instance associated with the given FIRAuthError.
- */
-+ (NSError *)requiresRecentLoginErrorWithMessage:(nullable NSString *)message;
 
 /** @fn invalidUserTokenErrorWithMessage:
     @brief Constructs an @c NSError with the @c FIRAuthErrorCodeInvalidUserToken code.

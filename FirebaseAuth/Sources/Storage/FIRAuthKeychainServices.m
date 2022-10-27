@@ -24,6 +24,8 @@
 #import "FirebaseAuth/Sources/Storage/FIRAuthUserDefaults.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 
+@import FirebaseAuthSwiftCore;
+
 /** @var kAccountPrefix
     @brief The prefix string for keychain item account attribute before the key.
     @remarks A number "1" is encoded in the prefix in case we need to upgrade the scheme in future.
@@ -135,7 +137,7 @@ NS_ASSUME_NONNULL_BEGIN
     if (items.count == 0) {
       if (error) {
         // The keychain query returned no error, but there were no items found.
-        *error = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemCopyMatching" status:status];
+        *error = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemCopyMatching" status:status];
       }
       return nil;
     } else if (items.count > 1) {
@@ -168,7 +170,7 @@ NS_ASSUME_NONNULL_BEGIN
     }
   } else {
     if (error) {
-      *error = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemCopyMatching" status:status];
+      *error = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemCopyMatching" status:status];
     }
   }
   return nil;
@@ -192,7 +194,7 @@ NS_ASSUME_NONNULL_BEGIN
   }
   if (error) {
     NSString *function = hasItem ? @"SecItemUpdate" : @"SecItemAdd";
-    *error = [FIRAuthErrorUtils keychainErrorWithFunction:function status:status];
+    *error = [FIRAuthErrorUtilsX keychainErrorWithFunction:function status:status];
   }
   return NO;
 }
@@ -203,7 +205,7 @@ NS_ASSUME_NONNULL_BEGIN
     return YES;
   }
   if (error) {
-    *error = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemDelete" status:status];
+    *error = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemDelete" status:status];
   }
   return NO;
 }
@@ -263,7 +265,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSArray *items = (__bridge_transfer NSArray *)result;
     if (items.count != 1) {
       if (outError) {
-        *outError = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemCopyMatching"
+        *outError = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemCopyMatching"
                                                           status:status];
       }
       return nil;
@@ -282,7 +284,7 @@ NS_ASSUME_NONNULL_BEGIN
     }
   } else {
     if (outError) {
-      *outError = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemCopyMatching"
+      *outError = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemCopyMatching"
                                                         status:status];
     }
   }
@@ -316,7 +318,7 @@ NS_ASSUME_NONNULL_BEGIN
 
   NSString *function = existingItem ? @"SecItemUpdate" : @"SecItemAdd";
   if (outError) {
-    *outError = [FIRAuthErrorUtils keychainErrorWithFunction:function status:status];
+    *outError = [FIRAuthErrorUtilsX keychainErrorWithFunction:function status:status];
   }
   return NO;
 }
@@ -332,7 +334,7 @@ NS_ASSUME_NONNULL_BEGIN
   }
 
   if (outError) {
-    *outError = [FIRAuthErrorUtils keychainErrorWithFunction:@"SecItemDelete" status:status];
+    *outError = [FIRAuthErrorUtilsX keychainErrorWithFunction:@"SecItemDelete" status:status];
   }
   return NO;
 }

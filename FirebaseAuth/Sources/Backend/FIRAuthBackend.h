@@ -16,8 +16,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "FirebaseAuth/Sources/Backend/FIRAuthRPCResponse.h"
-
 @import FirebaseAuthSwiftCore;
 
 @class FIRAuthRequestConfiguration;

@@ -34,33 +34,33 @@
 #import "FirebaseAuth/Sources/Auth/FIRAuthOperationType.h"
 #import "FirebaseAuth/Sources/AuthProvider/Email/FIREmailPasswordAuthCredential.h"
 #import "FirebaseAuth/Sources/AuthProvider/FIRAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/AuthProvider/GameCenter/FIRGameCenterAuthCredential.h"
+//#import "FirebaseAuth/Sources/AuthProvider/GameCenter/FIRGameCenterAuthCredential.h"
 #import "FirebaseAuth/Sources/AuthProvider/OAuth/FIROAuthCredential_Internal.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberResponse.h"
 #import "FirebaseAuth/Sources/Storage/FIRAuthKeychainServices.h"
 #import "FirebaseAuth/Sources/SystemService/FIRAuthStoredUserManager.h"
 #import "FirebaseAuth/Sources/User/FIRAdditionalUserInfo_Internal.h"
@@ -675,7 +675,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                                  requestConfiguration:_requestConfiguration];
 
   if (![request.password length]) {
-    callback(nil, [FIRAuthErrorUtils wrongPasswordErrorWithMessage:nil]);
+    callback(nil, [FIRAuthErrorUtilsX wrongPasswordErrorWithMessage:nil]);
     return;
   }
   [FIRAuthBackend
@@ -718,55 +718,55 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
     @param callback A block which is invoked when the sign in finished (or is cancelled). Invoked
         asynchronously on the global auth work queue in the future.
  */
-- (void)signInAndRetrieveDataWithGameCenterCredential:(FIRGameCenterAuthCredential *)credential
-                                             callback:(FIRAuthDataResultCallback)callback {
-  FIRSignInWithGameCenterRequest *request =
-      [[FIRSignInWithGameCenterRequest alloc] initWithPlayerID:credential.playerID
-                                                  publicKeyURL:credential.publicKeyURL
-                                                     signature:credential.signature
-                                                          salt:credential.salt
-                                                     timestamp:credential.timestamp
-                                                   displayName:credential.displayName
-                                          requestConfiguration:_requestConfiguration];
-  [FIRAuthBackend
-      signInWithGameCenter:request
-                  callback:^(FIRSignInWithGameCenterResponse *_Nullable response,
-                             NSError *_Nullable error) {
-                    if (error) {
-                      if (callback) {
-                        callback(nil, error);
-                      }
-                      return;
-                    }
-
-                    [self
-                      completeSignInWithAccessToken:response.IDToken
-                          accessTokenExpirationDate:response.approximateExpirationDate
-                                       refreshToken:response.refreshToken
-                                          anonymous:NO
-                                           callback:^(FIRUser *_Nullable user,
-                                                      NSError *_Nullable error) {
-                                             if (error && callback) {
-                                               callback(nil, error);
-                                               return;
-                                             }
-                                             FIRAdditionalUserInfo *additionalUserInfo =
-                                                 [[FIRAdditionalUserInfo alloc]
-                                                     initWithProviderID:FIRGameCenterAuthProviderID
-                                                                profile:nil
-                                                               username:nil
-                                                              isNewUser:response.isNewUser];
-                                             FIRAuthDataResult *result =
-                                                 user ? [[FIRAuthDataResult alloc]
-                                                                  initWithUser:user
-                                                            additionalUserInfo:additionalUserInfo]
-                                                      : nil;
-                                             if (callback) {
-                                               callback(result, error);
-                                             }
-                                           }];
-                  }];
-}
+//- (void)signInAndRetrieveDataWithGameCenterCredential:(FIRGameCenterAuthCredential *)credential
+//                                             callback:(FIRAuthDataResultCallback)callback {
+//  FIRSignInWithGameCenterRequest *request =
+//      [[FIRSignInWithGameCenterRequest alloc] initWithPlayerID:credential.playerID
+//                                                  publicKeyURL:credential.publicKeyURL
+//                                                     signature:credential.signature
+//                                                          salt:credential.salt
+//                                                     timestamp:credential.timestamp
+//                                                   displayName:credential.displayName
+//                                          requestConfiguration:_requestConfiguration];
+//  [FIRAuthBackend
+//      signInWithGameCenter:request
+//                  callback:^(FIRSignInWithGameCenterResponse *_Nullable response,
+//                             NSError *_Nullable error) {
+//                    if (error) {
+//                      if (callback) {
+//                        callback(nil, error);
+//                      }
+//                      return;
+//                    }
+//
+//                    [self
+//                      completeSignInWithAccessToken:response.IDToken
+//                          accessTokenExpirationDate:response.approximateExpirationDate
+//                                       refreshToken:response.refreshToken
+//                                          anonymous:NO
+//                                           callback:^(FIRUser *_Nullable user,
+//                                                      NSError *_Nullable error) {
+//                                             if (error && callback) {
+//                                               callback(nil, error);
+//                                               return;
+//                                             }
+//                                             FIRAdditionalUserInfo *additionalUserInfo =
+//                                                 [[FIRAdditionalUserInfo alloc]
+//                                                     initWithProviderID:FIRGameCenterAuthProviderID
+//                                                                profile:nil
+//                                                               username:nil
+//                                                              isNewUser:response.isNewUser];
+//                                             FIRAuthDataResult *result =
+//                                                 user ? [[FIRAuthDataResult alloc]
+//                                                                  initWithUser:user
+//                                                            additionalUserInfo:additionalUserInfo]
+//                                                      : nil;
+//                                             if (callback) {
+//                                               callback(result, error);
+//                                             }
+//                                           }];
+//                  }];
+//}
 
 /** @fn internalSignInAndRetrieveDataWithEmail:link:completion:
     @brief Signs in using an email and email sign-in link.
@@ -895,62 +895,62 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
     return;
   }
 
-  if ([credential isKindOfClass:[FIRGameCenterAuthCredential class]]) {
-    // Special case for Game Center credentials.
-    [self signInAndRetrieveDataWithGameCenterCredential:(FIRGameCenterAuthCredential *)credential
-                                               callback:callback];
-    return;
-  }
+//  if ([credential isKindOfClass:[FIRGameCenterAuthCredential class]]) {
+//    // Special case for Game Center credentials.
+//    [self signInAndRetrieveDataWithGameCenterCredential:(FIRGameCenterAuthCredential *)credential
+//                                               callback:callback];
+//    return;
+//  }
 
 #if TARGET_OS_IOS
-  if ([credential isKindOfClass:[FIRPhoneAuthCredential class]]) {
-    // Special case for phone auth credentials
-    FIRPhoneAuthCredential *phoneCredential = (FIRPhoneAuthCredential *)credential;
-    FIRAuthOperationType operation =
-        isReauthentication ? FIRAuthOperationTypeReauth : FIRAuthOperationTypeSignUpOrSignIn;
-    [self signInWithPhoneCredential:phoneCredential
-                          operation:operation
-                           callback:^(FIRVerifyPhoneNumberResponse *_Nullable response,
-                                      NSError *_Nullable error) {
-                             if (callback) {
-                               if (error) {
-                                 callback(nil, error);
-                                 return;
-                               }
-
-                               [self
-                                 completeSignInWithAccessToken:response.IDToken
-                                     accessTokenExpirationDate:response.approximateExpirationDate
-                                                  refreshToken:response.refreshToken
-                                                     anonymous:NO
-                                                      callback:^(FIRUser *_Nullable user,
-                                                                 NSError *_Nullable error) {
-                                                        if (error && callback) {
-                                                          callback(nil, error);
-                                                          return;
-                                                        }
-                                                        FIRAdditionalUserInfo *additionalUserInfo =
-                                                            [[FIRAdditionalUserInfo alloc]
-                                                                initWithProviderID:
-                                                                    FIRPhoneAuthProviderID
-                                                                           profile:nil
-                                                                          username:nil
-                                                                         isNewUser:response
-                                                                                       .isNewUser];
-                                                        FIRAuthDataResult *result =
-                                                            user ? [[FIRAuthDataResult alloc]
-                                                                             initWithUser:user
-                                                                       additionalUserInfo:
-                                                                           additionalUserInfo]
-                                                                 : nil;
-                                                        if (callback) {
-                                                          callback(result, error);
-                                                        }
-                                                      }];
-                             }
-                           }];
-    return;
-  }
+//  if ([credential isKindOfClass:[FIRPhoneAuthCredential class]]) {
+//    // Special case for phone auth credentials
+//    FIRPhoneAuthCredential *phoneCredential = (FIRPhoneAuthCredential *)credential;
+//    FIRAuthOperationType operation =
+//        isReauthentication ? FIRAuthOperationTypeReauth : FIRAuthOperationTypeSignUpOrSignIn;
+//    [self signInWithPhoneCredential:phoneCredential
+//                          operation:operation
+//                           callback:^(FIRVerifyPhoneNumberResponse *_Nullable response,
+//                                      NSError *_Nullable error) {
+//                             if (callback) {
+//                               if (error) {
+//                                 callback(nil, error);
+//                                 return;
+//                               }
+//
+//                               [self
+//                                 completeSignInWithAccessToken:response.IDToken
+//                                     accessTokenExpirationDate:response.approximateExpirationDate
+//                                                  refreshToken:response.refreshToken
+//                                                     anonymous:NO
+//                                                      callback:^(FIRUser *_Nullable user,
+//                                                                 NSError *_Nullable error) {
+//                                                        if (error && callback) {
+//                                                          callback(nil, error);
+//                                                          return;
+//                                                        }
+//                                                        FIRAdditionalUserInfo *additionalUserInfo =
+//                                                            [[FIRAdditionalUserInfo alloc]
+//                                                                initWithProviderID:
+//                                                                    FIRPhoneAuthProviderID
+//                                                                           profile:nil
+//                                                                          username:nil
+//                                                                         isNewUser:response
+//                                                                                       .isNewUser];
+//                                                        FIRAuthDataResult *result =
+//                                                            user ? [[FIRAuthDataResult alloc]
+//                                                                             initWithUser:user
+//                                                                       additionalUserInfo:
+//                                                                           additionalUserInfo]
+//                                                                 : nil;
+//                                                        if (callback) {
+//                                                          callback(result, error);
+//                                                        }
+//                                                      }];
+//                             }
+//                           }];
+//    return;
+//  }
 #endif
   FIRVerifyAssertionRequest *request =
       [[FIRVerifyAssertionRequest alloc] initWithProviderID:credential.provider
@@ -973,7 +973,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                    FIROAuthCredential *credential =
                        [[FIROAuthCredential alloc] initWithVerifyAssertionResponse:response];
                    callback(nil,
-                            [FIRAuthErrorUtils
+                            [FIRAuthErrorUtilsX
                                 accountExistsWithDifferentCredentialErrorWithEmail:email
                                                                  updatedCredential:credential]);
                  }
@@ -982,7 +982,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 
                if (!response.providerID.length) {
                  if (callback) {
-                   callback(nil, [FIRAuthErrorUtils
+                   callback(nil, [FIRAuthErrorUtilsX
                                      unexpectedResponseWithDeserializedResponse:response]);
                  }
                  return;
@@ -1033,27 +1033,27 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
         decoratedCallback(nil, error);
         return;
       }
-      [self completeSignInWithAccessToken:response.IDToken
-                accessTokenExpirationDate:response.approximateExpirationDate
-                             refreshToken:response.refreshToken
-                                anonymous:YES
-                                 callback:^(FIRUser *_Nullable user, NSError *_Nullable error) {
-                                   if (error) {
-                                     decoratedCallback(nil, error);
-                                     return;
-                                   }
-                                   FIRAdditionalUserInfo *additionalUserInfo =
-                                       [[FIRAdditionalUserInfo alloc] initWithProviderID:nil
-                                                                                 profile:nil
-                                                                                username:nil
-                                                                               isNewUser:YES];
-                                   FIRAuthDataResult *authDataResult =
-                                       user ? [[FIRAuthDataResult alloc]
-                                                        initWithUser:user
-                                                  additionalUserInfo:additionalUserInfo]
-                                            : nil;
-                                   decoratedCallback(authDataResult, error);
-                                 }];
+//      [self completeSignInWithAccessToken:response.IDToken
+//                accessTokenExpirationDate:response.approximateExpirationDate
+//                             refreshToken:response.refreshToken
+//                                anonymous:YES
+//                                 callback:^(FIRUser *_Nullable user, NSError *_Nullable error) {
+//                                   if (error) {
+//                                     decoratedCallback(nil, error);
+//                                     return;
+//                                   }
+//                                   FIRAdditionalUserInfo *additionalUserInfo =
+//                                       [[FIRAdditionalUserInfo alloc] initWithProviderID:nil
+//                                                                                 profile:nil
+//                                                                                username:nil
+//                                                                               isNewUser:YES];
+//                                   FIRAuthDataResult *authDataResult =
+//                                       user ? [[FIRAuthDataResult alloc]
+//                                                        initWithUser:user
+//                                                  additionalUserInfo:additionalUserInfo]
+//                                            : nil;
+//                                   decoratedCallback(authDataResult, error);
+//                                 }];
     }];
   });
 }
@@ -1085,32 +1085,32 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                                decoratedCallback(nil, error);
                                return;
                              }
-                             [self
-                               completeSignInWithAccessToken:response.IDToken
-                                   accessTokenExpirationDate:response.approximateExpirationDate
-                                                refreshToken:response.refreshToken
-                                                   anonymous:NO
-                                                    callback:^(FIRUser *_Nullable user,
-                                                               NSError *_Nullable error) {
-                                                      if (error) {
-                                                        decoratedCallback(nil, error);
-                                                        return;
-                                                      }
-                                                      FIRAdditionalUserInfo *additionalUserInfo =
-                                                          [[FIRAdditionalUserInfo alloc]
-                                                              initWithProviderID:
-                                                                  FIREmailAuthProviderID
-                                                                         profile:nil
-                                                                        username:nil
-                                                                       isNewUser:YES];
-                                                      FIRAuthDataResult *authDataResult =
-                                                          user ? [[FIRAuthDataResult alloc]
-                                                                           initWithUser:user
-                                                                     additionalUserInfo:
-                                                                         additionalUserInfo]
-                                                               : nil;
-                                                      decoratedCallback(authDataResult, error);
-                                                    }];
+//                             [self
+//                               completeSignInWithAccessToken:response.IDToken
+//                                   accessTokenExpirationDate:response.approximateExpirationDate
+//                                                refreshToken:response.refreshToken
+//                                                   anonymous:NO
+//                                                    callback:^(FIRUser *_Nullable user,
+//                                                               NSError *_Nullable error) {
+//                                                      if (error) {
+//                                                        decoratedCallback(nil, error);
+//                                                        return;
+//                                                      }
+//                                                      FIRAdditionalUserInfo *additionalUserInfo =
+//                                                          [[FIRAdditionalUserInfo alloc]
+//                                                              initWithProviderID:
+//                                                                  FIREmailAuthProviderID
+//                                                                         profile:nil
+//                                                                        username:nil
+//                                                                       isNewUser:YES];
+//                                                      FIRAuthDataResult *authDataResult =
+//                                                          user ? [[FIRAuthDataResult alloc]
+//                                                                           initWithUser:user
+//                                                                     additionalUserInfo:
+//                                                                         additionalUserInfo]
+//                                                               : nil;
+//                                                      decoratedCallback(authDataResult, error);
+//                                                    }];
                            }];
   });
 }
@@ -1263,9 +1263,9 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
           raiseInvalidParameterExceptionWithReason:kHandleCodeInAppFalseExceptionReason];
     }
     FIRGetOOBConfirmationCodeRequest *request =
-        [FIRGetOOBConfirmationCodeRequest signInWithEmailLinkRequest:email
-                                                  actionCodeSettings:actionCodeSettings
-                                                requestConfiguration:self->_requestConfiguration];
+        [FIRGetOOBConfirmationCodeRequest signInWithEmailLinkRequestWithEmail:email
+                                                           actionCodeSettings:actionCodeSettings
+                                                         requestConfiguration:self->_requestConfiguration];
     [FIRAuthBackend getOOBConfirmationCode:request
                                   callback:^(FIRGetOOBConfirmationCodeResponse *_Nullable response,
                                              NSError *_Nullable error) {
@@ -1283,7 +1283,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
     if (!user) {
       if (completion) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          completion([FIRAuthErrorUtils nullUserErrorWithMessage:nil]);
+          completion([FIRAuthErrorUtilsX nullUserErrorWithMessage:nil]);
         });
       }
       return;
@@ -1574,30 +1574,30 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 - (void)signInWithPhoneCredential:(FIRPhoneAuthCredential *)credential
                         operation:(FIRAuthOperationType)operation
                          callback:(FIRVerifyPhoneNumberResponseCallback)callback {
-  if (credential.temporaryProof.length && credential.phoneNumber.length) {
-    FIRVerifyPhoneNumberRequest *request =
-        [[FIRVerifyPhoneNumberRequest alloc] initWithTemporaryProof:credential.temporaryProof
-                                                        phoneNumber:credential.phoneNumber
-                                                          operation:operation
-                                               requestConfiguration:_requestConfiguration];
-    [FIRAuthBackend verifyPhoneNumber:request callback:callback];
-    return;
-  }
-
-  if (!credential.verificationID.length) {
-    callback(nil, [FIRAuthErrorUtils missingVerificationIDErrorWithMessage:nil]);
-    return;
-  }
-  if (!credential.verificationCode.length) {
-    callback(nil, [FIRAuthErrorUtils missingVerificationCodeErrorWithMessage:nil]);
-    return;
-  }
-  FIRVerifyPhoneNumberRequest *request =
-      [[FIRVerifyPhoneNumberRequest alloc] initWithVerificationID:credential.verificationID
-                                                 verificationCode:credential.verificationCode
-                                                        operation:operation
-                                             requestConfiguration:_requestConfiguration];
-  [FIRAuthBackend verifyPhoneNumber:request callback:callback];
+//  if (credential.temporaryProof.length && credential.phoneNumber.length) {
+//    FIRVerifyPhoneNumberRequest *request =
+//        [[FIRVerifyPhoneNumberRequest alloc] initWithTemporaryProof:credential.temporaryProof
+//                                                        phoneNumber:credential.phoneNumber
+//                                                          operation:operation
+//                                               requestConfiguration:_requestConfiguration];
+//    [FIRAuthBackend verifyPhoneNumber:request callback:callback];
+//    return;
+//  }
+//
+//  if (!credential.verificationID.length) {
+//    callback(nil, [FIRAuthErrorUtilsX missingVerificationIDErrorWithMessage:nil]);
+//    return;
+//  }
+//  if (!credential.verificationCode.length) {
+//    callback(nil, [FIRAuthErrorUtilsX missingVerificationCodeErrorWithMessage:nil]);
+//    return;
+//  }
+//  FIRVerifyPhoneNumberRequest *request =
+//      [[FIRVerifyPhoneNumberRequest alloc] initWithVerificationID:credential.verificationID
+//                                                 verificationCode:credential.verificationCode
+//                                                        operation:operation
+//                                             requestConfiguration:_requestConfiguration];
+//  [FIRAuthBackend verifyPhoneNumber:request callback:callback];
 }
 
 #endif
@@ -1610,45 +1610,45 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 - (void)internalSignInAndRetrieveDataWithCustomToken:(NSString *)token
                                           completion:
                                               (nullable FIRAuthDataResultCallback)completion {
-  FIRVerifyCustomTokenRequest *request =
-      [[FIRVerifyCustomTokenRequest alloc] initWithToken:token
-                                    requestConfiguration:_requestConfiguration];
-  [FIRAuthBackend
-      verifyCustomToken:request
-               callback:^(FIRVerifyCustomTokenResponse *_Nullable response,
-                          NSError *_Nullable error) {
-                 if (error) {
-                   if (completion) {
-                     completion(nil, error);
-                     return;
-                   }
-                 }
-                 [self completeSignInWithAccessToken:response.IDToken
-                           accessTokenExpirationDate:response.approximateExpirationDate
-                                        refreshToken:response.refreshToken
-                                           anonymous:NO
-                                            callback:^(FIRUser *_Nullable user,
-                                                       NSError *_Nullable error) {
-                                              if (error && completion) {
-                                                completion(nil, error);
-                                                return;
-                                              }
-                                              FIRAdditionalUserInfo *additonalUserInfo =
-                                                  [[FIRAdditionalUserInfo alloc]
-                                                      initWithProviderID:nil
-                                                                 profile:nil
-                                                                username:nil
-                                                               isNewUser:response.isNewUser];
-                                              FIRAuthDataResult *result =
-                                                  user ? [[FIRAuthDataResult alloc]
-                                                                   initWithUser:user
-                                                             additionalUserInfo:additonalUserInfo]
-                                                       : nil;
-                                              if (completion) {
-                                                completion(result, error);
-                                              }
-                                            }];
-               }];
+//  FIRVerifyCustomTokenRequest *request =
+//      [[FIRVerifyCustomTokenRequest alloc] initWithToken:token
+//                                    requestConfiguration:_requestConfiguration];
+//  [FIRAuthBackend
+//      verifyCustomToken:request
+//               callback:^(FIRVerifyCustomTokenResponse *_Nullable response,
+//                          NSError *_Nullable error) {
+//                 if (error) {
+//                   if (completion) {
+//                     completion(nil, error);
+//                     return;
+//                   }
+//                 }
+//                 [self completeSignInWithAccessToken:response.IDToken
+//                           accessTokenExpirationDate:response.approximateExpirationDate
+//                                        refreshToken:response.refreshToken
+//                                           anonymous:NO
+//                                            callback:^(FIRUser *_Nullable user,
+//                                                       NSError *_Nullable error) {
+//                                              if (error && completion) {
+//                                                completion(nil, error);
+//                                                return;
+//                                              }
+//                                              FIRAdditionalUserInfo *additonalUserInfo =
+//                                                  [[FIRAdditionalUserInfo alloc]
+//                                                      initWithProviderID:nil
+//                                                                 profile:nil
+//                                                                username:nil
+//                                                               isNewUser:response.isNewUser];
+//                                              FIRAuthDataResult *result =
+//                                                  user ? [[FIRAuthDataResult alloc]
+//                                                                   initWithUser:user
+//                                                             additionalUserInfo:additonalUserInfo]
+//                                                       : nil;
+//                                              if (completion) {
+//                                                completion(result, error);
+//                                              }
+//                                            }];
+//               }];
 }
 
 /** @fn internalCreateUserWithEmail:password:completion:
@@ -1661,21 +1661,21 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 - (void)internalCreateUserWithEmail:(NSString *)email
                            password:(NSString *)password
                          completion:(nullable FIRSignupNewUserCallback)completion {
-  FIRSignUpNewUserRequest *request =
-      [[FIRSignUpNewUserRequest alloc] initWithEmail:email
-                                            password:password
-                                         displayName:nil
-                                requestConfiguration:_requestConfiguration];
-  if (![request.password length]) {
-    completion(
-        nil, [FIRAuthErrorUtils weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
-    return;
-  }
-  if (![request.email length]) {
-    completion(nil, [FIRAuthErrorUtils missingEmailErrorWithMessage:nil]);
-    return;
-  }
-  [FIRAuthBackend signUpNewUser:request callback:completion];
+    FIRSignUpNewUserRequest *request =
+    [[FIRSignUpNewUserRequest alloc] initWithEmail:email
+                                          password:password
+                                       displayName:nil
+                              requestConfiguration:_requestConfiguration];
+    if (![request.password length]) {
+        completion(
+                   nil, [FIRAuthErrorUtilsX weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
+        return;
+    }
+    if (![request.email length]) {
+        completion(nil, [FIRAuthErrorUtilsX missingEmailErrorWithMessage:nil]);
+        return;
+    }
+    [FIRAuthBackend signUpNewUser:request callback:completion];
 }
 
 /** @fn internalSignInAnonymouslyWithCompletion:
@@ -1964,7 +1964,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
   if (user) {
     if ((user.tenantID || self.tenantID) && ![self.tenantID isEqualToString:user.tenantID]) {
       if (error) {
-        *error = [FIRAuthErrorUtils tenantIDMismatchError];
+        *error = [FIRAuthErrorUtilsX tenantIDMismatchError];
       }
       return NO;
     }

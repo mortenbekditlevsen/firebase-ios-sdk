@@ -16,6 +16,8 @@
 
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
 
+@import FirebaseAuthSwiftCore;
+
 #if SWIFT_PACKAGE
 @import GTMSessionFetcherCore;
 #else
@@ -27,40 +29,40 @@
 
 #import "FirebaseAuth/Sources/Auth/FIRAuthGlobalWorkQueue.h"
 #import "FirebaseAuth/Sources/AuthProvider/OAuth/FIROAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRDeleteAccountRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRDeleteAccountResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetAccountInfoRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetAccountInfoResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyClientRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyClientResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordResponse.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRCreateAuthURIResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRDeleteAccountRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRDeleteAccountResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIREmailLinkSignInResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetAccountInfoRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetAccountInfoResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetOOBConfirmationCodeResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRResetPasswordResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSecureTokenResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSendVerificationCodeResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSetAccountInfoResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignInWithGameCenterResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRSignUpNewUserResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyAssertionResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyClientRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyClientResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyCustomTokenResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPasswordResponse.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberRequest.h"
+//#import "FirebaseAuth/Sources/Backend/RPC/FIRVerifyPhoneNumberResponse.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseCore/Sources/Private/FirebaseCoreInternal.h"
 
@@ -70,6 +72,8 @@
 #import "FirebaseAuth/Sources/AuthProvider/Phone/FIRPhoneAuthCredential_Internal.h"
 #import "FirebaseAuth/Sources/MultiFactor/Phone/FIRPhoneMultiFactorInfo+Internal.h"
 #endif
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -730,76 +734,76 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
 
 - (void)verifyAssertion:(FIRVerifyAssertionRequest *)request
                callback:(FIRVerifyAssertionResponseCallback)callback {
-  FIRVerifyAssertionResponse *response = [[FIRVerifyAssertionResponse alloc] init];
-  [self
-      postWithRequest:request
-             response:response
-             callback:^(NSError *error) {
-               if (error) {
-                 callback(nil, error);
-               } else {
-                 if (!response.IDToken && response.MFAInfo) {
-#if TARGET_OS_IOS
-                   NSMutableArray<FIRMultiFactorInfo *> *multiFactorInfo = [NSMutableArray array];
-                   for (FIRAuthProtoMFAEnrollment *MFAEnrollment in response.MFAInfo) {
-                     FIRPhoneMultiFactorInfo *info =
-                         [[FIRPhoneMultiFactorInfo alloc] initWithProto:MFAEnrollment];
-                     [multiFactorInfo addObject:info];
-                   }
-                   NSError *multiFactorRequiredError = [FIRAuthErrorUtils
-                       secondFactorRequiredErrorWithPendingCredential:response.MFAPendingCredential
-                                                                hints:multiFactorInfo];
-                   callback(nil, multiFactorRequiredError);
-#endif
-                 } else {
-                   callback(response, nil);
-                 }
-               }
-             }];
+//  FIRVerifyAssertionResponse *response = [[FIRVerifyAssertionResponse alloc] init];
+//  [self
+//      postWithRequest:request
+//             response:response
+//             callback:^(NSError *error) {
+//               if (error) {
+//                 callback(nil, error);
+//               } else {
+//                 if (!response.IDToken && response.MFAInfo) {
+//#if TARGET_OS_IOS
+//                   NSMutableArray<FIRMultiFactorInfo *> *multiFactorInfo = [NSMutableArray array];
+//                   for (FIRAuthProtoMFAEnrollment *MFAEnrollment in response.MFAInfo) {
+//                     FIRPhoneMultiFactorInfo *info =
+//                         [[FIRPhoneMultiFactorInfo alloc] initWithProto:MFAEnrollment];
+//                     [multiFactorInfo addObject:info];
+//                   }
+//                   NSError *multiFactorRequiredError = [FIRAuthErrorUtilsX
+//                       secondFactorRequiredErrorWithPendingCredential:response.MFAPendingCredential
+//                                                                hints:multiFactorInfo];
+//                   callback(nil, multiFactorRequiredError);
+//#endif
+//                 } else {
+//                   callback(response, nil);
+//                 }
+//               }
+//             }];
 }
 
 - (void)verifyCustomToken:(FIRVerifyCustomTokenRequest *)request
                  callback:(FIRVerifyCustomTokenResponseCallback)callback {
-  FIRVerifyCustomTokenResponse *response = [[FIRVerifyCustomTokenResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   callback(nil, error);
-                 } else {
-                   callback(response, nil);
-                 }
-               }];
+//  FIRVerifyCustomTokenResponse *response = [[FIRVerifyCustomTokenResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   callback(nil, error);
+//                 } else {
+//                   callback(response, nil);
+//                 }
+//               }];
 }
 
 - (void)verifyPassword:(FIRVerifyPasswordRequest *)request
               callback:(FIRVerifyPasswordResponseCallback)callback {
-  FIRVerifyPasswordResponse *response = [[FIRVerifyPasswordResponse alloc] init];
-  [self
-      postWithRequest:request
-             response:response
-             callback:^(NSError *error) {
-               if (error) {
-                 callback(nil, error);
-               } else {
-                 if (!response.IDToken && response.MFAInfo) {
-#if TARGET_OS_IOS
-                   NSMutableArray<FIRMultiFactorInfo *> *multiFactorInfo = [NSMutableArray array];
-                   for (FIRAuthProtoMFAEnrollment *MFAEnrollment in response.MFAInfo) {
-                     FIRPhoneMultiFactorInfo *info =
-                         [[FIRPhoneMultiFactorInfo alloc] initWithProto:MFAEnrollment];
-                     [multiFactorInfo addObject:info];
-                   }
-                   NSError *multiFactorRequiredError = [FIRAuthErrorUtils
-                       secondFactorRequiredErrorWithPendingCredential:response.MFAPendingCredential
-                                                                hints:multiFactorInfo];
-                   callback(nil, multiFactorRequiredError);
-#endif
-                 } else {
-                   callback(response, nil);
-                 }
-               }
-             }];
+//  FIRVerifyPasswordResponse *response = [[FIRVerifyPasswordResponse alloc] init];
+//  [self
+//      postWithRequest:request
+//             response:response
+//             callback:^(NSError *error) {
+//               if (error) {
+//                 callback(nil, error);
+//               } else {
+//                 if (!response.IDToken && response.MFAInfo) {
+//#if TARGET_OS_IOS
+//                   NSMutableArray<FIRMultiFactorInfo *> *multiFactorInfo = [NSMutableArray array];
+//                   for (FIRAuthProtoMFAEnrollment *MFAEnrollment in response.MFAInfo) {
+//                     FIRPhoneMultiFactorInfo *info =
+//                         [[FIRPhoneMultiFactorInfo alloc] initWithProto:MFAEnrollment];
+//                     [multiFactorInfo addObject:info];
+//                   }
+//                   NSError *multiFactorRequiredError = [FIRAuthErrorUtilsX
+//                       secondFactorRequiredErrorWithPendingCredential:response.MFAPendingCredential
+//                                                                hints:multiFactorInfo];
+//                   callback(nil, multiFactorRequiredError);
+//#endif
+//                 } else {
+//                   callback(response, nil);
+//                 }
+//               }
+//             }];
 }
 
 - (void)emailLinkSignin:(FIREmailLinkSignInRequest *)request
@@ -832,30 +836,30 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
 
 - (void)getOOBConfirmationCode:(FIRGetOOBConfirmationCodeRequest *)request
                       callback:(FIRGetOOBConfirmationCodeResponseCallback)callback {
-  FIRGetOOBConfirmationCodeResponse *response = [[FIRGetOOBConfirmationCodeResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   callback(nil, error);
-                 } else {
-                   callback(response, nil);
-                 }
-               }];
+//  FIRGetOOBConfirmationCodeResponse *response = [[FIRGetOOBConfirmationCodeResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   callback(nil, error);
+//                 } else {
+//                   callback(response, nil);
+//                 }
+//               }];
 }
 
 - (void)signUpNewUser:(FIRSignUpNewUserRequest *)request
              callback:(FIRSignupNewUserCallback)callback {
-  FIRSignUpNewUserResponse *response = [[FIRSignUpNewUserResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   callback(nil, error);
-                 } else {
-                   callback(response, nil);
-                 }
-               }];
+//  FIRSignUpNewUserResponse *response = [[FIRSignUpNewUserResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   callback(nil, error);
+//                 } else {
+//                   callback(response, nil);
+//                 }
+//               }];
 }
 
 - (void)deleteAccount:(FIRDeleteAccountRequest *)request callback:(FIRDeleteCallBack)callback {
@@ -866,56 +870,56 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
 #if TARGET_OS_IOS
 - (void)sendVerificationCode:(FIRSendVerificationCodeRequest *)request
                     callback:(FIRSendVerificationCodeResponseCallback)callback {
-  FIRSendVerificationCodeResponse *response = [[FIRSendVerificationCodeResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   callback(nil, error);
-                 } else {
-                   callback(response, error);
-                 }
-               }];
+//  FIRSendVerificationCodeResponse *response = [[FIRSendVerificationCodeResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   callback(nil, error);
+//                 } else {
+//                   callback(response, error);
+//                 }
+//               }];
 }
 
 - (void)verifyPhoneNumber:(FIRVerifyPhoneNumberRequest *)request
                  callback:(FIRVerifyPhoneNumberResponseCallback)callback {
-  FIRVerifyPhoneNumberResponse *response = [[FIRVerifyPhoneNumberResponse alloc] init];
-  [self
-      postWithRequest:request
-             response:response
-             callback:^(NSError *error) {
-               if (error) {
-                 callback(nil, error);
-                 return;
-               }
-               // Check whether or not the successful response is actually the special case phone
-               // auth flow that returns a temporary proof and phone number.
-               if (response.phoneNumber.length && response.temporaryProof.length) {
-                 FIRPhoneAuthCredential *credential =
-                     [[FIRPhoneAuthCredential alloc] initWithTemporaryProof:response.temporaryProof
-                                                                phoneNumber:response.phoneNumber
-                                                                 providerID:FIRPhoneAuthProviderID];
-                 callback(nil, [FIRAuthErrorUtils credentialAlreadyInUseErrorWithMessage:nil
-                                                                              credential:credential
-                                                                                   email:nil]);
-                 return;
-               }
-               callback(response, nil);
-             }];
+//  FIRVerifyPhoneNumberResponse *response = [[FIRVerifyPhoneNumberResponse alloc] init];
+//  [self
+//      postWithRequest:request
+//             response:response
+//             callback:^(NSError *error) {
+//               if (error) {
+//                 callback(nil, error);
+//                 return;
+//               }
+//               // Check whether or not the successful response is actually the special case phone
+//               // auth flow that returns a temporary proof and phone number.
+//               if (response.phoneNumber.length && response.temporaryProof.length) {
+//                 FIRPhoneAuthCredential *credential =
+//                     [[FIRPhoneAuthCredential alloc] initWithTemporaryProof:response.temporaryProof
+//                                                                phoneNumber:response.phoneNumber
+//                                                                 providerID:FIRPhoneAuthProviderID];
+//                 callback(nil, [FIRAuthErrorUtilsX credentialAlreadyInUseErrorWithMessage:nil
+//                                                                              credential:credential
+//                                                                                   email:nil]);
+//                 return;
+//               }
+//               callback(response, nil);
+//             }];
 }
 
 - (void)verifyClient:(id)request callback:(FIRVerifyClientResponseCallback)callback {
-  FIRVerifyClientResponse *response = [[FIRVerifyClientResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   callback(nil, error);
-                   return;
-                 }
-                 callback(response, nil);
-               }];
+//  FIRVerifyClientResponse *response = [[FIRVerifyClientResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   callback(nil, error);
+//                   return;
+//                 }
+//                 callback(response, nil);
+//               }];
 }
 #endif
 
@@ -935,20 +939,20 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
 
 - (void)signInWithGameCenter:(FIRSignInWithGameCenterRequest *)request
                     callback:(FIRSignInWithGameCenterResponseCallback)callback {
-  FIRSignInWithGameCenterResponse *response = [[FIRSignInWithGameCenterResponse alloc] init];
-  [self postWithRequest:request
-               response:response
-               callback:^(NSError *error) {
-                 if (error) {
-                   if (callback) {
-                     callback(nil, error);
-                   }
-                 } else {
-                   if (callback) {
-                     callback(response, nil);
-                   }
-                 }
-               }];
+//  FIRSignInWithGameCenterResponse *response = [[FIRSignInWithGameCenterResponse alloc] init];
+//  [self postWithRequest:request
+//               response:response
+//               callback:^(NSError *error) {
+//                 if (error) {
+//                   if (callback) {
+//                     callback(nil, error);
+//                   }
+//                 } else {
+//                   if (callback) {
+//                     callback(response, nil);
+//                   }
+//                 }
+//               }];
 }
 
 #pragma mark - Generic RPC handling methods
@@ -956,12 +960,12 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
 /** @fn postWithRequest:response:callback:
     @brief Calls the RPC using HTTP POST.
     @remarks Possible error responses:
-        @see FIRAuthInternalErrorCodeRPCRequestEncodingError
-        @see FIRAuthInternalErrorCodeJSONSerializationError
-        @see FIRAuthInternalErrorCodeNetworkError
-        @see FIRAuthInternalErrorCodeUnexpectedErrorResponse
-        @see FIRAuthInternalErrorCodeUnexpectedResponse
-        @see FIRAuthInternalErrorCodeRPCResponseDecodingError
+        @see FIRAuthErrorCodeXRPCRequestEncodingError
+        @see FIRAuthErrorCodeXJSONSerializationError
+        @see FIRAuthErrorCodeXNetworkError
+        @see FIRAuthErrorCodeXUnexpectedErrorResponse
+        @see FIRAuthErrorCodeXUnexpectedResponse
+        @see FIRAuthErrorCodeXRPCResponseDecodingError
     @param request The request.
     @param response The empty response to be filled.
     @param callback The callback for both success and failure.
@@ -974,7 +978,7 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
   if ([request containsPostBody]) {
     id postBody = [request unencodedHTTPRequestBodyWithError:&error];
     if (!postBody) {
-      callback([FIRAuthErrorUtils RPCRequestEncodingErrorWithUnderlyingError:error]);
+      callback([FIRAuthErrorUtilsX RPCRequestEncodingErrorWithUnderlyingError:error]);
       return;
     }
 
@@ -991,10 +995,10 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
         // This is an untested case. This happens exclusively when there is an error in the
         // framework implementation of dataWithJSONObject:options:error:. This shouldn't normally
         // occur as isValidJSONObject: should return NO in any case we should encounter an error.
-        error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:error];
+        error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:error];
       }
     } else {
-      error = [FIRAuthErrorUtils JSONSerializationErrorForUnencodableType];
+      error = [FIRAuthErrorUtilsX JSONSerializationErrorForUnencodableType];
     }
     if (!bodyData) {
       callback(error);
@@ -1011,7 +1015,7 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
                            // If there is an error with no body data at all, then this must be a
                            // network error.
                            if (error && !data) {
-                             callback([FIRAuthErrorUtils networkErrorWithUnderlyingError:error]);
+                             callback([FIRAuthErrorUtilsX networkErrorWithUnderlyingError:error]);
                              return;
                            }
 
@@ -1028,22 +1032,22 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
                                // additional information other than the raw response and the
                                // original NSError (the jsonError is infered by the error code
                                // (FIRAuthErrorCodeUnexpectedHTTPResponse, and is irrelevant.)
-                               callback([FIRAuthErrorUtils unexpectedErrorResponseWithData:data
+                               callback([FIRAuthErrorUtilsX unexpectedErrorResponseWithData:data
                                                                            underlyingError:error]);
                              } else {
                                // This is supposed to be a "successful" response, but we couldn't
                                // deserialize the body.
-                               callback([FIRAuthErrorUtils unexpectedResponseWithData:data
+                               callback([FIRAuthErrorUtilsX unexpectedResponseWithData:data
                                                                       underlyingError:jsonError]);
                              }
                              return;
                            }
                            if (![dictionary isKindOfClass:[NSDictionary class]]) {
                              if (error) {
-                               callback([FIRAuthErrorUtils
+                               callback([FIRAuthErrorUtilsX
                                    unexpectedErrorResponseWithDeserializedResponse:dictionary]);
                              } else {
-                               callback([FIRAuthErrorUtils
+                               callback([FIRAuthErrorUtilsX
                                    unexpectedResponseWithDeserializedResponse:dictionary]);
                              }
                              return;
@@ -1073,7 +1077,7 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
                                }
                                // Not a message we know, return the message directly.
                                if (errorMessage) {
-                                 NSError *unexpecterErrorResponse = [FIRAuthErrorUtils
+                                 NSError *unexpecterErrorResponse = [FIRAuthErrorUtilsX
                                      unexpectedErrorResponseWithDeserializedResponse:
                                          errorDictionary];
                                  callback(unexpecterErrorResponse);
@@ -1081,15 +1085,15 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
                                }
                              }
                              // No error message at all, return the decoded response.
-                             callback([FIRAuthErrorUtils
+                             callback([FIRAuthErrorUtilsX
                                  unexpectedErrorResponseWithDeserializedResponse:dictionary]);
                              return;
                            }
 
                            // Finally, we try to populate the response object with the JSON
                            // values.
-                           if (![response setWithDictionary:dictionary error:&error]) {
-                             callback([FIRAuthErrorUtils
+                           if (![response setFieldsWithDictionary:dictionary error:&error]) {
+                             callback([FIRAuthErrorUtilsX
                                  RPCResponseDecodingErrorWithDeserializedResponse:dictionary
                                                                   underlyingError:error]);
                              return;
@@ -1157,76 +1161,76 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
   }
 
   if ([shortErrorMessage isEqualToString:kUserNotFoundErrorMessage]) {
-    return [FIRAuthErrorUtils userNotFoundErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX userNotFoundErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUserDeletedErrorMessage]) {
-    return [FIRAuthErrorUtils userNotFoundErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX userNotFoundErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidLocalIDErrorMessage]) {
     // This case shouldn't be necessary but it is for now: b/27908364 .
-    return [FIRAuthErrorUtils userNotFoundErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX userNotFoundErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUserTokenExpiredErrorMessage]) {
-    return [FIRAuthErrorUtils userTokenExpiredErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX userTokenExpiredErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kTooManyRequestsErrorMessage]) {
-    return [FIRAuthErrorUtils tooManyRequestsErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX tooManyRequestsErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidCustomTokenErrorMessage]) {
-    return [FIRAuthErrorUtils invalidCustomTokenErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidCustomTokenErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kCustomTokenMismatch]) {
-    return [FIRAuthErrorUtils customTokenMistmatchErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX customTokenMistmatchErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidCredentialErrorMessage] ||
       [shortErrorMessage isEqualToString:kInvalidPendingToken]) {
-    return [FIRAuthErrorUtils invalidCredentialErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidCredentialErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUserDisabledErrorMessage]) {
-    return [FIRAuthErrorUtils userDisabledErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX userDisabledErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kOperationNotAllowedErrorMessage]) {
-    return [FIRAuthErrorUtils operationNotAllowedErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX operationNotAllowedErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kPasswordLoginDisabledErrorMessage]) {
-    return [FIRAuthErrorUtils operationNotAllowedErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX operationNotAllowedErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kEmailAlreadyInUseErrorMessage]) {
-    return [FIRAuthErrorUtils emailAlreadyInUseErrorWithEmail:nil];
+    return [FIRAuthErrorUtilsX emailAlreadyInUseErrorWithEmail:nil];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidEmailErrorMessage]) {
-    return [FIRAuthErrorUtils invalidEmailErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidEmailErrorWithMessage:serverDetailErrorMessage];
   }
 
   // "INVALID_IDENTIFIER" can be returned by createAuthURI RPC. Considering email addresses are
   //  currently the only identifiers, we surface the FIRAuthErrorCodeInvalidEmail error code in this
   //  case.
   if ([shortErrorMessage isEqualToString:kInvalidIdentifierErrorMessage]) {
-    return [FIRAuthErrorUtils invalidEmailErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidEmailErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kWrongPasswordErrorMessage]) {
-    return [FIRAuthErrorUtils wrongPasswordErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX wrongPasswordErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kCredentialTooOldErrorMessage]) {
-    return [FIRAuthErrorUtils requiresRecentLoginErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX requiresRecentLoginErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidUserTokenErrorMessage]) {
-    return [FIRAuthErrorUtils invalidUserTokenErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidUserTokenErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kFederatedUserIDAlreadyLinkedMessage]) {
@@ -1237,171 +1241,170 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
       credential = [[FIROAuthCredential alloc] initWithVerifyAssertionResponse:verifyAssertion];
       email = verifyAssertion.email;
     }
-    return [FIRAuthErrorUtils credentialAlreadyInUseErrorWithMessage:serverDetailErrorMessage
+    return [FIRAuthErrorUtilsX credentialAlreadyInUseErrorWithMessage:serverDetailErrorMessage
                                                           credential:credential
                                                                email:email];
   }
 
   if ([shortErrorMessage isEqualToString:kWeakPasswordErrorMessagePrefix]) {
-    return [FIRAuthErrorUtils weakPasswordErrorWithServerResponseReason:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX weakPasswordErrorWithServerResponseReason:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kExpiredActionCodeErrorMessage]) {
-    return [FIRAuthErrorUtils expiredActionCodeErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX expiredActionCodeErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidActionCodeErrorMessage]) {
-    return [FIRAuthErrorUtils invalidActionCodeErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidActionCodeErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingEmailErrorMessage]) {
-    return [FIRAuthErrorUtils missingEmailErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingEmailErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidSenderEmailErrorMessage]) {
-    return [FIRAuthErrorUtils invalidSenderErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidSenderErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidMessagePayloadErrorMessage]) {
-    return [FIRAuthErrorUtils invalidMessagePayloadErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidMessagePayloadErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidRecipientEmailErrorMessage]) {
-    return [FIRAuthErrorUtils invalidRecipientEmailErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidRecipientEmailErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingIosBundleIDErrorMessage]) {
-    return [FIRAuthErrorUtils missingIosBundleIDErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingIosBundleIDErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingAndroidPackageNameErrorMessage]) {
-    return [FIRAuthErrorUtils missingAndroidPackageNameErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingAndroidPackageNameErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUnauthorizedDomainErrorMessage]) {
-    return [FIRAuthErrorUtils unauthorizedDomainErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX unauthorizedDomainErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidContinueURIErrorMessage]) {
-    return [FIRAuthErrorUtils invalidContinueURIErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidContinueURIErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidProviderIDErrorMessage]) {
-    return [FIRAuthErrorUtils invalidProviderIDErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidProviderIDErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidDynamicLinkDomainErrorMessage]) {
-    return [FIRAuthErrorUtils invalidDynamicLinkDomainErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidDynamicLinkDomainErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingContinueURIErrorMessage]) {
-    return [FIRAuthErrorUtils missingContinueURIErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingContinueURIErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidPhoneNumberErrorMessage]) {
-    return [FIRAuthErrorUtils invalidPhoneNumberErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidPhoneNumberErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidSessionInfoErrorMessage]) {
-    return [FIRAuthErrorUtils invalidVerificationIDErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidVerificationIDErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidVerificationCodeErrorMessage]) {
-    return [FIRAuthErrorUtils invalidVerificationCodeErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidVerificationCodeErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kSessionExpiredErrorMessage]) {
-    return [FIRAuthErrorUtils sessionExpiredErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX sessionExpiredErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingAppTokenErrorMessage]) {
-    return [FIRAuthErrorUtils missingAppTokenErrorWithUnderlyingError:nil];
+    return [FIRAuthErrorUtilsX missingAppTokenErrorWithUnderlyingError:nil];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingAppCredentialErrorMessage]) {
-    return [FIRAuthErrorUtils missingAppCredentialWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingAppCredentialWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidAppCredentialErrorMessage]) {
-    return [FIRAuthErrorUtils invalidAppCredentialWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX invalidAppCredentialWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kQuoutaExceededErrorMessage]) {
-    return [FIRAuthErrorUtils quotaExceededErrorWithMessage:serverErrorMessage];
+    return [FIRAuthErrorUtilsX quotaExceededErrorWithMessage:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kAppNotVerifiedErrorMessage]) {
-    return [FIRAuthErrorUtils appNotVerifiedErrorWithMessage:serverErrorMessage];
+    return [FIRAuthErrorUtilsX appNotVerifiedErrorWithMessage:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingClientIdentifier]) {
-    return [FIRAuthErrorUtils missingClientIdentifierErrorWithMessage:serverErrorMessage];
+    return [FIRAuthErrorUtilsX missingClientIdentifierErrorWithMessage:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kCaptchaCheckFailedErrorMessage]) {
-    return [FIRAuthErrorUtils captchaCheckFailedErrorWithMessage:serverErrorMessage];
+    return [FIRAuthErrorUtilsX captchaCheckFailedErrorWithMessage:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingOrInvalidNonceErrorMessage]) {
-    return [FIRAuthErrorUtils missingOrInvalidNonceErrorWithMessage:serverDetailErrorMessage];
+    return [FIRAuthErrorUtilsX missingOrInvalidNonceErrorWithMessage:serverDetailErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingMFAPendingCredentialErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeMissingMultiFactorSession
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXMissingMultiFactorSession
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMissingMFAEnrollmentIDErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeMissingMultiFactorInfo
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXMissingMultiFactorInfo
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kInvalidMFAPendingCredentialErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeInvalidMultiFactorSession
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXInvalidMultiFactorSession
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kMFAEnrollmentNotFoundErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeMultiFactorInfoNotFound
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXMultiFactorInfoNotFound
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kAdminOnlyOperationErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeAdminRestrictedOperation
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXAdminRestrictedOperation
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUnverifiedEmailErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeUnverifiedEmail
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXUnverifiedEmail
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kSecondFactorExistsErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeSecondFactorAlreadyEnrolled
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXSecondFactorAlreadyEnrolled
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kSecondFactorLimitExceededErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeMaximumSecondFactorCountExceeded
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXMaximumSecondFactorCountExceeded
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kUnsupportedFirstFactorErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeUnsupportedFirstFactor
-                                    message:serverErrorMessage];
+      return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXUnsupportedFirstFactor message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kEmailChangeNeedsVerificationErrorMessage]) {
-    return [FIRAuthErrorUtils errorWithCode:FIRAuthInternalErrorCodeEmailChangeNeedsVerification
+    return [FIRAuthErrorUtilsX errorWithCode:FIRAuthErrorCodeXEmailChangeNeedsVerification
                                     message:serverErrorMessage];
   }
 
   if ([shortErrorMessage isEqualToString:kTenantIDMismatch]) {
-    return [FIRAuthErrorUtils tenantIDMismatchError];
+    return [FIRAuthErrorUtilsX tenantIDMismatchError];
   }
 
   if ([shortErrorMessage isEqualToString:kUnsupportedTenantOperation]) {
-    return [FIRAuthErrorUtils unsupportedTenantOperationError];
+    return [FIRAuthErrorUtilsX unsupportedTenantOperationError];
   }
 
   // In this case we handle an error that might be specified in the underlying errors dictionary,
@@ -1416,10 +1419,10 @@ static id<FIRAuthBackendImplementation> gBackendImplementation;
           NSDictionary *underlyingErrorDictionary = (NSDictionary *)underlyingError;
           NSString *reason = underlyingErrorDictionary[kReasonKey];
           if ([reason hasPrefix:kInvalidKeyReasonValue]) {
-            return [FIRAuthErrorUtils invalidAPIKeyError];
+            return [FIRAuthErrorUtilsX invalidAPIKeyError];
           }
           if ([reason isEqualToString:kAppNotAuthorizedReasonValue]) {
-            return [FIRAuthErrorUtils appNotAuthorizedError];
+            return [FIRAuthErrorUtilsX appNotAuthorizedError];
           }
         }
       }

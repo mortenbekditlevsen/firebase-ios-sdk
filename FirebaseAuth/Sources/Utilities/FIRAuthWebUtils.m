@@ -17,9 +17,9 @@
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigRequest.h"
-#import "FirebaseAuth/Sources/Backend/RPC/FIRGetProjectConfigResponse.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -123,7 +123,7 @@ NS_ASSUME_NONNULL_BEGIN
                   }
                 }
                 if (!authDomain.length) {
-                  completion(nil, [FIRAuthErrorUtils
+                  completion(nil, [FIRAuthErrorUtilsX
                                       unexpectedErrorResponseWithDeserializedResponse:response]);
                   return;
                 }

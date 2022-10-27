@@ -17,39 +17,39 @@ import Foundation
             the app where the action code would be handled or continue to the app after the action code
             is handled by Firebase.
      */
-    var URL: URL?
+    @objc public var URL: URL?
 
     /** @property handleCodeInApp
         @brief Indicates whether the action code link will open the app directly or after being
             redirected from a Firebase owned web widget.
      */
-    var handleCodeInApp: Bool
+    @objc public var handleCodeInApp: Bool = false
 
     /** @property iOSBundleID
         @brief The iOS bundle ID, if available. The default value is the current app's bundle ID.
      */
-    var iOSBundleID: String?
+    @objc public var iOSBundleID: String?
 
     /** @property androidPackageName
         @brief The Android package name, if available.
      */
-    var androidPackageName: String?
+    @objc public var androidPackageName: String?
 
     /** @property androidMinimumVersion
         @brief The minimum Android version supported, if available.
      */
-    var androidMinimumVersion: String?
+    @objc public var androidMinimumVersion: String?
 
     /** @property androidInstallIfNotAvailable
         @brief Indicates whether the Android app should be installed on a device where it is not
            available.
      */
-    var androidInstallIfNotAvailable: Bool
+    @objc public var androidInstallIfNotAvailable: Bool = false
 
     /** @property dynamicLinkDomain
         @brief The Firebase Dynamic Link domain used for out of band code flow.
      */
-    var dynamicLinkDomain: String?
+    @objc public var dynamicLinkDomain: String?
 
     /** @fn setIOSBundleID
         @brief Sets the iOS bundle Id.
@@ -70,7 +70,7 @@ import Foundation
         @remarks If installIfNotAvailable is set to YES and the link is opened on an android device, it
             will try to install the app if not already available. Otherwise the web URL is used.
      */
-    func setAndroidPackageName(_ androidPackageName: String,
+    @objc public func setAndroidPackageName(_ androidPackageName: String,
             installIfNotAvailable: Bool,
                    minimumVersion: String?) {
         self.androidPackageName = androidPackageName

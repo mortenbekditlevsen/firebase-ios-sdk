@@ -20,7 +20,9 @@
 #import <Foundation/Foundation.h>
 
 #import "FirebaseAuth/Sources/Storage/FIRAuthKeychainServices.h"
-#import "FirebaseAuth/Sources/SystemService/FIRAuthAppCredential.h"
+//#import "FirebaseAuth/Sources/SystemService/FIRAuthAppCredential.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

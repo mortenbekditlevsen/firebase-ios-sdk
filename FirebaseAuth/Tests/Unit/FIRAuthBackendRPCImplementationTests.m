@@ -284,7 +284,7 @@ static NSString *const kTestValue = @"TestValue";
 }
 
 + (nullable instancetype)fakeResponseWithDecodingError {
-  NSError *decodingError = [FIRAuthErrorUtils unexpectedErrorResponseWithDeserializedResponse:self];
+  NSError *decodingError = [FIRAuthErrorUtilsX unexpectedErrorResponseWithDeserializedResponse:self];
   return [[self alloc] initWithDecodingError:decodingError];
 }
 

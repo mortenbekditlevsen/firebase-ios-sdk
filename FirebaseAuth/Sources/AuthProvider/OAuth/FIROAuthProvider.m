@@ -266,17 +266,17 @@ static NSString *const kCustomUrlSchemePrefix = @"app-";
                                                             options:0
                                                               error:&jsonError];
   if (jsonError) {
-    *error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:jsonError];
+    *error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:jsonError];
     return nil;
   }
-  *error = [FIRAuthErrorUtils URLResponseErrorWithCode:errorDict[@"code"]
+  *error = [FIRAuthErrorUtilsX URLResponseErrorWithCode:errorDict[@"code"]
                                                message:errorDict[@"message"]];
   if (!*error) {
     NSString *reason;
     if (errorDict[@"code"] && errorDict[@"message"]) {
       reason = [NSString stringWithFormat:@"[%@] - %@", errorDict[@"code"], errorDict[@"message"]];
     }
-    *error = [FIRAuthErrorUtils webSignInUserInteractionFailureWithReason:reason];
+    *error = [FIRAuthErrorUtilsX webSignInUserInteractionFailureWithReason:reason];
   }
   return nil;
 }
@@ -388,7 +388,7 @@ static NSString *const kCustomUrlSchemePrefix = @"app-";
                                                                      options:0
                                                                        error:&jsonError];
   if (jsonError) {
-    *error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:jsonError];
+    *error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:jsonError];
     return nil;
   }
 
