@@ -54,7 +54,7 @@ private let kURLResponseErrorCodeInternalError = "auth/internal-error"
 private let kFIRAuthErrorMessageMalformedJWT =
     "Failed to parse JWT. Check the userInfo dictionary for the full token."
 
-@objc(FIRAuthErrorUtilsX) public class AuthErrorUtils: NSObject {
+@objc(FIRAuthErrorUtils) public class AuthErrorUtils: NSObject {
 
     static func error(code: SharedErrorCode, userInfo: [String: Any]? = nil) -> Error {
         switch code {
@@ -487,29 +487,19 @@ private let kFIRAuthErrorMessageMalformedJWT =
     }
 
 #if os(iOS)
-//
-//    @objc public static func secondFactorRequiredError(pendingCredential: String, hints: [MultiFactorInfo]) -> Error {
-//        var userInfo: [String: Any] = [
-//            NSLocalizedDescriptionKey: kFIRAuthErrorMessageMalformedJWT,
-//            FIRAuthErrorUserInfoDataKey: token
-//        ]
-//        if let underlyingError {
-//            userInfo[NSUnderlyingErrorKey] = underlyingError
-//        }
-//        return error(code: .malformedJWT, userInfo: userInfo)
-//    }
-//
-//+ (NSError *)secondFactorRequiredErrorWithPendingCredential:(NSString *)MFAPendingCredential
-//                                                      hints:(NSArray<FIRMultiFactorInfo *> *)hints {
-//  NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-//  if (MFAPendingCredential && hints) {
-//    FIRMultiFactorResolver *resolver =
-//        [[FIRMultiFactorResolver alloc] initWithMFAPendingCredential:MFAPendingCredential
-//                                                               hints:hints];
-//    userInfo[FIRAuthErrorUserInfoMultiFactorResolverKey] = resolver;
-//  }
-//  return [self errorWithCode:FIRAuthInternalErrorCodeSecondFactorRequired userInfo:userInfo];
-//}
+
+    @objc public static func secondFactorRequiredError(resolver: MultiFactorResolverWrapper?) -> Error {
+        var userInfo: [String: Any] = [:]
+
+        if let resolver {
+            userInfo[FIRAuthErrorUserInfoMultiFactorResolverKey] = resolver
+        }
+
+        return error(code: .secondFactorRequired, userInfo: userInfo)
+    }
+
 #endif
 
 }
+
+@objc public protocol MultiFactorResolverWrapper: NSObjectProtocol {}

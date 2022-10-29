@@ -22,15 +22,11 @@
 #import "FirebaseAuth/Sources/Auth/FIRAuth_Internal.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend+MultiFactor.h"
 #import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactor+Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactorInfo+Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactorSession+Internal.h"
 #import "FirebaseAuth/Sources/User/FIRUser_Internal.h"
 
 #if TARGET_OS_IOS
-#import "FirebaseAuth/Sources/Public/FirebaseAuth/FIRPhoneMultiFactorAssertion.h"
 
 #import "FirebaseAuth/Sources/AuthProvider/Phone/FIRPhoneAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/Phone/FIRPhoneMultiFactorAssertion+Internal.h"
 #endif
 
 @import FirebaseAuthSwiftCore;
@@ -55,10 +51,11 @@ static NSString *kUserCodingKey = @"user";
                  completion:(nullable FIRAuthVoidErrorCallback)completion {
 #if TARGET_OS_IOS
   FIRPhoneMultiFactorAssertion *phoneAssertion = (FIRPhoneMultiFactorAssertion *)assertion;
+    FIRPhoneAuthCredential *authCredential = (FIRPhoneAuthCredential *)phoneAssertion.authCredential;
   FIRAuthProtoFinalizeMFAPhoneRequestInfo *finalizeMFAPhoneRequestInfo =
       [[FIRAuthProtoFinalizeMFAPhoneRequestInfo alloc]
-          initWithSessionInfo:phoneAssertion.authCredential.verificationID
-             verificationCode:phoneAssertion.authCredential.verificationCode];
+          initWithSessionInfo:authCredential.verificationID
+             verificationCode:authCredential.verificationCode];
   FIRFinalizeMFAEnrollmentRequest *request =
       [[FIRFinalizeMFAEnrollmentRequest alloc] initWithIDToken:self.user.rawAccessToken
                                                    displayName:displayName

@@ -65,7 +65,6 @@
 #import "FirebaseAuth/Sources/SystemService/FIRAuthStoredUserManager.h"
 #import "FirebaseAuth/Sources/User/FIRAdditionalUserInfo_Internal.h"
 #import "FirebaseAuth/Sources/User/FIRUser_Internal.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthExceptionUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
@@ -675,7 +674,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                                  requestConfiguration:_requestConfiguration];
 
   if (![request.password length]) {
-    callback(nil, [FIRAuthErrorUtilsX wrongPasswordErrorWithMessage:nil]);
+    callback(nil, [FIRAuthErrorUtils wrongPasswordErrorWithMessage:nil]);
     return;
   }
   [FIRAuthBackend
@@ -973,7 +972,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                    FIROAuthCredential *credential =
                        [[FIROAuthCredential alloc] initWithVerifyAssertionResponse:response];
                    callback(nil,
-                            [FIRAuthErrorUtilsX
+                            [FIRAuthErrorUtils
                                 accountExistsWithDifferentCredentialErrorWithEmail:email
                                                                  updatedCredential:credential]);
                  }
@@ -982,7 +981,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 
                if (!response.providerID.length) {
                  if (callback) {
-                   callback(nil, [FIRAuthErrorUtilsX
+                   callback(nil, [FIRAuthErrorUtils
                                      unexpectedResponseWithDeserializedResponse:response]);
                  }
                  return;
@@ -1283,7 +1282,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
     if (!user) {
       if (completion) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          completion([FIRAuthErrorUtilsX nullUserErrorWithMessage:nil]);
+          completion([FIRAuthErrorUtils nullUserErrorWithMessage:nil]);
         });
       }
       return;
@@ -1585,11 +1584,11 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
 //  }
 //
 //  if (!credential.verificationID.length) {
-//    callback(nil, [FIRAuthErrorUtilsX missingVerificationIDErrorWithMessage:nil]);
+//    callback(nil, [FIRAuthErrorUtils missingVerificationIDErrorWithMessage:nil]);
 //    return;
 //  }
 //  if (!credential.verificationCode.length) {
-//    callback(nil, [FIRAuthErrorUtilsX missingVerificationCodeErrorWithMessage:nil]);
+//    callback(nil, [FIRAuthErrorUtils missingVerificationCodeErrorWithMessage:nil]);
 //    return;
 //  }
 //  FIRVerifyPhoneNumberRequest *request =
@@ -1668,11 +1667,11 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
                               requestConfiguration:_requestConfiguration];
     if (![request.password length]) {
         completion(
-                   nil, [FIRAuthErrorUtilsX weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
+                   nil, [FIRAuthErrorUtils weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
         return;
     }
     if (![request.email length]) {
-        completion(nil, [FIRAuthErrorUtilsX missingEmailErrorWithMessage:nil]);
+        completion(nil, [FIRAuthErrorUtils missingEmailErrorWithMessage:nil]);
         return;
     }
     [FIRAuthBackend signUpNewUser:request callback:completion];
@@ -1964,7 +1963,7 @@ static NSMutableDictionary *gKeychainServiceNameForAppName;
   if (user) {
     if ((user.tenantID || self.tenantID) && ![self.tenantID isEqualToString:user.tenantID]) {
       if (error) {
-        *error = [FIRAuthErrorUtilsX tenantIDMismatchError];
+        *error = [FIRAuthErrorUtils tenantIDMismatchError];
       }
       return NO;
     }

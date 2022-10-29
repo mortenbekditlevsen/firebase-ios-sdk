@@ -22,7 +22,6 @@
 
 #import "FirebaseAuth/Sources/Auth/FIRAuthGlobalWorkQueue.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthDefaultUIDelegate.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthURLPresenter.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebViewController.h"
 
@@ -84,7 +83,7 @@ NS_ASSUME_NONNULL_BEGIN
     // Invoke the new completion closure and leave the old one as-is
     // to be invoked when the presentation finishes.
     dispatch_async(dispatch_get_main_queue(), ^() {
-      completion(nil, [FIRAuthErrorUtilsX webContextAlreadyPresentedErrorWithMessage:nil]);
+      completion(nil, [FIRAuthErrorUtils webContextAlreadyPresentedErrorWithMessage:nil]);
     });
     return;
   }
@@ -133,7 +132,7 @@ NS_ASSUME_NONNULL_BEGIN
       // TODO:Ensure that the SFSafariViewController is actually removed from the screen before
       // invoking finishPresentationWithURL:error:
       [self finishPresentationWithURL:nil
-                                error:[FIRAuthErrorUtilsX webContextCancelledErrorWithMessage:nil]];
+                                error:[FIRAuthErrorUtils webContextCancelledErrorWithMessage:nil]];
     }
   });
 }
@@ -154,7 +153,7 @@ NS_ASSUME_NONNULL_BEGIN
   dispatch_async(FIRAuthGlobalWorkQueue(), ^() {
     if (webViewController == self->_webViewController) {
       [self finishPresentationWithURL:nil
-                                error:[FIRAuthErrorUtilsX webContextCancelledErrorWithMessage:nil]];
+                                error:[FIRAuthErrorUtils webContextCancelledErrorWithMessage:nil]];
     }
   });
 }

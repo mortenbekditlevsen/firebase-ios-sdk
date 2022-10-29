@@ -35,13 +35,11 @@
 //#import "FirebaseAuth/Sources/Backend/RPC/MultiFactor/Enroll/FIRStartMFAEnrollmentRequest.h"
 //#import "FirebaseAuth/Sources/Backend/RPC/MultiFactor/Enroll/FIRStartMFAEnrollmentResponse.h"
 //#import "FirebaseAuth/Sources/Backend/RPC/Proto/Phone/FIRAuthProtoStartMFAPhoneRequestInfo.h"
-#import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactorSession+Internal.h"
 #import "FirebaseAuth/Sources/SystemService/FIRAuthAPNSToken.h"
 #import "FirebaseAuth/Sources/SystemService/FIRAuthAPNSTokenManager.h"
 //#import "FirebaseAuth/Sources/SystemService/FIRAuthAppCredential.h"
 #import "FirebaseAuth/Sources/SystemService/FIRAuthAppCredentialManager.h"
 #import "FirebaseAuth/Sources/SystemService/FIRAuthNotificationManager.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthURLPresenter.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
@@ -49,7 +47,6 @@
 
 #if TARGET_OS_IOS
 #import "FirebaseAuth/Sources/AuthProvider/Phone/FIRPhoneAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/Phone/FIRPhoneMultiFactorInfo+Internal.h"
 #endif
 
 NS_ASSUME_NONNULL_BEGIN
@@ -271,10 +268,10 @@ extern NSString *const FIRPhoneMultiFactorID;
                                                               options:0
                                                                 error:&jsonError];
     if (jsonError) {
-      *error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:jsonError];
+      *error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:jsonError];
       return nil;
     }
-    *error = [FIRAuthErrorUtilsX URLResponseErrorWithCode:errorDict[@"code"]
+    *error = [FIRAuthErrorUtils URLResponseErrorWithCode:errorDict[@"code"]
                                                  message:errorDict[@"message"]];
     if (!*error) {
       NSString *reason;
@@ -286,7 +283,7 @@ extern NSString *const FIRPhoneMultiFactorID;
                                              "response: %@",
                                             deepLinkURL];
       }
-      *error = [FIRAuthErrorUtilsX appVerificationUserInteractionFailureWithReason:reason];
+      *error = [FIRAuthErrorUtils appVerificationUserInteractionFailureWithReason:reason];
     }
   }
   return nil;
@@ -303,13 +300,13 @@ extern NSString *const FIRPhoneMultiFactorID;
                        UIDelegate:(nullable id<FIRAuthUIDelegate>)UIDelegate
                        completion:(nullable FIRVerificationResultCallback)completion {
   if (!phoneNumber.length) {
-    completion(nil, [FIRAuthErrorUtilsX missingPhoneNumberErrorWithMessage:nil]);
+    completion(nil, [FIRAuthErrorUtils missingPhoneNumberErrorWithMessage:nil]);
     return;
   }
   [_auth.notificationManager
     checkNotificationForwardingWithCallback:^(BOOL isNotificationBeingForwarded) {
       if (!isNotificationBeingForwarded) {
-        completion(nil, [FIRAuthErrorUtilsX notificationNotForwardedError]);
+        completion(nil, [FIRAuthErrorUtils notificationNotForwardedError]);
         return;
       }
       FIRVerificationResultCallback callback =
@@ -331,7 +328,7 @@ extern NSString *const FIRPhoneMultiFactorID;
                        completion:(nullable FIRVerificationResultCallback)completion {
   if (!phoneNumber.length) {
     if (completion) {
-      completion(nil, [FIRAuthErrorUtilsX missingPhoneNumberErrorWithMessage:nil]);
+      completion(nil, [FIRAuthErrorUtils missingPhoneNumberErrorWithMessage:nil]);
     }
     return;
   }
@@ -339,7 +336,7 @@ extern NSString *const FIRPhoneMultiFactorID;
     checkNotificationForwardingWithCallback:^(BOOL isNotificationBeingForwarded) {
       if (!isNotificationBeingForwarded) {
         if (completion) {
-          completion(nil, [FIRAuthErrorUtilsX notificationNotForwardedError]);
+          completion(nil, [FIRAuthErrorUtils notificationNotForwardedError]);
         }
         return;
       }
@@ -428,7 +425,7 @@ extern NSString *const FIRPhoneMultiFactorID;
 //                                              }
 //                                              callback(
 //                                                  nil,
-//                                                  [FIRAuthErrorUtilsX
+//                                                  [FIRAuthErrorUtils
 //                                                      unexpectedResponseWithDeserializedResponse:nil
 //                                                                                 underlyingError:
 //                                                                                     error]);
@@ -512,7 +509,7 @@ extern NSString *const FIRPhoneMultiFactorID;
 //                                                    if (callback) {
 //                                                      callback(
 //                                                          nil,
-//                                                          [FIRAuthErrorUtilsX
+//                                                          [FIRAuthErrorUtils
 //                                                              unexpectedResponseWithDeserializedResponse:
 //                                                                  nil
 //                                                                                         underlyingError:
@@ -564,7 +561,7 @@ extern NSString *const FIRPhoneMultiFactorID;
 //                                                if (callback) {
 //                                                  callback(
 //                                                      nil,
-//                                                      [FIRAuthErrorUtilsX
+//                                                      [FIRAuthErrorUtils
 //                                                          unexpectedResponseWithDeserializedResponse:
 //                                                              nil
 //                                                                                     underlyingError:

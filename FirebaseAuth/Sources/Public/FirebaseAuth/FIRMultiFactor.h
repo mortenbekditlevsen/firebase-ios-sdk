@@ -17,9 +17,8 @@
 #import <Foundation/Foundation.h>
 
 #import "FIRAuth.h"
-#import "FIRMultiFactorAssertion.h"
-#import "FIRMultiFactorInfo.h"
-#import "FIRMultiFactorSession.h"
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -17,7 +17,6 @@
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 
 @import FirebaseAuthSwiftCore;
 

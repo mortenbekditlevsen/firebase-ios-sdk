@@ -23,14 +23,13 @@
 #import "FirebaseAuth/Sources/Auth/FIRAuth_Internal.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend+MultiFactor.h"
 #import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactorResolver+Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/FIRMultiFactorSession+Internal.h"
 
 #if TARGET_OS_IOS
-#import "FirebaseAuth/Sources/Public/FirebaseAuth/FIRPhoneMultiFactorAssertion.h"
 
 #import "FirebaseAuth/Sources/AuthProvider/Phone/FIRPhoneAuthCredential_Internal.h"
-#import "FirebaseAuth/Sources/MultiFactor/Phone/FIRPhoneMultiFactorAssertion+Internal.h"
 #endif
+
+@import FirebaseAuthSwiftCore;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -43,7 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
     _MFAPendingCredential = MFAPendingCredential;
     _hints = hints;
     _auth = [FIRAuth auth];
-    _session = [[FIRMultiFactorSession alloc] init];
+    _session = [[FIRMultiFactorSession alloc] initWithIDToken:nil];
     _session.MFAPendingCredential = MFAPendingCredential;
   }
   return self;
@@ -53,10 +52,11 @@ NS_ASSUME_NONNULL_BEGIN
                         completion:(nullable FIRAuthDataResultCallback)completion {
 #if TARGET_OS_IOS
   FIRPhoneMultiFactorAssertion *phoneAssertion = (FIRPhoneMultiFactorAssertion *)assertion;
+    FIRPhoneAuthCredential *authCredential = (FIRPhoneAuthCredential *)phoneAssertion.authCredential;
   FIRAuthProtoFinalizeMFAPhoneRequestInfo *finalizeMFAPhoneRequestInfo =
       [[FIRAuthProtoFinalizeMFAPhoneRequestInfo alloc]
-          initWithSessionInfo:phoneAssertion.authCredential.verificationID
-             verificationCode:phoneAssertion.authCredential.verificationCode];
+          initWithSessionInfo:authCredential.verificationID
+             verificationCode:authCredential.verificationCode];
   FIRFinalizeMFASignInRequest *request = [[FIRFinalizeMFASignInRequest alloc]
       initWithMFAPendingCredential:self.MFAPendingCredential
                   verificationInfo:finalizeMFAPhoneRequestInfo

@@ -56,7 +56,7 @@ import Foundation
 
 }
 
-@objc(FIRAuthErrorCodeX) public enum AuthErrorCode: Int {
+@objc(FIRAuthErrorCode) public enum AuthErrorCode: Int {
     /** Indicates a validation error with the custom token.
      */
     case invalidCustomToken = 17000

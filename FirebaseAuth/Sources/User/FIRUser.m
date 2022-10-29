@@ -47,7 +47,6 @@
 #import "FirebaseAuth/Sources/User/FIRUserInfoImpl.h"
 #import "FirebaseAuth/Sources/User/FIRUserMetadata_Internal.h"
 #import "FirebaseAuth/Sources/User/FIRUser_Internal.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
 #if TARGET_OS_IOS
@@ -576,7 +575,7 @@ static void callInMainThreadWithAuthDataResultAndError(
            password:(nullable NSString *)password
            callback:(nonnull FIRUserProfileChangeCallback)callback {
   if (password && ![password length]) {
-    callback([FIRAuthErrorUtilsX weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
+    callback([FIRAuthErrorUtils weakPasswordErrorWithServerResponseReason:kMissingPasswordReason]);
     return;
   }
   BOOL hadEmailPasswordCredential = _hasEmailPasswordCredential;
@@ -801,7 +800,7 @@ static void callInMainThreadWithAuthDataResultAndError(
                                                // translate to user mismatch error which is more
                                                // accurate.
                                                if (error.code == FIRAuthErrorCodeUserNotFound) {
-                                                 error = [FIRAuthErrorUtilsX userMismatchError];
+                                                 error = [FIRAuthErrorUtils userMismatchError];
                                                }
                                                callInMainThreadWithAuthDataResultAndError(
                                                    completion, authResult, error);
@@ -811,7 +810,7 @@ static void callInMainThreadWithAuthDataResultAndError(
                                                      isEqual:[self->_auth getUserID]]) {
                                                callInMainThreadWithAuthDataResultAndError(
                                                    completion, authResult,
-                                                   [FIRAuthErrorUtilsX userMismatchError]);
+                                                   [FIRAuthErrorUtils userMismatchError]);
                                                return;
                                              }
                                              // Successful reauthenticate
@@ -925,7 +924,7 @@ static void callInMainThreadWithAuthDataResultAndError(
   // The JWT should have three parts, though we only use the second in this method.
   if (tokenStringArray.count != 3) {
     if (error) {
-      *error = [FIRAuthErrorUtilsX malformedJWTErrorWithToken:token underlyingError:nil];
+      *error = [FIRAuthErrorUtils malformedJWTErrorWithToken:token underlyingError:nil];
     }
     return nil;
   }
@@ -953,7 +952,7 @@ static void callInMainThreadWithAuthDataResultAndError(
                                           options:NSDataBase64DecodingIgnoreUnknownCharacters];
   if (!decodedTokenPayloadData) {
     if (error) {
-      *error = [FIRAuthErrorUtilsX malformedJWTErrorWithToken:token underlyingError:nil];
+      *error = [FIRAuthErrorUtils malformedJWTErrorWithToken:token underlyingError:nil];
     }
     return nil;
   }
@@ -965,14 +964,14 @@ static void callInMainThreadWithAuthDataResultAndError(
                                         error:&jsonError];
   if (jsonError != nil) {
     if (error) {
-      *error = [FIRAuthErrorUtilsX malformedJWTErrorWithToken:token underlyingError:jsonError];
+      *error = [FIRAuthErrorUtils malformedJWTErrorWithToken:token underlyingError:jsonError];
     }
     return nil;
   }
 
   if (!tokenPayloadDictionary) {
     if (error) {
-      *error = [FIRAuthErrorUtilsX malformedJWTErrorWithToken:token underlyingError:nil];
+      *error = [FIRAuthErrorUtils malformedJWTErrorWithToken:token underlyingError:nil];
     }
     return nil;
   }
@@ -1058,7 +1057,7 @@ static void callInMainThreadWithAuthDataResultAndError(
   dispatch_async(FIRAuthGlobalWorkQueue(), ^{
     if (self->_providerData[credential.provider]) {
       callInMainThreadWithAuthDataResultAndError(completion, nil,
-                                                 [FIRAuthErrorUtilsX providerAlreadyLinkedError]);
+                                                 [FIRAuthErrorUtils providerAlreadyLinkedError]);
       return;
     }
     FIRAuthDataResult *result = [[FIRAuthDataResult alloc] initWithUser:self
@@ -1066,7 +1065,7 @@ static void callInMainThreadWithAuthDataResultAndError(
     if ([credential isKindOfClass:[FIREmailPasswordAuthCredential class]]) {
       if (self->_hasEmailPasswordCredential) {
         callInMainThreadWithAuthDataResultAndError(completion, nil,
-                                                   [FIRAuthErrorUtilsX providerAlreadyLinkedError]);
+                                                   [FIRAuthErrorUtils providerAlreadyLinkedError]);
         return;
       }
       FIREmailPasswordAuthCredential *emailPasswordCredential =
@@ -1341,7 +1340,7 @@ static void callInMainThreadWithAuthDataResultAndError(
           setAccountInfoRequest.accessToken = accessToken;
 
           if (!self->_providerData[provider]) {
-            completeAndCallbackWithError([FIRAuthErrorUtilsX noSuchProviderError]);
+            completeAndCallbackWithError([FIRAuthErrorUtils noSuchProviderError]);
             return;
           }
           setAccountInfoRequest.deleteProviders = @[ provider ];

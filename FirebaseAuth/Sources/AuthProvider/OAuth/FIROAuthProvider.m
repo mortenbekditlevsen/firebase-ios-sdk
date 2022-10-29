@@ -24,7 +24,6 @@
 #import "FirebaseAuth/Sources/Auth/FIRAuth_Internal.h"
 #import "FirebaseAuth/Sources/AuthProvider/OAuth/FIROAuthCredential_Internal.h"
 #import "FirebaseAuth/Sources/Backend/FIRAuthBackend.h"
-#import "FirebaseAuth/Sources/Utilities/FIRAuthErrorUtils.h"
 #import "FirebaseAuth/Sources/Utilities/FIRAuthWebUtils.h"
 
 #if TARGET_OS_IOS
@@ -266,17 +265,17 @@ static NSString *const kCustomUrlSchemePrefix = @"app-";
                                                             options:0
                                                               error:&jsonError];
   if (jsonError) {
-    *error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:jsonError];
+    *error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:jsonError];
     return nil;
   }
-  *error = [FIRAuthErrorUtilsX URLResponseErrorWithCode:errorDict[@"code"]
+  *error = [FIRAuthErrorUtils URLResponseErrorWithCode:errorDict[@"code"]
                                                message:errorDict[@"message"]];
   if (!*error) {
     NSString *reason;
     if (errorDict[@"code"] && errorDict[@"message"]) {
       reason = [NSString stringWithFormat:@"[%@] - %@", errorDict[@"code"], errorDict[@"message"]];
     }
-    *error = [FIRAuthErrorUtilsX webSignInUserInteractionFailureWithReason:reason];
+    *error = [FIRAuthErrorUtils webSignInUserInteractionFailureWithReason:reason];
   }
   return nil;
 }
@@ -388,7 +387,7 @@ static NSString *const kCustomUrlSchemePrefix = @"app-";
                                                                      options:0
                                                                        error:&jsonError];
   if (jsonError) {
-    *error = [FIRAuthErrorUtilsX JSONSerializationErrorWithUnderlyingError:jsonError];
+    *error = [FIRAuthErrorUtils JSONSerializationErrorWithUnderlyingError:jsonError];
     return nil;
   }
 
