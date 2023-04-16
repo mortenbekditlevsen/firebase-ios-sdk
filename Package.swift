@@ -199,7 +199,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .branch("feature/SortedCollections")
+      .branch("main")
 //      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
     ),
     .package(
