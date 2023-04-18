@@ -653,7 +653,7 @@ class FLevelDBStorageEngine: FStorageEngine {
                 print("b", a as? [String: Any])
                 print("c", a as? [String: AnyHashable])
                 print("d", (a as? [String: Any]) as? [String: AnyHashable])
-                guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 print("JSON", queryJSON)
