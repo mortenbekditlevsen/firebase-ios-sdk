@@ -552,7 +552,8 @@ let package = Package(
     ),
     .target(
       name: "FirebaseDatabaseSwiftCore",
-      dependencies: [ "leveldb",
+      dependencies: [ "FirebaseSharedSwift",
+                      "leveldb",
                       .product(name: "Atomics", package: "swift-atomics"),
                       .product(name: "Logging", package: "swift-log"),
                       .product(name: "SortedCollections", package: "swift-collections"),
@@ -1044,6 +1045,20 @@ let package = Package(
       ],
       path: "SwiftPMTests/swift-test"
     ),
+    .target(
+      name: "FirebaseSharedSwift",
+      path: "FirebaseSharedSwift/Sources",
+      exclude: [
+        "third_party/FirebaseDataEncoder/LICENSE",
+        "third_party/FirebaseDataEncoder/METADATA",
+      ]
+    ),
+    .testTarget(
+      name: "FirebaseSharedSwiftTests",
+      dependencies: ["FirebaseSharedSwift"],
+      path: "FirebaseSharedSwift/Tests/"
+    ),
+
     .testTarget(
       name: "analytics-import-test",
       dependencies: [
