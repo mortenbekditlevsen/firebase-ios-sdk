@@ -61,7 +61,6 @@ public enum FSnapshotUtilities {
     }
 
      static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
-         print("VAL", val)
          guard depth <= kFirebaseMaxObjectDepth else {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")
@@ -121,7 +120,6 @@ public enum FSnapshotUtilities {
                  return .empty
              } else {
                  let dict = SortedDictionary(keysWithValues: children.map { (KeyIndex(key: $0.key), $0.value) })
-                 print("CHILDREN", dict)
                  return .children(dict, priority: priority)
              }
          } else if let aval = value as? [Any] {
