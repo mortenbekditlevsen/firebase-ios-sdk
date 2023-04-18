@@ -650,6 +650,7 @@ class FLevelDBStorageEngine: FStorageEngine {
                 guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
+                print("JSON", queryJSON)
                 guard let queryId = queryJSON[kFTrackedQueryId] as? Int else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
