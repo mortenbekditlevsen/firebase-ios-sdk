@@ -646,6 +646,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         var trackedQueries: [FTrackedQuery] = []
         serverCacheDB.enumerateKeys(withPrefix: kFTrackedQueriesPrefix, asData: { key, data, stop in
             do {
+                print("Data", String(data: data, encoding: .utf8))
                 guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
