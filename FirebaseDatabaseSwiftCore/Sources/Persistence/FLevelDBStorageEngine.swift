@@ -646,7 +646,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         var trackedQueries: [FTrackedQuery] = []
         serverCacheDB.enumerateKeys(withPrefix: kFTrackedQueriesPrefix, asData: { key, data, stop in
             do {
-                print("Data", String(data: data, encoding: .utf8))
+                print("Data", String(data: data, encoding: .utf8) ?? "-")
                 guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
@@ -726,7 +726,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         ]
         do {
             let data = try JSONSerialization.data(withJSONObject: trackedQuery)
-            print("SERIALIZED DATA", String(data: data, encoding: .utf8))
+            print("SERIALIZED DATA", String(data: data, encoding: .utf8) ?? "-")
             _ = serverCacheDB.setData(data, forKey: trackedQueryKey(trackedQueryId: query.queryId))
         } catch {
             assertionFailure("Failed to serialize tracked query (Error: \(error)")
