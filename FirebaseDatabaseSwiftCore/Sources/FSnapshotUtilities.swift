@@ -121,9 +121,10 @@ public enum FSnapshotUtilities {
                  return .empty
              } else {
                  let dict = SortedDictionary(keysWithValues: children.map { (KeyIndex(key: $0.key), $0.value) })
+                 print("CHILDREN", dict)
                  return .children(dict, priority: priority)
              }
-         } else if let aval = value as? [AnyHashable] {
+         } else if let aval = value as? [Any] {
              var children: [String: FNode] = .init(minimumCapacity: aval.count)
 
              for i in 0..<aval.count {
