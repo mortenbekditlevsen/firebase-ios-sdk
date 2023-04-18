@@ -73,7 +73,7 @@ public enum FSnapshotUtilities {
          if (val as? NSNull) === NSNull() {
              return .empty
          }
-         var value: AnyHashable = val
+         var value: Any = val
          FValidationSwift.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
          var priority = FSnapshotUtilities.nodeFrom(priority)
          var isLeafNode = false
@@ -82,7 +82,7 @@ public enum FSnapshotUtilities {
                  FValidationSwift.validateFrom(fn, isValidPriorityValue: rawPriority, withPath: path)
                  priority = nodeFrom(rawPriority)
              }
-             if let payload = dict[kPayloadValue] as? AnyHashable {
+             if let payload = dict[kPayloadValue] {
                  value = payload
                  if FValidationSwift.validateFrom(fn, isValidLeafValue: value, withPath: path) {
                      isLeafNode = true
@@ -95,8 +95,8 @@ public enum FSnapshotUtilities {
              isLeafNode = true
          }
 
-         if isLeafNode {
-             return FNode.leaf(value, priority: priority)
+         if isLeafNode, let hashable = value as? AnyHashable {
+             return FNode.leaf(hashable, priority: priority)
          }
 
          // Unlike with JS, we have to handle the dictionary and array cases
