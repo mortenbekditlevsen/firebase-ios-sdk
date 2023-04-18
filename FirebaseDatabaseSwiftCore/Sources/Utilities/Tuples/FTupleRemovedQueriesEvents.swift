@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FTupleRemovedQueriesEvents {
+struct FTupleRemovedQueriesEvents {
     /**
      * `FQuerySpec`s removed with [SyncPoint removeEventRegistration:]
      */

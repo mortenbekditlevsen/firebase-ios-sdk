@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FTuplePathValue {
+struct FTuplePathValue {
     public private(set) var path: FPath
     public private(set) var value: Any
 

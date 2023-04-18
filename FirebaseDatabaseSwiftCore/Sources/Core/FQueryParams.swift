@@ -8,37 +8,6 @@
 import Foundation
 
 private struct QueryParams: Hashable, Equatable {
-//    static func == (lhs: QueryParams, rhs: QueryParams) -> Bool {
-//        lhs.limitSet == rhs.limitSet &&
-//        lhs.limit == rhs.limit &&
-//        lhs.isViewFromLeft == rhs.isViewFromLeft &&
-//        (lhs.indexStartValue?.isEqual(rhs.indexStartValue) ?? true) &&
-//        (rhs.indexStartValue?.isEqual(lhs.indexStartValue) ?? true) &&
-//        lhs.indexStartKey == rhs.indexStartKey &&
-//        (lhs.indexEndValue?.isEqual(rhs.indexEndValue) ?? true) &&
-//        (rhs.indexEndValue?.isEqual(lhs.indexEndValue) ?? true) &&
-//        lhs.indexEndKey == rhs.indexEndKey &&
-//        lhs.index == rhs.index
-//    }
-//
-//    func hash(into hasher: inout Hasher) {
-//        limitSet.hash(into: &hasher)
-//        limit.hash(into: &hasher)
-//        isViewFromLeft.hash(into: &hasher)
-//        if let x = indexStartValue {
-//            x.hash.hash(into: &hasher)
-//        } else {
-//            "xyz".hash(into: &hasher)
-//        }
-//        indexStartKey.hash(into: &hasher)
-//        if let x = indexEndValue {
-//            x.hash.hash(into: &hasher)
-//        } else {
-//            "zyx".hash(into: &hasher)
-//        }
-//        index.hash(into: &hasher)
-//    }
-
     var isViewFromLeft: Bool {
         if viewFrom != nil {
             // Not null, we can just check
@@ -65,36 +34,6 @@ private struct QueryParams: Hashable, Equatable {
     var indexEndValue: FNode?
     var indexEndKey: String?
     var index: FIndex
-
-//
-//    static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
-//        guard dict.count > 0 else {
-//            return .defaultInstance
-//        }
-//        if let val = dict[kFQPIndexStartValue] {
-//            params.indexStartValue = FSnapshotUtilities.nodeFrom(val)
-//            if let key = dict[kFQPIndexStartName] as? String {
-//                params.indexStartKey = key
-//            }
-//        }
-//        if let val = dict[kFQPIndexEndValue] {
-//            params.indexEndValue = FSnapshotUtilities.nodeFrom(val)
-//            if let key = dict[kFQPIndexEndName] as? String {
-//                params.indexEndKey = key
-//            }
-//        }
-//        if let vf = dict[kFQPViewFrom] as? String {
-//            if vf != kFQPViewFromLeft && vf != kFQPViewFromRight {
-//                fatalError("Unknown view from paramter: \(vf)")
-//            }
-//            params.viewFrom = vf
-//        }
-//        if let index = dict[kFQPIndex] as? String {
-//            params.index = FIndexFactory.indexFromQueryDefinition(index)
-//        }
-//        return FQueryParams(params: params)
-//    }
-
 }
 
 public struct FQueryParams: Hashable {

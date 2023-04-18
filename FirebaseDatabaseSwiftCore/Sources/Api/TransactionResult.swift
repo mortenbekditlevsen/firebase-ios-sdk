@@ -11,7 +11,7 @@ import Foundation
  * Used for runTransactionBlock:. An FIRTransactionResult instance is a
  * container for the results of the transaction.
  */
-class TransactionResult {
+struct TransactionResult {
     internal enum AbortedError: Error {
         case aborted
     }
@@ -30,7 +30,7 @@ class TransactionResult {
      * @return An FIRTransactionResult instance that can be used as a return value
      * from the block given to runTransactionBlock:
      */
-    class func successWithValue(_ value: MutableData) -> TransactionResult {
+    static func successWithValue(_ value: MutableData) -> TransactionResult {
         .init(result: .success(value))
     }
 
@@ -41,7 +41,7 @@ class TransactionResult {
      * @return An FIRTransactionResult instance that can be used as a return value
      * from the block given to runTransactionBlock:
      */
-    class func abort() -> TransactionResult {
+    static func abort() -> TransactionResult {
         .init(result: .failure(.aborted))
     }
 }

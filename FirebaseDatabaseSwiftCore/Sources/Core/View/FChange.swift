@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FChange {
+struct FChange {
     public let type: DataEventType
     public let indexedNode: FIndexedNode
     public let childKey: String?

@@ -17,7 +17,7 @@ import Foundation
  * includes any path). Priorities of children nodes are treated as leaf children
  * of that node.
  */
-class FRangeMerge {
+struct FRangeMerge {
     let optExclusiveStart: FPath?
     let optInclusiveEnd: FPath?
     var updates: FNode
