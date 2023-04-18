@@ -648,8 +648,12 @@ class FLevelDBStorageEngine: FStorageEngine {
             do {
                 print("Data", String(data: data, encoding: .utf8) ?? "-")
                 let a = try JSONSerialization.jsonObject(with: data)
+
                 print("deserialized", a)
-                guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else {
+                print("b", a as? [String: Any])
+                print("c", a as? [String: AnyHashable])
+                print("d", (a as? [String: Any]) as? [String: AnyHashable])
+                guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 print("JSON", queryJSON)
@@ -660,7 +664,7 @@ class FLevelDBStorageEngine: FStorageEngine {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 let path = FPath(with: pathString)
-                guard let queryObject = queryJSON[kFTrackedQueryParams] as? [String: AnyHashable] else {
+                guard let queryObject = queryJSON[kFTrackedQueryParams] as? [String: Any] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 let params = FQueryParams.fromQueryObject(queryObject)
