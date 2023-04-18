@@ -726,6 +726,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         ]
         do {
             let data = try JSONSerialization.data(withJSONObject: trackedQuery)
+            print("SERIALIZED DATA", String(data: data, encoding: .utf8))
             _ = serverCacheDB.setData(data, forKey: trackedQueryKey(trackedQueryId: query.queryId))
         } catch {
             assertionFailure("Failed to serialize tracked query (Error: \(error)")
