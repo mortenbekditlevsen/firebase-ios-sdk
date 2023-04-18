@@ -61,6 +61,7 @@ public enum FSnapshotUtilities {
     }
 
      static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+         print("VAL", val)
          guard depth <= kFirebaseMaxObjectDepth else {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")

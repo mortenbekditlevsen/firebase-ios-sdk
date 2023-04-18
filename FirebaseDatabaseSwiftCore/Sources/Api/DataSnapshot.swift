@@ -74,7 +74,7 @@ public class DataSnapshot {
      *
      * @return YES if this snapshot contains a non-null value, else NO.
      */
-    var exists: Bool {
+    public var exists: Bool {
         !node.node.isEmpty
     }
 
