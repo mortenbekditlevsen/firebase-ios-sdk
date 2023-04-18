@@ -66,7 +66,7 @@ public enum FSnapshotUtilities {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")
          }
-         guard let val = val as? AnyHashable else {
+         guard let val else {
              return .empty
          }
 
