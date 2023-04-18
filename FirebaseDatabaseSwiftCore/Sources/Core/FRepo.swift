@@ -71,7 +71,7 @@ class FRepo: FPersistentConnectionDelegate {
         }
     }
 
-    private var interceptServerDataCallback: ((String, AnyHashable) -> AnyHashable)?
+    private var interceptServerDataCallback: ((String, Any) -> Any)?
 
     private func deferredInit() {
 //        print("DEFERRED INIT")
@@ -432,7 +432,7 @@ class FRepo: FPersistentConnectionDelegate {
         serverSyncTree.keepQuery(query, synced: synced)
     }
 
-    private func updateInfo(_ pathString: String, withValue value: AnyHashable) {
+    private func updateInfo(_ pathString: String, withValue value: Any) {
         // hack to make serverTimeOffset available in a threadsafe way. Property is
         // marked as atomic
         if pathString == kDotInfoServerTimeOffset {
@@ -480,7 +480,7 @@ class FRepo: FPersistentConnectionDelegate {
     // MARK: -
     // MARK: FPersistentConnectionDelegate methods
 
-    func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: AnyHashable, isMerge: Bool, tagId: Int?) {
+    func onDataUpdate(_ fpconnection: FPersistentConnection, forPath pathString: String, message: Any, isMerge: Bool, tagId: Int?) {
         FFLog("I-RDB038013", "onDataUpdateForPath: \(pathString) withMessage: \(message)")
 
         // For testing.
@@ -491,7 +491,7 @@ class FRepo: FPersistentConnectionDelegate {
         let events: [FEvent]
         if let tagId = tagId {
             if isMerge {
-                let taggedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
+                let taggedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: Any] ?? [:])
                 events = serverSyncTree.applyTaggedQueryMergeAtPath(path, changedChildren: taggedChildren, tagId: tagId)
             } else {
                 let taggedSnap = FSnapshotUtilities.nodeFrom(data)
@@ -499,7 +499,7 @@ class FRepo: FPersistentConnectionDelegate {
             }
         } else {
             if isMerge {
-                let changedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: AnyHashable] ?? [:])
+                let changedChildren = FCompoundWrite.compoundWrite(valueDictionary: data as? [String: Any] ?? [:])
                 events = serverSyncTree.applyServerMergeAtPath(path, changedChildren: changedChildren)
             } else {
                 let snap = FSnapshotUtilities.nodeFrom(data)
@@ -545,7 +545,7 @@ class FRepo: FPersistentConnectionDelegate {
         runOnDisconnectEvents()
     }
 
-    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : AnyHashable]) {
+    func onServerInfoUpdate(_ fpconnection: FPersistentConnection, updates: [String : Any]) {
         for (key, val) in updates {
             updateInfo(key, withValue: val)
         }

@@ -14,29 +14,29 @@ public enum FSnapshotUtilities {
         case v2
     }
 
-    static func nodeFrom(_ val: AnyHashable?) -> FNode {
+    static func nodeFrom(_ val: Any?) -> FNode {
         nodeFrom(val, priority: nil)
     }
 
-    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?) -> FNode {
         nodeFrom(val, priority: priority, withValidationFrom: "nodeFrom:priority:")
     }
 
-    static func nodeFrom(_ val: AnyHashable?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: nil, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String) -> FNode {
         var path: [String] = []
         return nodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: 0, path: &path)
     }
 
-    static func nodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+    static func nodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
         internalNodeFrom(val, priority: priority, withValidationFrom: fn, atDepth: depth, path: &path)
     }
 
-    static func compoundWriteFromDictionary(_ values: [String: AnyHashable], withValidationFrom fn: String) -> FCompoundWrite {
+    static func compoundWriteFromDictionary(_ values: [String: Any], withValidationFrom fn: String) -> FCompoundWrite {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for (keyId, value) in values {
@@ -60,28 +60,28 @@ public enum FSnapshotUtilities {
         return compoundWrite
     }
 
-     static func internalNodeFrom(_ val: AnyHashable?, priority: AnyHashable?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
+     static func internalNodeFrom(_ val: Any?, priority: Any?, withValidationFrom fn: String, atDepth depth: Int, path: inout [String]) -> FNode {
          guard depth <= kFirebaseMaxObjectDepth else {
              let pathString = path[0..<100].joined(separator: ".")
              fatalError("(\(fn)) Max object depth exceeded: \(pathString)...")
          }
-         guard let val = val else {
+         guard let val = val as? AnyHashable else {
              return .empty
          }
 
          if (val as? NSNull) === NSNull() {
              return .empty
          }
-         var value = val
+         var value: AnyHashable = val
          FValidationSwift.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
          var priority = FSnapshotUtilities.nodeFrom(priority)
          var isLeafNode = false
-         if let dict = val as? [String: AnyHashable] {
+         if let dict = val as? [String: Any] {
              if let rawPriority = dict[kPayloadPriority] {
                  FValidationSwift.validateFrom(fn, isValidPriorityValue: rawPriority, withPath: path)
                  priority = nodeFrom(rawPriority)
              }
-             if let payload = dict[kPayloadValue] {
+             if let payload = dict[kPayloadValue] as? AnyHashable {
                  value = payload
                  if FValidationSwift.validateFrom(fn, isValidLeafValue: value, withPath: path) {
                      isLeafNode = true
@@ -101,7 +101,7 @@ public enum FSnapshotUtilities {
          // Unlike with JS, we have to handle the dictionary and array cases
          // separately.
 
-         if let dval = value as? [String: AnyHashable] {
+         if let dval = value as? [String: Any] {
              var children: [String: FNode] = .init(minimumCapacity: dval.count)
 
              // Avoid creating a million newPaths by appending to old one
@@ -152,7 +152,7 @@ public enum FSnapshotUtilities {
     static func validatePriorityNode(_ priorityNode: FNode) {
         if priorityNode.isLeafNode() {
             let val = priorityNode.val()
-            if let valDict = val as? [String: AnyHashable] {
+            if let valDict = val as? [String: Any] {
                 assert(valDict[kServerValueSubKey] != nil, "Priority can't be object unless it's a deferred value")
             } else {
                 let jsType = FUtilities.getJavascriptType(val)
@@ -182,7 +182,7 @@ public enum FSnapshotUtilities {
         }
     }
 
-    static func estimateLeafNodeSize(_ value: AnyHashable, priority: FNode) -> Int {
+    static func estimateLeafNodeSize(_ value: Any, priority: FNode) -> Int {
         // These values are somewhat arbitrary, but we don't need an exact value so
         // prefer performance over exact value
         let valueSize: Int

@@ -232,7 +232,7 @@ public struct FQueryParams: Hashable {
         self.params = params
     }
 
-    static func fromQueryObject(_ dict: [String: AnyHashable]) -> FQueryParams {
+    static func fromQueryObject(_ dict: [String: Any]) -> FQueryParams {
         guard dict.count > 0 else {
             return .defaultInstance
         }
@@ -273,8 +273,8 @@ public struct FQueryParams: Hashable {
         params.hasEnd
     }
 
-    var wireProtocolParams: [String: AnyHashable] {
-        var dict: [String: AnyHashable] = [:]
+    var wireProtocolParams: [String: Any] {
+        var dict: [String: Any] = [:]
         if let value = params.indexStartValue {
             dict[kFQPIndexStartValue] = value.val(forExport: true)
         }

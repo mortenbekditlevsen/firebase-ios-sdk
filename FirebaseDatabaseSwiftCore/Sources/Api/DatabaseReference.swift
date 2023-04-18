@@ -93,7 +93,7 @@ public class DatabaseReference: DatabaseQuery {
 
     @param value The value to be written.
      */
-    public func setValue(_ value: AnyHashable?) {
+    public func setValue(_ value: Any?) {
         setValueInternal(value, andPriority: nil, completionBlock: nil, from: "setValue:")
     }
 
@@ -105,7 +105,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param block The block to be called after the write has been committed to the
      * Firebase Database servers.
      */
-    public func setValue(_ value: AnyHashable?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func setValue(_ value: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setValueInternal(value, andPriority: nil, completionBlock: block, from: "setValue:withCompletionBlock:")
     }
 
@@ -116,7 +116,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param value The value to be written.
      * @param priority The priority to be attached to that data.
      */
-    public func setValue(_ value: AnyHashable?, andPriority priority: AnyHashable?) {
+    public func setValue(_ value: Any?, andPriority priority: Any?) {
         setValueInternal(value, andPriority: priority, completionBlock: nil, from: "setValue:andPriority:")
     }
 
@@ -129,11 +129,11 @@ public class DatabaseReference: DatabaseQuery {
      * @param block The block to be called after the write has been committed to the
      * Firebase Database servers.
      */
-    public func setValue(_ value: AnyHashable?, andPriority priority: AnyHashable?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func setValue(_ value: Any?, andPriority priority: Any?, withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         setValueInternal(value, andPriority: priority, completionBlock: block, from: "setValue:andPriority:withCompletionBlock")
     }
 
-    private func setValueInternal(_ value: AnyHashable?, andPriority priority: AnyHashable?, completionBlock: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
+    private func setValueInternal(_ value: Any?, andPriority priority: Any?, completionBlock: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: self.path)
         let newNode = FSnapshotUtilities.nodeFrom(value, priority: priority, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
@@ -221,7 +221,7 @@ public class DatabaseReference: DatabaseQuery {
      *
      * @param values A dictionary of the keys to change and their new values
      */
-    public func updateChildValues(_ values: [String: AnyHashable]) {
+    public func updateChildValues(_ values: [String: Any]) {
         updateChildValuesInternal(values, withCompletionBlock: nil, from: "updateChildValues:")
     }
 
@@ -233,11 +233,11 @@ public class DatabaseReference: DatabaseQuery {
      * @param block The block that is triggered after the update has been written on
      * the Firebase Database servers
      */
-    public func updateChildValues(_ values: [String: AnyHashable], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    public func updateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         updateChildValuesInternal(values, withCompletionBlock: block, from: "updateChildValues:withCompletionBlock:")
     }
 
-    private func updateChildValuesInternal(_ values: [String: AnyHashable], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
+    private func updateChildValuesInternal(_ values: [String: Any], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: self.path)
         let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
@@ -724,7 +724,7 @@ public class DatabaseReference: DatabaseQuery {
      * @param values A dictionary of child node keys and the values to set them to
      * after the connection is lost.
      */
-    func onDisconnectUpdateChildValues(_ values: [String: AnyHashable]) {
+    func onDisconnectUpdateChildValues(_ values: [String: Any]) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: nil, from: "onDisconnectUpdateChildValues:")
     }
 
@@ -739,11 +739,11 @@ public class DatabaseReference: DatabaseQuery {
      * @param block A block that will be called once the operation has been queued
      * up on the Firebase Database servers
      */
-    func onDisconnectUpdateChildValues(_ values: [String: AnyHashable], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
+    func onDisconnectUpdateChildValues(_ values: [String: Any], withCompletionBlock block: @escaping (Error?, DatabaseReference) -> Void) {
         onDisconnectUpdateChildValuesInternal(values, withCompletionBlock: block, from: "onDisconnectUpdateChildValues:withCompletionBlock:")
     }
 
-    private func onDisconnectUpdateChildValuesInternal(_ values: [String: AnyHashable], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
+    private func onDisconnectUpdateChildValuesInternal(_ values: [String: Any], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
         FValidationSwift.validateFrom(fn, writablePath: path)
         let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {

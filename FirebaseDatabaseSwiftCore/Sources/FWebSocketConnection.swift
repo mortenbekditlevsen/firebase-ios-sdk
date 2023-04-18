@@ -262,7 +262,7 @@ protocol FConnectionDelegate: AnyObject {
                  atTime timestamp: Double,
                  sessionID: String)
 
-    func onDataMessage(_ connection: FConnection, withMessage message: [String: AnyHashable])
+    func onDataMessage(_ connection: FConnection, withMessage message: [String: Any])
     func onDisconnect(_ connection: FConnection, withReason reason: FDisconnectReason)
     func onKill(_ connection: FConnection, withReason: String)
 }

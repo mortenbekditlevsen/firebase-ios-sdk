@@ -23,7 +23,7 @@ struct FCompoundWrite: Hashable {
     /**
      * Creates a compound write with NSDictionary from path string to object
      */
-    static func compoundWrite(valueDictionary dictionary: [String: AnyHashable]) -> FCompoundWrite {
+    static func compoundWrite(valueDictionary dictionary: [String: Any]) -> FCompoundWrite {
         var writeTree: FImmutableTree<FNode> = .empty
         for (path, value) in dictionary {
             let node = FSnapshotUtilities.nodeFrom(value)
@@ -207,8 +207,8 @@ struct FCompoundWrite: Hashable {
         }
     }
 
-    func valForExport(_ exportFormat: Bool) -> [String: AnyHashable] {
-        var dictionary: [String: AnyHashable] = [:]
+    func valForExport(_ exportFormat: Bool) -> [String: Any] {
+        var dictionary: [String: Any] = [:]
         writeTree.forEach { path, value in
             dictionary[path.wireFormat()] = value.val(forExport: exportFormat)
         }

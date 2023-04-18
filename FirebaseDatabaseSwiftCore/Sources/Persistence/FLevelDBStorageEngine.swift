@@ -317,12 +317,12 @@ class FLevelDBStorageEngine: FStorageEngine {
         var writes: [FWriteRecord] = []
         writesDB.enumerateKeysAndValues { (key: String, data: Data, stop: inout Bool) in
             do {
-                guard let writeJSON = try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable] else { return }
+                guard let writeJSON = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
                 guard let writeId = writeJSON[kFUserWriteId] as? Int else { return }
                 guard let pathString = writeJSON[kFUserWritePath] as? String else { return }
                 let path = FPath(with: pathString)
                 let writeRecord: FWriteRecord
-                if let dictionary = writeJSON[kFUserWriteMerge] as? [String: AnyHashable] {
+                if let dictionary = writeJSON[kFUserWriteMerge] as? [String: Any] {
                     // It's a merge
                     let merge = FCompoundWrite.compoundWrite(valueDictionary: dictionary)
                     writeRecord = FWriteRecord(path: path, merge: merge, writeId: writeId)
@@ -358,7 +358,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         return node
     }
 
-    private func internalNestedData(for path: FPath) -> AnyHashable? {
+    private func internalNestedData(for path: FPath) -> Any? {
         let baseKey = serverCacheKey(path)
 
         // HACK to make sure iter is freed now to avoid race conditions (if self.db
@@ -385,14 +385,14 @@ class FLevelDBStorageEngine: FStorageEngine {
 //        }
     }
 
-    private func internalNestedDataFromIterator(_ iterator: APLevelDBIterator, andKeyPrefix prefix: String) -> AnyHashable? {
+    private func internalNestedDataFromIterator(_ iterator: APLevelDBIterator, andKeyPrefix prefix: String) -> Any? {
         var key = iterator.key()
         if key == prefix {
             let result = deserializePrimitive(iterator.valueAsData())
             _ = iterator.nextKey()
             return result
         } else {
-            var dict: [String: AnyHashable] = [:]
+            var dict: [String: Any] = [:]
             while let aKey = key, (key?.hasPrefix(prefix) ?? false) {
                 let index = aKey.index(aKey.startIndex, offsetBy: prefix.count)
                 let relativePath = aKey[index...]
@@ -418,7 +418,7 @@ class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    private func fixDoubleParsing(_ value: AnyHashable) -> AnyHashable {
+    private func fixDoubleParsing(_ value: Any) -> Any {
         if let decimal = value as? NSDecimalNumber {
             // In case the value is an NSDecimalNumber, we may be dealing with
             // precisions that are higher than what can be represented in a double.
@@ -478,10 +478,10 @@ class FLevelDBStorageEngine: FStorageEngine {
         return value
     }
 
-    private func deserializePrimitive(_ data: Data?) -> AnyHashable {
+    private func deserializePrimitive(_ data: Data?) -> Any {
         guard let data = data else { return NSNull() }
         do {
-            let result = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? AnyHashable ?? NSNull() as AnyHashable
+            let result = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
             return fixDoubleParsing(result)
         } catch {
             if (error as NSError).code == kFNanFailureCode {
@@ -646,17 +646,11 @@ class FLevelDBStorageEngine: FStorageEngine {
         var trackedQueries: [FTrackedQuery] = []
         serverCacheDB.enumerateKeys(withPrefix: kFTrackedQueriesPrefix, asData: { key, data, stop in
             do {
-                print("Data", String(data: data, encoding: .utf8) ?? "-")
                 let a = try JSONSerialization.jsonObject(with: data)
 
-                print("deserialized", a)
-                print("b", a as? [String: Any])
-                print("c", a as? [String: AnyHashable])
-                print("d", (a as? [String: Any]) as? [String: AnyHashable])
                 guard let queryJSON = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
-                print("JSON", queryJSON)
                 guard let queryId = queryJSON[kFTrackedQueryId] as? Int else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
@@ -664,8 +658,7 @@ class FLevelDBStorageEngine: FStorageEngine {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 let path = FPath(with: pathString)
-                guard let queryObject = queryJSON[kFTrackedQueryParams] as? [String: AnyHashable] else {
-                    print("blah")
+                guard let queryObject = queryJSON[kFTrackedQueryParams] as? [String: Any] else {
                     throw FLevelDBStorageEngineError.decodingError
                 }
                 let params = FQueryParams.fromQueryObject(queryObject)
@@ -733,7 +726,6 @@ class FLevelDBStorageEngine: FStorageEngine {
         ]
         do {
             let data = try JSONSerialization.data(withJSONObject: trackedQuery)
-            print("SERIALIZED DATA", String(data: data, encoding: .utf8) ?? "-")
             _ = serverCacheDB.setData(data, forKey: trackedQueryKey(trackedQueryId: query.queryId))
         } catch {
             assertionFailure("Failed to serialize tracked query (Error: \(error)")

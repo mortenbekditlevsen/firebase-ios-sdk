@@ -66,10 +66,10 @@ public final class FConnection: FWebSocketDelegate {
         close(with: .other)
     }
 
-    func sendRequest(_ dataMsg: [String: AnyHashable], sensitive: Bool) {
+    func sendRequest(_ dataMsg: [String: Any], sensitive: Bool) {
         // since this came from the persistent connection, wrap it in a data message
         // envelope
-        let msg: [String: AnyHashable] = [
+        let msg: [String: Any] = [
             kFWPRequestType: kFWPRequestTypeData,
             kFWPRequestDataPayload: dataMsg
         ]
@@ -77,7 +77,7 @@ public final class FConnection: FWebSocketDelegate {
         sendData(msg, sensitive: sensitive)
     }
 
-    private func sendData(_ data: [String: AnyHashable], sensitive: Bool) {
+    private func sendData(_ data: [String: Any], sensitive: Bool) {
         if state != .connected {
             fatalError("Tried to send data on an unconnected FConnection")
         } else {
@@ -122,7 +122,7 @@ public final class FConnection: FWebSocketDelegate {
         withMessage message: [String: Any]
     ) {
         if let rawMessageType = message[kFWPAsyncServerEnvelopeType] as? String {
-            if rawMessageType == kFWPAsyncServerDataMessage, let data = message[kFWPAsyncServerEnvelopeData] as? [String: AnyHashable] {
+            if rawMessageType == kFWPAsyncServerDataMessage, let data = message[kFWPAsyncServerEnvelopeData] as? [String: Any] {
                 onDataMessage(data)
             } else if rawMessageType == kFWPAsyncServerControlMessage, let data = message[kFWPAsyncServerEnvelopeData] as? [String: Any] {
                 onControl(data)
@@ -134,7 +134,7 @@ public final class FConnection: FWebSocketDelegate {
         }
     }
 
-    func onDataMessage(_ message: [String: AnyHashable]?) {
+    func onDataMessage(_ message: [String: Any]?) {
         guard let message = message else { return }
         // we don't do anything with data messages, just kick them up a level
         FFLog("I-RDB082010", "Got data message: \(message)")

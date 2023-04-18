@@ -89,7 +89,7 @@ public enum FValidationSwift {
 //            if numberValue === kCFBooleanTrue || numberValue === kCFBooleanFalse {
 //                return handleError("true/false")
 //            }
-        } else if let dval = value as? [String: AnyHashable] {
+        } else if let dval = value as? [String: Any] {
             if dval[kServerValueSubKey] != nil {
                 if dval.count > 1 {
                     return handleError("other keys with server value keys")
@@ -123,7 +123,7 @@ public enum FValidationSwift {
                 handleError("Cannot store NaN at path:")
             }
             return true
-        } else if let dval = value as? [String: AnyHashable] {
+        } else if let dval = value as? [String: Any] {
             if dval[kServerValueSubKey] != nil {
                 guard dval.count <= 1 else {
                     handleError("Cannot store other keys with server value keys. ")

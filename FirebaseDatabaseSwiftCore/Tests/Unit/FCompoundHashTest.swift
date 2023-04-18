@@ -10,7 +10,7 @@ import Foundation
 @testable import FirebaseDatabaseSwiftCore
 import XCTest
 
-func NODE(_ dict: [String: AnyHashable]) -> FNode {
+func NODE(_ dict: [String: Any]) -> FNode {
     FSnapshotUtilities.nodeFrom(dict)
 }
 func PATH(_ pathString: String) -> FPath {

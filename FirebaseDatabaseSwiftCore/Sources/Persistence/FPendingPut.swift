@@ -69,8 +69,8 @@ class FPendingPutPriority: NSCoding {
 
 class FPendingUpdate: NSCoding {
     public let path: FPath
-    public let data: [String: AnyHashable]
-    init(path: FPath, andData data: [String: AnyHashable]) {
+    public let data: [String: Any]
+    init(path: FPath, andData data: [String: Any]) {
         self.path = path
         self.data = data
     }
@@ -84,7 +84,7 @@ class FPendingUpdate: NSCoding {
             return nil
         }
         self.path = FPath(with: path)
-        guard let data = coder.decodeObject(forKey: "data") as? [String: AnyHashable] else {
+        guard let data = coder.decodeObject(forKey: "data") as? [String: Any] else {
             return nil
         }
         self.data = data

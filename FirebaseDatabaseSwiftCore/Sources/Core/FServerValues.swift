@@ -63,12 +63,12 @@ class ExistingValueProvider: ValueProvider {
 
 class FServerValues {
     private static func resolveScalarServerOp(_ op: String,
-                                              withServerValues serverValues: [String: AnyHashable]) -> AnyHashable? {
-        serverValues[op]
+                                              withServerValues serverValues: [String: Any]) -> AnyHashable? {
+        serverValues[op] as? AnyHashable
     }
-    private static func resolveComplexServerOp(_ op: [String: AnyHashable],
+    private static func resolveComplexServerOp(_ op: [String: Any],
                                                withValueProvider jitExisting: ValueProvider,
-                                              serverValues: [String: AnyHashable]) -> AnyHashable? {
+                                              serverValues: [String: Any]) -> AnyHashable? {
         // Only increment is supported as of now
         guard let delta = op[kIncrement] as? NSNumber else {
             return nil
@@ -96,7 +96,7 @@ class FServerValues {
         return NSNumber(value: delta.doubleValue + existingNum.doubleValue)
     }
 
-    private static func resolveDeferredValue(_ val: AnyHashable, withExisting existing: ValueProvider, serverValues: [String: AnyHashable]) -> AnyHashable? {
+    private static func resolveDeferredValue(_ val: AnyHashable, withExisting existing: ValueProvider, serverValues: [String: Any]) -> AnyHashable? {
         guard let dict = val as? [String: AnyHashable] else {
             return val
         }
@@ -105,14 +105,14 @@ class FServerValues {
         }
         if let stringOp = op as? String {
             return FServerValues.resolveScalarServerOp(stringOp, withServerValues: serverValues)
-        } else if let dictOp = op as? [String: AnyHashable] {
+        } else if let dictOp = op as? [String: Any] {
             return FServerValues.resolveComplexServerOp(dictOp, withValueProvider: existing, serverValues: serverValues)
         }
         return val
     }
 
     private static func resolveDeferredValueSnapshot(_ node: FNode,
-                                                     withValueProvider existing: ValueProvider, serverValues: [String: AnyHashable]) -> FNode {
+                                                     withValueProvider existing: ValueProvider, serverValues: [String: Any]) -> FNode {
 
         let priorityVal = FServerValues.resolveDeferredValue(node.getPriority().val(), withExisting: existing.getChild(".priority"), serverValues: serverValues)
         let priority = FSnapshotUtilities.nodeFrom(priorityVal)
@@ -142,13 +142,13 @@ class FServerValues {
         }
     }
 
-    static func generateServerValues(_ clock: FClock) -> [String: AnyHashable] {
+    static func generateServerValues(_ clock: FClock) -> [String: Any] {
         let millis = UInt64(clock.currentTime * 1000)
         let nsnum = NSNumber(value: millis)
         return [ kTimestamp: nsnum ]
     }
 
-    static func resolveDeferredValueCompoundWrite(_ write: FCompoundWrite, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: AnyHashable]) -> FCompoundWrite {
+    static func resolveDeferredValueCompoundWrite(_ write: FCompoundWrite, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FCompoundWrite {
         var resolved = write
         write.enumerateWrites { subPath, node, stop in
             let existing = DeferredValueProvider(syncTree: tree, atPath: path.child(subPath))
@@ -161,12 +161,12 @@ class FServerValues {
         return resolved
     }
 
-    static func resolveDeferredValueSnapshot(_ node: FNode, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: AnyHashable]) -> FNode {
+    static func resolveDeferredValueSnapshot(_ node: FNode, withSyncTree tree: FSyncTree, atPath path: FPath, serverValues: [String: Any]) -> FNode {
         let jitExisting = DeferredValueProvider(syncTree: tree, atPath: path)
         return FServerValues.resolveDeferredValueSnapshot(node, withValueProvider: jitExisting, serverValues: serverValues)
     }
 
-    static func resolveDeferredValueSnapshot(_ node: FNode, withExisting existing: FNode?, serverValues: [String: AnyHashable]) -> FNode {
+    static func resolveDeferredValueSnapshot(_ node: FNode, withExisting existing: FNode?, serverValues: [String: Any]) -> FNode {
         let jitExisting = ExistingValueProvider(snapshot: existing)
         return FServerValues.resolveDeferredValueSnapshot(node, withValueProvider: jitExisting, serverValues: serverValues)
     }

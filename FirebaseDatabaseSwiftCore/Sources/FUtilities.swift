@@ -263,7 +263,7 @@ enum FUtilities {
     }
 
     static func getJavascriptType(_ obj: Any) -> JavaScriptType {
-        if obj is [String: AnyHashable] {
+        if obj is [String: Any] {
             return .object
         } else if obj is String {
             return .string
