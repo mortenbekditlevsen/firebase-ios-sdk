@@ -2176,13 +2176,11 @@ extension __JSONDecoder {
     if let rcValue = value as? FirebaseRemoteConfigValueDecoding {
       return rcValue.boolValue()
     }
-    if let number = value as? NSNumber {
-      // TODO: Add a flag to coerce non-boolean numbers into Bools?
-      if number === kCFBooleanTrue as NSNumber {
-        return true
-      } else if number === kCFBooleanFalse as NSNumber {
-        return false
-      }
+      let boolID = CFBooleanGetTypeID() // the type ID of CFBoolean
+
+    if let number = value as? NSNumber, CFGetTypeID(number) == boolID {
+        // TODO: Add a flag to coerce non-boolean numbers into Bools?
+        return number.boolValue
 
       /* FIXME: If swift-corelibs-foundation doesn't change to use NSNumber, this code path will need to be included and tested:
        } else if let bool = value as? Bool {
@@ -2203,9 +2201,10 @@ extension __JSONDecoder {
 
   fileprivate func getNumber(_ value: Any, as type: Any.Type) throws -> NSNumber {
     let val = rcValNumberAdaptor(value)
-    guard let number = val as? NSNumber, number !== kCFBooleanTrue, number !== kCFBooleanFalse else {
-      throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: val)
-    }
+      let boolID = CFBooleanGetTypeID() // the type ID of CFBoolean
+      guard let number = val as? NSNumber, CFGetTypeID(number) != boolID else {
+          throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: val)
+      }
     return number
   }
 
@@ -2333,7 +2332,9 @@ extension __JSONDecoder {
     guard !(value is NSNull) else { return nil }
 
     let val = rcValNumberAdaptor(value)
-    if let number = val as? NSNumber, number !== kCFBooleanTrue, number !== kCFBooleanFalse {
+      let boolID = CFBooleanGetTypeID() // the type ID of CFBoolean
+
+    if let number = val as? NSNumber, CFGetTypeID(number) != boolID {
       // We are willing to return a Float by losing precision:
       // * If the original value was integral,
       //   * and the integral value was > Float.greatestFiniteMagnitude, we will fail
@@ -2380,7 +2381,9 @@ extension __JSONDecoder {
     guard !(value is NSNull) else { return nil }
 
     let val = rcValNumberAdaptor(value)
-    if let number = val as? NSNumber, number !== kCFBooleanTrue, number !== kCFBooleanFalse {
+      let boolID = CFBooleanGetTypeID() // the type ID of CFBoolean
+
+    if let number = val as? NSNumber, CFGetTypeID(number) != boolID {
       // We are always willing to return the number as a Double:
       // * If the original value was integral, it is guaranteed to fit in a Double; we are willing to lose precision past 2^53 if you encoded a UInt64 but requested a Double
       // * If it was a Float or Double, you will get back the precise value
