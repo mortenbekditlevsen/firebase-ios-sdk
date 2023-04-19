@@ -5,6 +5,7 @@
 //  Created by Morten Bek Ditlevsen on 18/04/2023.
 //
 
+import FirebaseSharedSwift
 import Foundation
 
 enum InternalError: Error {
@@ -39,18 +40,12 @@ extension DatabaseQuery {
                            decoder: Database.Decoder =
                            Database.Decoder()) async throws -> T {
         try await withCheckedThrowingContinuation { continuation in
-            self.obserSingleEventOfType(.value) { error, snapshot in
-                if let error {
+            self.observeSingleEventOfType(.value) { snapshot in
+                do {
+                    let data = try snapshot.data(as: T.self, decoder: decoder)
+                    continuation.resume(returning: data)
+                } catch {
                     continuation.resume(throwing: error)
-                } else if let snapshot {
-                    do {
-                        let data = try snapshot.data(as: T.self, decoder: decoder)
-                        continuation.resume(returning: data)
-                    } catch {
-                        continuation.resume(throwing: error)
-                    }
-                } else {
-                    continuation.resume(throwing: InternalError.error)
                 }
             }
 
