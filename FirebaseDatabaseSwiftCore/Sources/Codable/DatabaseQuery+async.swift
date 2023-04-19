@@ -34,4 +34,27 @@ extension DatabaseQuery {
 
         }
     }
+
+    public func observeSingle<T: Decodable>(as type: T.Type,
+                           decoder: Database.Decoder =
+                           Database.Decoder()) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            self.obserSingleEventOfType(.value) { error, snapshot in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let snapshot {
+                    do {
+                        let data = try snapshot.data(as: T.self, decoder: decoder)
+                        continuation.resume(returning: data)
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                } else {
+                    continuation.resume(throwing: InternalError.error)
+                }
+            }
+
+        }
+    }
+
 }
