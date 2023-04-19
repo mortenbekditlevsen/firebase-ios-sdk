@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+@_implementationOnly import CoreFoundation
 
 public protocol StructureCodingPassthroughTypeResolver {
     static func isPassthroughType<T>(_ t: T) -> Bool
