@@ -13,7 +13,7 @@ enum InternalError: Error {
 
 @available(iOS 13.0, *)
 extension DatabaseQuery {
-    public func get<T: Decodable>(as type: T.Type,
+    func get<T: Decodable>(as type: T.Type,
                            decoder: Database.Decoder =
                            Database.Decoder()) async throws -> T {
         try await withCheckedThrowingContinuation { continuation in
