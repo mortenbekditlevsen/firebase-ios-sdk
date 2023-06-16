@@ -314,7 +314,7 @@ import FirebaseCore
         }
       }
 
-      class FakePresenter: NSObject, AuthWebViewControllerDelegate {
+      class FakePresenter: AuthWebViewControllerDelegate {
         func webViewController(_ webViewController: AuthWebViewController,
                                canHandle URL: URL) -> Bool {
           XCTFail("Do not call")

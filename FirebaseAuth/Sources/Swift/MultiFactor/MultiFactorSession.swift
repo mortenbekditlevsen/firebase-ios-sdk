@@ -21,7 +21,7 @@ import Foundation
           This class is available on iOS only.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRMultiFactorSession) public class MultiFactorSession: NSObject {
+   public class MultiFactorSession {
     var idToken: String?
 
     var mfaPendingCredential: String?

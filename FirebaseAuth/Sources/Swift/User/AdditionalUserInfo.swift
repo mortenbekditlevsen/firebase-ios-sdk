@@ -14,7 +14,7 @@
 
 import Foundation
 
-@objc(FIRAdditionalUserInfo) public class AdditionalUserInfo: NSObject, NSSecureCoding {
+ public class AdditionalUserInfo: NSSecureCoding {
   private static let providerIDCodingKey = "providerID"
   private static let profileCodingKey = "profile"
   private static let usernameCodingKey = "username"
@@ -23,29 +23,29 @@ import Foundation
   /** @property providerID
       @brief The provider identifier.
    */
-  @objc public let providerID: String?
+  public let providerID: String?
 
   /** @property profile
       @brief Dictionary containing the additional IdP specific information.
    */
-  @objc public let profile: [String: Any]?
+  public let profile: [String: Any]?
 
   /** @property username
       @brief username The name of the user.
    */
-  @objc public let username: String?
+  public let username: String?
 
   /** @property isMewUser
       @brief Indicates whether or not the current user was signed in for the first time.
    */
-  @objc public let isNewUser: Bool
+  public let isNewUser: Bool
 
   // Maintain newUser for Objective C API.
-  @objc public func newUser() -> Bool {
+  public func newUser() -> Bool {
     return isNewUser
   }
 
-  @objc public static func userInfo(verifyAssertionResponse: VerifyAssertionResponse)
+  public static func userInfo(verifyAssertionResponse: VerifyAssertionResponse)
     -> AdditionalUserInfo {
     return AdditionalUserInfo(providerID: verifyAssertionResponse.providerID,
                               profile: verifyAssertionResponse.profile,

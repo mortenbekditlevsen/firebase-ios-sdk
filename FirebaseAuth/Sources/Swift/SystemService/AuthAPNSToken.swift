@@ -20,9 +20,9 @@
   /** @class AuthAPNSToken
       @brief A data structure for an APNs token.
    */
-  @objc(FIRAuthAPNSToken) public class AuthAPNSToken: NSObject {
-    @objc public let data: Data
-    @objc public let type: AuthAPNSTokenType
+   public class AuthAPNSToken {
+    public let data: Data
+    public let type: AuthAPNSTokenType
 
     /** @fn initWithData:type:
         @brief Initializes the instance.
@@ -38,7 +38,7 @@
     /** @property string
         @brief The uppercase hexadecimal string form of the APNs token data.
      */
-    @objc public lazy var string: String = {
+    public lazy var string: String = {
       let byteArray = [UInt8](data)
       var s = ""
       for byte in byteArray {

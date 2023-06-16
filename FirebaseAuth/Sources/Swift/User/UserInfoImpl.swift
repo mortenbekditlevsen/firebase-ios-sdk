@@ -14,14 +14,14 @@
 
 import Foundation
 
-@objc(FIRUserInfoImpl) public class UserInfoImpl: NSObject, UserInfo, NSSecureCoding {
+ public class UserInfoImpl: UserInfo, Codable {
   /** @fn userInfoWithGetAccountInfoResponseProviderUserInfo:
       @brief A convenience factory method for constructing a @c FIRUserInfo instance from data
           returned by the getAccountInfo endpoint.
       @param providerUserInfo Data returned by the getAccountInfo endpoint.
       @return A new instance of @c FIRUserInfo using data from the getAccountInfo endpoint.
    */
-  @objc public class func userInfo(withGetAccountInfoResponseProviderUserInfo providerUserInfo: GetAccountInfoResponseProviderUserInfo)
+  public class func userInfo(withGetAccountInfoResponseProviderUserInfo providerUserInfo: GetAccountInfoResponseProviderUserInfo)
     -> UserInfoImpl {
     guard let providerID = providerUserInfo.providerID,
           let uid = providerUserInfo.federatedID else {
@@ -45,7 +45,7 @@ import Foundation
       @param email The user's email address.
       @param phoneNumber The user's phone number.
    */
-  @objc public init(withProviderID providerID: String,
+  public init(withProviderID providerID: String,
                     userID: String,
                     displayName: String?,
                     photoURL: URL?,

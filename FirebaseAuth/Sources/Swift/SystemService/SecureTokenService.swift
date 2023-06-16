@@ -30,11 +30,11 @@ private let kFiveMinutes = 5 * 60.0
     @brief A class represents a credential that proves the identity of the app.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRSecureTokenService) public class SecureTokenService: NSObject, NSSecureCoding {
+ public class SecureTokenService: Codable {
   /** @property requestConfiguration
       @brief The configuration for making requests to server.
    */
-  @objc public var requestConfiguration: AuthRequestConfiguration?
+  public var requestConfiguration: AuthRequestConfiguration?
 
   /** @property accessToken
       @brief The cached access token.
@@ -42,18 +42,18 @@ private let kFiveMinutes = 5 * 60.0
           deserialization and sign-in events, and should not be used to retrieve the access token by
           anyone else.
    */
-  @objc public var accessToken: String
+  public var accessToken: String
 
   /** @property refreshToken
       @brief The refresh token for the user, or @c nil if the user has yet completed sign-in flow.
       @remarks This property needs to be set manually after the instance is decoded from archive.
    */
-  @objc public var refreshToken: String?
+  public var refreshToken: String?
 
   /** @property accessTokenExpirationDate
       @brief The expiration date of the cached access token.
    */
-  @objc public var accessTokenExpirationDate: Date?
+  public var accessTokenExpirationDate: Date?
 
   /** @fn initWithRequestConfiguration:accessToken:accessTokenExpirationDate:refreshToken
       @brief Creates a @c FIRSecureTokenService with access and refresh tokens.
@@ -62,7 +62,7 @@ private let kFiveMinutes = 5 * 60.0
       @param accessTokenExpirationDate The approximate expiration date of the access token.
       @param refreshToken The STS refresh token.
    */
-  @objc public init(withRequestConfiguration requestConfiguration: AuthRequestConfiguration?,
+  public init(withRequestConfiguration requestConfiguration: AuthRequestConfiguration?,
                     accessToken: String,
                     accessTokenExpirationDate: Date?,
                     refreshToken: String) {
@@ -80,7 +80,7 @@ private let kFiveMinutes = 5 * 60.0
       @param callback Callback block that will be called to return either the token or an error.
           Invoked asyncronously on the auth global work queue in the future.
    */
-  @objc public func fetchAccessToken(forcingRefresh forceRefresh: Bool,
+  public func fetchAccessToken(forcingRefresh forceRefresh: Bool,
                                      callback: @escaping (String?, Error?, Bool) -> Void) {
     taskQueue.enqueueTask { complete in
       if !forceRefresh, self.hasValidAccessToken() {
@@ -98,47 +98,26 @@ private let kFiveMinutes = 5 * 60.0
 
   private let taskQueue: AuthSerialTaskQueue
 
-  // MARK: NSSecureCoding
+     enum CodingKeys: String, CodingKey {
+         case APIKey, refreshToken, accessToken, accessTokenExpirationDate
+     }
 
-  // Secure coding keys
-  private let kAPIKeyCodingKey = "APIKey"
-  private static let kRefreshTokenKey = "refreshToken"
-  private static let kAccessTokenKey = "accessToken"
-  private static let kAccessTokenExpirationDateKey = "accessTokenExpirationDate"
+     public required init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         refreshToken = try container.decodeIfPresent(String.self, forKey: .refreshToken)
+         accessToken = try container.decode(String.self, forKey: .accessToken)
+         accessTokenExpirationDate = try container.decodeIfPresent(Date.self, forKey: .accessTokenExpirationDate)
+         requestConfiguration = nil
+         taskQueue = AuthSerialTaskQueue()
+     }
 
-  public static var supportsSecureCoding: Bool {
-    true
-  }
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encodeIfPresent(refreshToken, forKey: .refreshToken)
+         try container.encode(accessToken, forKey: .accessToken)
+         try container.encodeIfPresent(accessTokenExpirationDate, forKey: .accessTokenExpirationDate)
 
-  public required convenience init?(coder: NSCoder) {
-    guard let refreshToken = coder.decodeObject(of: [NSString.self],
-                                                forKey: Self.kRefreshTokenKey) as? String,
-      let accessToken = coder.decodeObject(of: [NSString.self],
-                                           forKey: Self.kAccessTokenKey) as? String else {
-      return nil
-    }
-    let accessTokenExpirationDate = coder.decodeObject(
-      of: [NSDate.self], forKey: Self.kAccessTokenExpirationDateKey
-    ) as? Date
-    // TODO: the nil matches the ObjC implementation, but doesn't seem right.
-    self.init(withRequestConfiguration: nil,
-              accessToken: accessToken,
-              accessTokenExpirationDate: accessTokenExpirationDate,
-              refreshToken: refreshToken)
-  }
-
-  public func encode(with coder: NSCoder) {
-    // The API key is encoded even it is not used in decoding to be compatible with previous versions
-    // of the library.
-    coder.encode(requestConfiguration?.apiKey, forKey: kAPIKeyCodingKey)
-    // Authorization code is not encoded because it is not long-lived.
-    coder.encode(refreshToken, forKey: SecureTokenService.kRefreshTokenKey)
-    coder.encode(accessToken, forKey: SecureTokenService.kAccessTokenKey)
-    coder.encode(
-      accessTokenExpirationDate,
-      forKey: SecureTokenService.kAccessTokenExpirationDateKey
-    )
-  }
+     }
 
   // MARK: Private methods
 

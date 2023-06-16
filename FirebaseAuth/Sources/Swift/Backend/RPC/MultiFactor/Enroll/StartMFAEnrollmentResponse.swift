@@ -14,7 +14,7 @@
 
 import Foundation
 
-@objc(FIRStartMFAEnrollmentResponse) public class StartMFAEnrollmentResponse: NSObject,
+public class StartMFAEnrollmentResponse:
   AuthRPCResponse {
   public func setFields(dictionary: [String: AnyHashable]) throws {
     if let data = dictionary["phoneSessionInfo"] as? [String: AnyHashable] {

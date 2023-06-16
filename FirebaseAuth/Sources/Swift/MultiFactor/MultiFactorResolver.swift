@@ -21,23 +21,23 @@ import Foundation
        This class is available on iOS only.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRMultiFactorResolver)
-  public class MultiFactorResolver: NSObject {
+  
+  public class MultiFactorResolver {
     /**
         @brief The opaque session identifier for the current sign-in flow.
      */
-    @objc public let session: MultiFactorSession
+    public let session: MultiFactorSession
 
     /**
         @brief The list of hints for the second factors needed to complete the sign-in for the current
             session.
      */
-    @objc public let hints: [MultiFactorInfo]
+    public let hints: [MultiFactorInfo]
 
     /**
         @brief The Auth reference for the current FIRMultiResolver.
      */
-    @objc public let auth: Auth
+    public let auth: Auth
 
     /** @fn resolveSignInWithAssertion:completion:
          @brief A helper function to help users complete sign in with a second factor using an
@@ -45,7 +45,7 @@ import Foundation
         challenge.
          @param completion The block invoked when the request is complete, or fails.
      */
-    @objc(resolveSignInWithAssertion:completion:)
+    
     public func resolveSignIn(with assertion: MultiFactorAssertion,
                               completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
       let phoneAssertion = assertion as? PhoneMultiFactorAssertion

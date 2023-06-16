@@ -32,21 +32,21 @@ private let kIdentityPlatformStagingAPIHost =
  @brief Represents a request to an identity toolkit endpoint.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRIdentityToolkitRequest) open class IdentityToolkitRequest: NSObject {
+ open class IdentityToolkitRequest {
   /** @property endpoint
    @brief Gets the RPC's endpoint.
    */
-  @objc public let endpoint: String
+  public let endpoint: String
 
   /** @property APIKey
    @brief Gets the client's API key used for the request.
    */
-  @objc(APIKey) public var apiKey: String
+   public var apiKey: String
 
   /** @property tenantID
    @brief The tenant ID of the request. nil if none is available.
    */
-  @objc public let tenantID: String?
+  public let tenantID: String?
 
   let _requestConfiguration: AuthRequestConfiguration
 
@@ -54,7 +54,7 @@ private let kIdentityPlatformStagingAPIHost =
 
   let _useStaging: Bool
 
-  @objc public init(endpoint: String, requestConfiguration: AuthRequestConfiguration,
+  public init(endpoint: String, requestConfiguration: AuthRequestConfiguration,
                     useIdentityPlatform: Bool = false, useStaging: Bool = false) {
     self.endpoint = endpoint
     apiKey = requestConfiguration.apiKey
@@ -64,14 +64,14 @@ private let kIdentityPlatformStagingAPIHost =
     tenantID = requestConfiguration.auth?.tenantID
   }
 
-  @objc public func containsPostBody() -> Bool {
+  public func containsPostBody() -> Bool {
     true
   }
 
   /** @fn requestURL
    @brief Gets the request's full URL.
    */
-  @objc public func requestURL() -> URL {
+  public func requestURL() -> URL {
     let apiProtocol: String
     let apiHostAndPathPrefix: String
     let urlString: String
@@ -109,7 +109,7 @@ private let kIdentityPlatformStagingAPIHost =
   /** @fn requestConfiguration
    @brief Gets the request's configuration.
    */
-  @objc public func requestConfiguration() -> AuthRequestConfiguration {
+  public func requestConfiguration() -> AuthRequestConfiguration {
     _requestConfiguration
   }
 }

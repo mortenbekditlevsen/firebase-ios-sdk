@@ -14,7 +14,7 @@
 
 import Foundation
 
-public class AuthProtoFinalizeMFAPhoneResponseInfo: NSObject, AuthProto {
+public class AuthProtoFinalizeMFAPhoneResponseInfo: AuthProto {
   var phoneNumber: String?
 
   public required init(dictionary: [String: AnyHashable]) {

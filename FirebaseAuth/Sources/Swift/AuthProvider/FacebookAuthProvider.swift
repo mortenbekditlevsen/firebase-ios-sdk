@@ -18,8 +18,8 @@ import Foundation
  @brief Utility class for constructing Facebook Sign In credentials.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRFacebookAuthProvider) open class FacebookAuthProvider: NSObject {
-  @objc public static let id = "facebook.com"
+ open class FacebookAuthProvider {
+  public static let id = "facebook.com"
 
   /**
       @brief Creates an `AuthCredential` for a Facebook sign in.
@@ -27,18 +27,18 @@ import Foundation
       @param accessToken The Access Token from Facebook.
       @return An AuthCredential containing the Facebook credentials.
    */
-  @objc public class func credential(withAccessToken accessToken: String) -> AuthCredential {
+  public class func credential(withAccessToken accessToken: String) -> AuthCredential {
     return FacebookAuthCredential(withAccessToken: accessToken)
   }
 
   @available(*, unavailable)
-  @objc override public init() {
+   public init() {
     fatalError("This class is not meant to be initialized.")
   }
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc class FacebookAuthCredential: AuthCredential, NSSecureCoding {
+class FacebookAuthCredential: AuthCredential, NSSecureCoding {
   let accessToken: String
 
   init(withAccessToken accessToken: String) {
@@ -46,7 +46,7 @@ import Foundation
     super.init(provider: FacebookAuthProvider.id)
   }
 
-  @objc override func prepare(_ request: VerifyAssertionRequest) {
+  override func prepare(_ request: VerifyAssertionRequest) {
     request.providerAccessToken = accessToken
   }
 

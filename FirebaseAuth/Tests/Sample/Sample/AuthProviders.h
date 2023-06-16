@@ -52,7 +52,7 @@ typedef void (^AuthCredentialCallback)(FIRAuthCredential *_Nullable credential,
 /** @class AuthProviders
     @brief Namespace for @c AuthProvider instances.
  */
-@interface AuthProviders : NSObject
+@interface AuthProviders 
 
 /** @fn google
     @brief Returns a Google auth provider.

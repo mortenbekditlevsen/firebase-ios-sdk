@@ -25,7 +25,7 @@
     @_implementationOnly import GoogleUtilities
   #endif // SWIFT_PACKAGE
 
-  @objc public protocol AuthAPNSTokenApplication {
+  public protocol AuthAPNSTokenApplication {
     func registerForRemoteNotifications()
   }
 
@@ -36,7 +36,7 @@
       @brief A data structure for an APNs token.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRAuthAPNSTokenManager) public class AuthAPNSTokenManager: NSObject {
+   public class AuthAPNSTokenManager {
     /** @property timeout
         @brief The timeout for registering for remote notification.
         @remarks Only tests should access this property.
@@ -57,7 +57,7 @@
         @param callback The block to be called either immediately or in future, either when a token
             becomes available, or when timeout occurs, whichever happens earlier.
      */
-    @objc public func getToken(callback: @escaping (AuthAPNSToken?, Error?) -> Void) {
+    public func getToken(callback: @escaping (AuthAPNSToken?, Error?) -> Void) {
       if failFastForTesting {
         let error = NSError(domain: "dummy domain", code: AuthErrorCode.missingAppToken.rawValue)
         callback(nil, error)
@@ -91,7 +91,7 @@
         @remarks Setting a token with AuthAPNSTokenTypeUnknown will automatically converts it to
             a token with the automatically detected type.
      */
-    @objc public var token: AuthAPNSToken? {
+    public var token: AuthAPNSToken? {
       get {
         return tokenStore
       }

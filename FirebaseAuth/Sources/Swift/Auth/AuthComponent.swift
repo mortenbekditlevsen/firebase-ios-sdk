@@ -18,12 +18,12 @@ import FirebaseCore
 import FirebaseCoreExtension
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthProvider) public protocol AuthProvider {
-  @objc func auth() -> Auth
+ public protocol AuthProvider {
+  func auth() -> Auth
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthComponent) class AuthComponent: NSObject, Library, AuthProvider {
+ class AuthComponent: Library, AuthProvider {
   // MARK: - Private Variables
 
   /// The app associated with all Auth instances in this container.
@@ -46,14 +46,16 @@ import FirebaseCoreExtension
   // MARK: - Library conformance
 
   static func componentsToRegister() -> [Component] {
-    let appCheckInterop = Dependency(with: AppCheckInterop.self, isRequired: false)
-    return [Component(AuthProvider.self,
-                      instantiationTiming: .alwaysEager,
-                      dependencies: [appCheckInterop]) { container, isCacheable in
-        guard let app = container.app else { return nil }
-        isCacheable.pointee = true
-        return self.init(app: app)
-      }]
+      // XXX TODO
+      fatalError()
+      //    let appCheckInterop = Dependency(with: AppCheckInterop.self, isRequired: false)
+//    return [Component(AuthProvider.self,
+//                      instantiationTiming: .alwaysEager,
+//                      dependencies: [appCheckInterop]) { container, isCacheable in
+//        guard let app = container.app else { return nil }
+//        isCacheable.pointee = true
+//        return self.init(app: app)
+//      }]
   }
 
   // MARK: - AuthProvider conformance

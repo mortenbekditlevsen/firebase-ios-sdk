@@ -14,14 +14,14 @@
 
 import Foundation
 
-@objc(FIRAuthProtoMFAEnrollment) public class AuthProtoMFAEnrollment: NSObject, AuthProto {
-  @objc public var phoneInfo: String?
+ public class AuthProtoMFAEnrollment: AuthProto {
+  public var phoneInfo: String?
 
-  @objc public var mfaEnrollmentID: String?
+  public var mfaEnrollmentID: String?
 
-  @objc public var displayName: String?
+  public var displayName: String?
 
-  @objc public var enrolledAt: Date?
+  public var enrolledAt: Date?
 
   public var dictionary: [String: Any]
 

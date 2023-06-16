@@ -32,11 +32,11 @@ private let kAccessTokenKey = "access_token"
 private let kIDTokenKey = "id_token"
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRSecureTokenResponse) public class SecureTokenResponse: NSObject, AuthRPCResponse {
-  @objc public var approximateExpirationDate: Date?
-  @objc public var refreshToken: String?
-  @objc public var accessToken: String?
-  @objc public var IDToken: String?
+ public class SecureTokenResponse: AuthRPCResponse {
+  public var approximateExpirationDate: Date?
+  public var refreshToken: String?
+  public var accessToken: String?
+  public var IDToken: String?
 
   var expectedKind: String? { nil }
 

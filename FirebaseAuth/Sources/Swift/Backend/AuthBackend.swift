@@ -23,7 +23,7 @@ import FirebaseCoreInternal
 #endif
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-public protocol AuthBackendRPCIssuer: NSObjectProtocol {
+public protocol AuthBackendRPCIssuer {
   /** @fn
       @brief Asynchronously sends a POST request.
       @param requestConfiguration The request to be made.
@@ -40,10 +40,10 @@ public protocol AuthBackendRPCIssuer: NSObjectProtocol {
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-public class AuthBackendRPCIssuerImplementation: NSObject, AuthBackendRPCIssuer {
+public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
   let fetcherService: GTMSessionFetcherService
 
-  override init() {
+    init() {
     fetcherService = GTMSessionFetcherService()
     fetcherService.userAgent = AuthBackend.authUserAgent()
     fetcherService.callbackQueue = kAuthGlobalWorkQueue
@@ -73,7 +73,7 @@ public class AuthBackendRPCIssuerImplementation: NSObject, AuthBackendRPCIssuer 
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthBackend2) public class AuthBackend: NSObject {
+ public class AuthBackend {
   static func authUserAgent() -> String {
     return "FirebaseAuth.iOS/\(FirebaseVersion()) \(GTMFetcherStandardUserAgentString(nil))"
   }
@@ -107,7 +107,7 @@ public class AuthBackendRPCIssuerImplementation: NSObject, AuthBackendRPCIssuer 
       @param request The request.
       @param callback The callback for both success and failure.
    */
-  @objc public class func post(withRequest request: AuthRPCRequest,
+  public class func post(withRequest request: AuthRPCRequest,
                                callback: @escaping ((AuthRPCResponse?, Error?) -> Void)) {
     implementation().post(withRequest: request, callback: callback)
   }
@@ -168,9 +168,9 @@ protocol AuthBackendImplementation {
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-private class AuthBackendRPCImplementation: NSObject, AuthBackendImplementation {
+private class AuthBackendRPCImplementation: AuthBackendImplementation {
   var rpcIssuer: AuthBackendRPCIssuer
-  override init() {
+   init() {
     rpcIssuer = AuthBackendRPCIssuerImplementation()
   }
 
@@ -271,8 +271,7 @@ private class AuthBackendRPCImplementation: NSObject, AuthBackendImplementation 
                         response: AuthRPCResponse,
                         callback: @escaping ((Error?) -> Void)) {
     var bodyData: Data?
-    if let contains = request.containsPostBody,
-       contains() {
+    if request.containsPostBody() {
       do {
         // TODO: Can unencodedHTTPRequestBody ever throw?
         // They don't today, but there are a few fatalErrors that might better be implemented as

@@ -34,7 +34,7 @@ private let kSecretKey = "iosSecret"
  */
 private let kreCAPTCHATokenKey = "recaptchaToken"
 
-class AuthProtoStartMFAPhoneRequestInfo: NSObject, AuthProto {
+class AuthProtoStartMFAPhoneRequestInfo: AuthProto {
   required init(dictionary: [String: AnyHashable]) {
     fatalError()
   }

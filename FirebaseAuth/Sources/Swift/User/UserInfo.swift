@@ -17,7 +17,7 @@ import Foundation
 /**
     @brief Represents user data returned from an identity provider.
  */
-@objc(FIRUserInfo) public protocol UserInfo: NSObjectProtocol {
+ public protocol UserInfo {
   /** @property providerID
    @brief The provider identifier.
    */

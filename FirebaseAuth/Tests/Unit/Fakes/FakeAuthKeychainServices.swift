@@ -17,7 +17,7 @@ import Foundation
 
 /// A fake storage instance that imitates the system keychain while storing data in-memory.
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-final class FakeAuthKeychainServices: NSObject, AuthStorage {
+final class FakeAuthKeychainServices: AuthStorage {
   init(service: String) {}
 
   private static var keychainServices: [String: FakeAuthKeychainServices] = [:]

@@ -14,7 +14,7 @@
 
 import Foundation
 
-class FinalizeMFAEnrollmentResponse: NSObject, AuthRPCResponse {
+class FinalizeMFAEnrollmentResponse: AuthRPCResponse {
   var idToken: String?
   var refreshToken: String?
 

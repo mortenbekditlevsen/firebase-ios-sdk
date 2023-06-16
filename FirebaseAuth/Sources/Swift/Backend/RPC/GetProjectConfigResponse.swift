@@ -14,17 +14,17 @@
 
 import Foundation
 
-@objc(FIRGetProjectConfigResponse) public class GetProjectConfigResponse: NSObject,
+public class GetProjectConfigResponse:
   AuthRPCResponse {
   /** @property projectID
       @brief The unique ID pertaining to the current project.
    */
-  @objc public var projectID: String?
+  public var projectID: String?
 
   /** @property authorizedDomains
       @brief A list of domains allowlisted for the current project.
    */
-  @objc public var authorizedDomains: [String]?
+  public var authorizedDomains: [String]?
 
   public func setFields(dictionary: [String: AnyHashable]) throws {
     projectID = dictionary["projectId"] as? String

@@ -15,23 +15,23 @@
 import Foundation
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIROAuthCredential) public class OAuthCredential: AuthCredential, NSSecureCoding {
+ public class OAuthCredential: AuthCredential, NSSecureCoding {
   /** @property IDToken
       @brief The ID Token associated with this credential.
    */
-  @objc(IDToken) public let idToken: String?
+   public let idToken: String?
 
   /** @property accessToken
       @brief The access token associated with this credential.
    */
-  @objc public let accessToken: String?
+  public let accessToken: String?
 
   /** @property secret
       @brief The secret associated with this credential. This will be nil for OAuth 2.0 providers.
       @detail OAuthCredential already exposes a providerId getter. This will help the developer
           determine whether an access token/secret pair is needed.
    */
-  @objc public let secret: String?
+  public let secret: String?
 
   // internal
   let OAuthResponseURLString: String?
@@ -42,7 +42,7 @@ import Foundation
   let rawNonce: String?
 
   // TODO: Remove public objc
-  @objc public init(withProviderID providerID: String,
+  public init(withProviderID providerID: String,
                     idToken: String? = nil,
                     rawNonce: String? = nil,
                     accessToken: String? = nil,
@@ -60,7 +60,7 @@ import Foundation
     super.init(provider: providerID)
   }
 
-  @objc public init(withProviderID providerID: String,
+  public init(withProviderID providerID: String,
                     sessionID: String,
                     OAuthResponseURLString: String) {
     self.sessionID = sessionID
@@ -74,7 +74,7 @@ import Foundation
     super.init(provider: providerID)
   }
 
-  @objc public convenience init?(withVerifyAssertionResponse response: VerifyAssertionResponse) {
+  public convenience init?(withVerifyAssertionResponse response: VerifyAssertionResponse) {
     guard Self.nonEmptyString(response.oauthIDToken) ||
       Self.nonEmptyString(response.oauthAccessToken) ||
       Self.nonEmptyString(response.oauthSecretToken) else {
@@ -88,7 +88,7 @@ import Foundation
               pendingToken: response.pendingToken)
   }
 
-  @objc override public func prepare(_ request: VerifyAssertionRequest) {
+  override public func prepare(_ request: VerifyAssertionRequest) {
     request.providerIDToken = idToken
     request.providerRawNonce = rawNonce
     request.providerAccessToken = accessToken

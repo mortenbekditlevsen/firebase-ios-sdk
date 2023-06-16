@@ -22,7 +22,7 @@
       @remarks This class should be used in the case that a UIDelegate was expected and necessary to
           continue a given flow, but none was provided.
    */
-  class AuthDefaultUIDelegate: NSObject, AuthUIDelegate {
+  class AuthDefaultUIDelegate: AuthUIDelegate {
     // TODO: Figure out what to do for extensions.
     /** @fn defaultUIDelegate
         @brief Returns a default FIRAuthUIDelegate object.

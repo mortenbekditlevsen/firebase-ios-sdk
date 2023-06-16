@@ -39,7 +39,7 @@ typedef void(^StaticContentTableViewCellAction)(void);
         we end up cutting corners and making junky testing apps, and spending more time in the
         process.
  */
-@interface StaticContentTableViewManager : NSObject<UITableViewDelegate, UITableViewDataSource>
+@interface StaticContentTableViewManager <UITableViewDelegate, UITableViewDataSource>
 
 /** @property contents
     @brief The static contents of the @c UITableView.
@@ -60,7 +60,7 @@ typedef void(^StaticContentTableViewCellAction)(void);
 /** @class StaticContentTableViewContent
     @brief Represents the contents of a @c UITableView.
  */
-@interface StaticContentTableViewContent : NSObject
+@interface StaticContentTableViewContent 
 
 /** @property sections
     @brief The sections for the @c UITableView.
@@ -96,7 +96,7 @@ typedef void(^StaticContentTableViewCellAction)(void);
     @remarks Each section has a title (used for the section title in the @c UITableView) and an
         array of cells.
  */
-@interface StaticContentTableViewSection : NSObject
+@interface StaticContentTableViewSection 
 
 /** @property title
     @brief The title of the section in the @c UITableView.
@@ -141,7 +141,7 @@ typedef void(^StaticContentTableViewCellAction)(void);
         specify both @c customCell and also @c title, but if a @c customCell is specified, it will
         be used instead of the @c title.
  */
-@interface StaticContentTableViewCell : NSObject
+@interface StaticContentTableViewCell 
 
 /** @property customCell
     @brief The custom @c UITableViewCell to use for this cell.

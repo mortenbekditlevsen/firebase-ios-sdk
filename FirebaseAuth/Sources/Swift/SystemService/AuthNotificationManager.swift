@@ -19,7 +19,7 @@
   /** @class FIRAuthAppCredential
       @brief A class represents a credential that proves the identity of the app.
    */
-  @objc(FIRAuthNotificationManager) public class AuthNotificationManager: NSObject {
+   public class AuthNotificationManager {
     /** @var kNotificationKey
         @brief The key to locate payload data in the remote notification.
      */
@@ -69,7 +69,7 @@
         @brief The timeout for checking for notification forwarding.
         @remarks Only tests should access this property.
      */
-    @objc public let timeout: TimeInterval
+    public let timeout: TimeInterval
 
     /** @property immediateCallbackForTestFaking
         @brief Disable callback waiting for tests.
@@ -88,7 +88,7 @@
         @param appCredentialManager The object to handle app credentials delivered via notification.
         @return The initialized instance.
      */
-    @objc public init(withApplication application: Application,
+    public init(withApplication application: Application,
                       appCredentialManager: AuthAppCredentialManager) {
       self.application = application
       self.appCredentialManager = appCredentialManager
@@ -100,7 +100,7 @@
         @param callback The block to be called either immediately or in future once a result
             is available.
      */
-    @objc public func checkNotificationForwarding(withCallback callback: @escaping (Bool) -> Void) {
+    public func checkNotificationForwarding(withCallback callback: @escaping (Bool) -> Void) {
       if pendingCallbacks != nil {
         pendingCallbacks?.append(callback)
         return
@@ -143,7 +143,7 @@
         @param notification The notification in question.
         @return Whether or the notification has been handled.
      */
-    @objc(canHandleNotification:) public func canHandle(notification: [AnyHashable: Any]) -> Bool {
+     public func canHandle(notification: [AnyHashable: Any]) -> Bool {
       var stringDictionary: [String: Any]?
       let data = notification[kNotificationDataKey]
       if let jsonString = data as? String {
@@ -188,14 +188,14 @@
   }
 
   // Protocol for UIApplication to enable unit testing
-  @objc public protocol ApplicationDelegate {
-    @objc optional func application(_ application: Application,
+  public protocol ApplicationDelegate {
+    optional func application(_ application: Application,
                                     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
                                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult)
                                       -> Void)
   }
 
-  @objc public protocol Application {
+  public protocol Application {
     var delegate: UIApplicationDelegate? { get set }
   }
 

@@ -16,9 +16,9 @@ import Foundation
 
 private let kOOBCodeKey = "oobCode"
 
-@objc(FIRGetOOBConfirmationCodeResponse) public class GetOOBConfirmationCodeResponse: NSObject,
+public class GetOOBConfirmationCodeResponse:
   AuthRPCResponse {
-  @objc public var OOBCode: String?
+  public var OOBCode: String?
 
   public func setFields(dictionary: [String: AnyHashable]) throws {
     OOBCode = dictionary[kOOBCodeKey] as? String

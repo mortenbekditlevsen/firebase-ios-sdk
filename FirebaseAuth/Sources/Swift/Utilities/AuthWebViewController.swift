@@ -97,7 +97,7 @@
 
     // MARK: - Actions
 
-    @objc private func cancel() {
+    private func cancel() {
       delegate?.webViewControllerDidCancel(self)
     }
 

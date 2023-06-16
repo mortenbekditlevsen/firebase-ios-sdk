@@ -16,7 +16,7 @@ import Foundation
 @testable import FirebaseAuth
 import FirebaseAppCheckInterop
 
-class FakeAppCheck: NSObject, AppCheckInterop {
+class FakeAppCheck: AppCheckInterop {
   let fakeAppCheckToken = "fakeAppCheckToken"
 
   func getToken(forcingRefresh: Bool, completion: @escaping AppCheckTokenHandlerInterop) {
@@ -36,7 +36,7 @@ class FakeAppCheck: NSObject, AppCheckInterop {
   }
 }
 
-class FakeAppCheckResult: NSObject, FIRAppCheckTokenResultInterop {
+class FakeAppCheckResult: FIRAppCheckTokenResultInterop {
   var token: String
   var error: Error?
 

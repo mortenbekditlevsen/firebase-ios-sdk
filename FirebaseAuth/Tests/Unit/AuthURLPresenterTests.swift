@@ -70,7 +70,7 @@
 
       waitForExpectations(timeout: 5)
 
-      class FakeUIDelegate: NSObject, AuthUIDelegate {
+      class FakeUIDelegate: AuthUIDelegate {
         func present(_ viewControllerToPresent: UIViewController,
                      animated flag: Bool,
                      completion: (() -> Void)? = nil) {

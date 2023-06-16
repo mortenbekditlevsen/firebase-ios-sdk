@@ -23,46 +23,46 @@ import FirebaseAppCheckInterop
    @brief Defines configurations to be added to a request to Firebase Auth's backend.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthRequestConfiguration) public class AuthRequestConfiguration: NSObject {
+ public class AuthRequestConfiguration {
   /** @property APIKey
    @brief The Firebase Auth API key used in the request.
    */
-  @objc(APIKey) public let apiKey: String
+   public let apiKey: String
 
   /** @property LanguageCode
    @brief The language code used in the request.
    */
-  @objc public var languageCode: String?
+  public var languageCode: String?
 
   /// ** @property appID
   //    @brief The Firebase appID used in the request.
   // */
-  @objc public var appID: String
+  public var appID: String
 
   /** @property auth
       @brief The FIRAuth instance used in the request.
    */
-  @objc public weak var auth: Auth?
+  public weak var auth: Auth?
 
   /// The heartbeat logger used to add heartbeats to the corresponding request's header.
-  @objc public var heartbeatLogger: FIRHeartbeatLoggerProtocol?
+  public var heartbeatLogger: FIRHeartbeatLoggerProtocol?
 
   /** @property appCheck
       @brief The appCheck is used to generate a token.
    */
-  @objc public var appCheck: AppCheckInterop?
+  public var appCheck: AppCheckInterop?
 
   /** @property additionalFrameworkMarker
    @brief Additional framework marker that will be added as part of the header of every request.
    */
-  @objc public var additionalFrameworkMarker: String?
+  public var additionalFrameworkMarker: String?
 
   /** @property emulatorHostAndPort
    @brief If set, the local emulator host and port to point to instead of the remote backend.
    */
-  @objc public var emulatorHostAndPort: String?
+  public var emulatorHostAndPort: String?
 
-  @objc(initWithAPIKey:appID:auth:heartbeatLogger:appCheck:)
+  
   public init(apiKey: String,
               appID: String,
               auth: Auth? = nil,

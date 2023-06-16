@@ -22,15 +22,15 @@ import Foundation
        This class is available on iOS only.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRMultiFactor) public class MultiFactor: NSObject, NSSecureCoding {
-    @objc public var enrolledFactors: [MultiFactorInfo]?
+   public class MultiFactor: Codable {
+    public var enrolledFactors: [MultiFactorInfo]?
 
     /** @fn getSessionWithCompletion:
      @brief Get a session for a second factor enrollment operation.
      @param completion A block with the session identifier for a second factor enrollment operation.
      This is used to identify the current user trying to enroll a second factor.
      */
-    @objc(getSessionWithCompletion:)
+    
     public func getSessionWithCompletion(_ completion: ((MultiFactorSession?, Error?) -> Void)?) {
       let session = MultiFactorSession.sessionForCurrentUser
       if let completion {
@@ -62,7 +62,7 @@ import Foundation
      @param displayName An optional display name associated with the multi factor to enroll.
      @param completion The block invoked when the request is complete, or fails.
      */
-    @objc(enrollWithAssertion:displayName:completion:)
+    
     public func enroll(with assertion: MultiFactorAssertion,
                        displayName: String?,
                        completion: ((Error?) -> Void)?) {
@@ -131,7 +131,7 @@ import Foundation
      @param completion The block invoked when the request to send the verification email is complete,
      or fails.
      */
-    @objc(unenrollWithInfo:completion:)
+    
     public func unenroll(with factorInfo: MultiFactorInfo,
                          completion: ((Error?) -> Void)?) {
       unenroll(withFactorUID: factorInfo.uid, completion: completion)
@@ -152,7 +152,7 @@ import Foundation
      @param completion The block invoked when the request to send the verification email is complete,
      or fails.
      */
-    @objc(unenrollWithFactorUID:completion:)
+    
     public func unenroll(withFactorUID factorUID: String,
                          completion: ((Error?) -> Void)?) {
       guard let user = user else {

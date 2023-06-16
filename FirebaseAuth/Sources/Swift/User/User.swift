@@ -14,8 +14,8 @@
 
 import Foundation
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-extension User: NSSecureCoding {}
+//@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+//extension User: Codable {}
 
 /** @class User
     @brief Represents a user. Firebase Auth does not attempt to validate users
@@ -26,24 +26,29 @@ extension User: NSSecureCoding {}
     @remarks This class is thread-safe.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRUser) public class User: NSObject, UserInfo {
+public class User: Equatable, Codable, UserInfo {
+    public static func == (lhs: User, rhs: User) -> Bool {
+        /// XXX TODO: Improve. I believe the previous equatable conformance that stemmed from NSObject is actually just identity equatability, so this is likely not worse
+        return lhs === rhs
+    }
+
   /** @property anonymous
       @brief Indicates the user represents an anonymous user.
    */
-  @objc public private(set) var isAnonymous: Bool
-  @objc public func anonymous() -> Bool { return isAnonymous }
+  public private(set) var isAnonymous: Bool
+  public func anonymous() -> Bool { return isAnonymous }
 
   /** @property emailVerified
       @brief Indicates the email address associated with this user has been verified.
    */
-  @objc public private(set) var isEmailVerified: Bool
-  @objc public func emailVerified() -> Bool { return isEmailVerified }
+  public private(set) var isEmailVerified: Bool
+  public func emailVerified() -> Bool { return isEmailVerified }
 
   /** @property providerData
       @brief Profile data for each identity provider, if any.
       @remarks This data is cached on sign-in and updated when linking or unlinking.
    */
-  @objc public var providerData: [UserInfoImpl] {
+  public var providerData: [UserInfoImpl] {
     return Array(providerDataRaw.values)
   }
 
@@ -52,19 +57,19 @@ extension User: NSSecureCoding {}
   /** @property metadata
       @brief Metadata associated with the Firebase user in question.
    */
-  @objc public private(set) var metadata: UserMetadata
+  public private(set) var metadata: UserMetadata
 
   /** @property tenantID
       @brief The tenant ID of the current user. nil if none is available.
    */
-  @objc public private(set) var tenantID: String?
+  public private(set) var tenantID: String?
 
   #if os(iOS)
     /** @property multiFactor
          @brief Multi factor object associated with the user.
              This property is available on iOS only.
      */
-    @objc public private(set) var multiFactor: MultiFactor
+    public private(set) var multiFactor: MultiFactor
   #endif
 
   /** @fn updateEmail:completion:
@@ -95,7 +100,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc(updateEmail:completion:)
+  
   public func updateEmail(to email: String, completion: ((Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
       self.updateEmail(email: email, password: nil) { error in
@@ -165,7 +170,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc(updatePassword:completion:)
+  
   public func updatePassword(to password: String, completion: ((Error?) -> Void)? = nil) {
     guard password.count > 0 else {
       if let completion {
@@ -234,7 +239,7 @@ extension User: NSSecureCoding {}
 
         @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
-    @objc(updatePhoneNumberCredential:completion:)
+    
     public func updatePhoneNumber(_ credential: PhoneAuthCredential,
                                   completion: ((Error?) -> Void)? = nil) {
       kAuthGlobalWorkQueue.async {
@@ -286,7 +291,7 @@ extension User: NSSecureCoding {}
 
       @return An object which may be used to change the user's profile data atomically.
    */
-  @objc(profileChangeRequest)
+  
   public func createProfileChangeRequest() -> UserProfileChangeRequest {
     var result: UserProfileChangeRequest?
     kAuthGlobalWorkQueue.sync {
@@ -300,7 +305,7 @@ extension User: NSSecureCoding {}
       @brief A refresh token; useful for obtaining new access tokens independently.
       @remarks This property should only be used for advanced scenarios, and is not typically needed.
    */
-  @objc public var refreshToken: String? {
+  public var refreshToken: String? {
     var result: String?
     kAuthGlobalWorkQueue.sync {
       result = self.tokenService.refreshToken
@@ -320,7 +325,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc public func reload(withCompletion completion: ((Error?) -> Void)? = nil) {
+  public func reload(withCompletion completion: ((Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
       self.getAccountInfoRefreshingCache { user, error in
         User.callInMainThreadWithError(callback: completion, error: error)
@@ -389,7 +394,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc(reauthenticateWithCredential:completion:)
+  
   public func reauthenticate(with credential: AuthCredential,
                              completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
@@ -491,7 +496,7 @@ extension User: NSSecureCoding {}
         @param completion Optionally; a block which is invoked when the reauthenticate flow finishes, or
             is canceled. Invoked asynchronously on the main thread in the future.
      */
-    @objc(reauthenticateWithProvider:UIDelegate:completion:)
+    
     public func reauthenticate(with provider: FederatedAuthProvider,
                                uiDelegate: AuthUIDelegate?,
                                completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
@@ -544,7 +549,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc(getIDTokenWithCompletion:)
+  
   public func getIDToken(completion: ((String?, Error?) -> Void)?) {
     // |getIDTokenForcingRefresh:completion:| is also a public API so there is no need to dispatch to
     // global work queue here.
@@ -564,7 +569,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc(getIDTokenForcingRefresh:completion:)
+  
   public func getIDTokenForcingRefresh(_ forceRefresh: Bool,
                                        completion: ((String?, Error?) -> Void)?) {
     getIDTokenResult(forcingRefresh: forceRefresh) { tokenResult, error in
@@ -609,7 +614,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc(getIDTokenResultWithCompletion:)
+  
   public func getIDTokenResult(completion: ((AuthTokenResult?, Error?) -> Void)?) {
     getIDTokenResult(forcingRefresh: false) { tokenResult, error in
       if let completion {
@@ -633,7 +638,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @objc(getIDTokenResultForcingRefresh:completion:)
+  
   public func getIDTokenResult(forcingRefresh: Bool,
                                completion: ((AuthTokenResult?, Error?) -> Void)?) {
     kAuthGlobalWorkQueue.async {
@@ -703,7 +708,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc(linkWithCredential:completion:)
+  
   public func link(with credential: AuthCredential,
                    completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
@@ -829,7 +834,7 @@ extension User: NSSecureCoding {}
         @param completion Optionally; a block which is invoked when the link flow finishes, or
             is canceled. Invoked asynchronously on the main thread in the future.
      */
-    @objc(linkWithProvider:UIDelegate:completion:)
+    
     public func link(with provider: FederatedAuthProvider,
                      uiDelegate: AuthUIDelegate?,
                      completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
@@ -893,7 +898,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc public func unlink(fromProvider provider: String,
+  public func unlink(fromProvider provider: String,
                            completion: ((User?, Error?) -> Void)? = nil) {
     taskQueue.enqueueTask { complete in
       let completeAndCallbackWithError = { error in
@@ -1008,7 +1013,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc(sendEmailVerificationWithCompletion:)
+  
   public func __sendEmailVerification(withCompletion completion: ((Error?) -> Void)?) {
     sendEmailVerification(withCompletion: completion)
   }
@@ -1037,7 +1042,7 @@ extension User: NSSecureCoding {}
           + `AuthErrorCodeInvalidContinueURI` - Indicates that the domain specified in the
               continue URL is not valid.
    */
-  @objc(sendEmailVerificationWithActionCodeSettings:completion:)
+  
   public func sendEmailVerification(with actionCodeSettings: ActionCodeSettings? = nil,
                                     withCompletion completion: ((Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
@@ -1120,7 +1125,7 @@ extension User: NSSecureCoding {}
 
       @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
    */
-  @objc public func delete(withCompletion completion: ((Error?) -> Void)? = nil) {
+  public func delete(withCompletion completion: ((Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
       self.internalGetToken { accessToken, error in
         if let error {
@@ -1186,7 +1191,7 @@ extension User: NSSecureCoding {}
        @param completion Optionally; the block invoked when the request to send the verification
            email is complete, or fails.
    */
-  @objc(sendEmailVerificationBeforeUpdatingEmail:completion:)
+  
   public func __sendEmailVerificationBeforeUpdating(email: String,
                                                     completion: ((Error?) -> Void)?) {
     sendEmailVerification(beforeUpdatingEmail: email, completion: completion)
@@ -1200,7 +1205,7 @@ extension User: NSSecureCoding {}
        @param completion Optionally; the block invoked when the request to send the verification
            email is complete, or fails.
    */
-  @objc public func sendEmailVerification(beforeUpdatingEmail email: String,
+  public func sendEmailVerification(beforeUpdatingEmail email: String,
                                           actionCodeSettings: ActionCodeSettings? =
                                             nil,
                                           completion: ((Error?) -> Void)? = nil) {
@@ -1251,11 +1256,11 @@ extension User: NSSecureCoding {}
     }
   }
 
-  @objc public func rawAccessToken() -> String {
+  public func rawAccessToken() -> String {
     return tokenService.accessToken
   }
 
-  @objc public func accessTokenExpirationDate() -> Date? {
+  public func accessTokenExpirationDate() -> Date? {
     return tokenService.accessTokenExpirationDate
   }
 
@@ -1279,7 +1284,7 @@ extension User: NSSecureCoding {}
 
   // TODO: internal Swift
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc public class func retrieveUser(withAuth auth: Auth,
+  public class func retrieveUser(withAuth auth: Auth,
                                        accessToken: String?,
                                        accessTokenExpirationDate: Date?,
                                        refreshToken: String?,
@@ -1324,35 +1329,35 @@ extension User: NSSecureCoding {}
     }
   }
 
-  @objc public var providerID: String {
+  public var providerID: String {
     return "Firebase"
   }
 
   /** @property uid
       @brief The provider's user ID for the user.
    */
-  @objc public var uid: String
+  public var uid: String
 
   /** @property displayName
       @brief The name of the user.
    */
-  @objc public var displayName: String?
+  public var displayName: String?
 
   /** @property photoURL
       @brief The URL of the user's profile photo.
    */
-  @objc public var photoURL: URL?
+  public var photoURL: URL?
 
   /** @property email
       @brief The user's email address.
    */
-  @objc public var email: String?
+  public var email: String?
 
   /** @property phoneNumber
       @brief A phone number associated with the user.
       @remarks This property is only available for users authenticated via phone number auth.
    */
-  @objc public var phoneNumber: String?
+  public var phoneNumber: String?
 
   /** @var hasEmailPasswordCredential
       @brief Whether or not the user can be authenticated by using Firebase email and password.
@@ -1368,20 +1373,20 @@ extension User: NSSecureCoding {}
       @brief A strong reference to a requestConfiguration instance associated with this user instance.
    */
   // TODO: internal
-  @objc public var requestConfiguration: AuthRequestConfiguration
+  public var requestConfiguration: AuthRequestConfiguration
 
   /** @var _tokenService
       @brief A secure token service associated with this user. For performing token exchanges and
           refreshing access tokens.
    */
   // TODO: internal
-  @objc public var tokenService: SecureTokenService
+  public var tokenService: SecureTokenService
 
   /** @property auth
       @brief A weak reference to a FIRAuth instance associated with this instance.
    */
   // TODO: internal
-  @objc public weak var auth: Auth?
+  public weak var auth: Auth?
 
   // MARK: Private functions
 
@@ -1911,7 +1916,7 @@ extension User: NSSecureCoding {}
           global work thread in the future.
    */
   // TODO: internal
-  @objc(internalGetTokenForcingRefresh:callback:)
+  
   public func internalGetToken(forceRefresh: Bool = false,
                                callback: @escaping (String?, Error?) -> Void) {
     tokenService.fetchAccessToken(forcingRefresh: forceRefresh) { token, error, tokenUpdated in
@@ -1990,97 +1995,66 @@ extension User: NSSecureCoding {}
     }
   }
 
-  // MARK: NSSecureCoding
-
-  private let kUserIDCodingKey = "userID"
-  private let kHasEmailPasswordCredentialCodingKey = "hasEmailPassword"
-  private let kAnonymousCodingKey = "anonymous"
-  private let kEmailCodingKey = "email"
-  private let kPhoneNumberCodingKey = "phoneNumber"
-  private let kEmailVerifiedCodingKey = "emailVerified"
-  private let kDisplayNameCodingKey = "displayName"
-  private let kPhotoURLCodingKey = "photoURL"
-  private let kProviderDataKey = "providerData"
-  private let kAPIKeyCodingKey = "APIKey"
-  private let kFirebaseAppIDCodingKey = "firebaseAppID"
-  private let kTokenServiceCodingKey = "tokenService"
-  private let kMetadataCodingKey = "metadata"
-  private let kMultiFactorCodingKey = "multiFactor"
-  private let kTenantIDCodingKey = "tenantID"
-
-  public static var supportsSecureCoding = true
-
-  public func encode(with coder: NSCoder) {
-    coder.encode(uid, forKey: kUserIDCodingKey)
-    coder.encode(isAnonymous, forKey: kAnonymousCodingKey)
-    coder.encode(hasEmailPasswordCredential, forKey: kHasEmailPasswordCredentialCodingKey)
-    coder.encode(providerDataRaw, forKey: kProviderDataKey)
-    coder.encode(email, forKey: kEmailCodingKey)
-    coder.encode(phoneNumber, forKey: kPhoneNumberCodingKey)
-    coder.encode(isEmailVerified, forKey: kEmailVerifiedCodingKey)
-    coder.encode(photoURL, forKey: kPhotoURLCodingKey)
-    coder.encode(displayName, forKey: kDisplayNameCodingKey)
-    coder.encode(metadata, forKey: kMetadataCodingKey)
-    coder.encode(tenantID, forKey: kTenantIDCodingKey)
-    if let auth {
-      coder.encode(auth.requestConfiguration.apiKey, forKey: kAPIKeyCodingKey)
-      coder.encode(auth.requestConfiguration.appID, forKey: kFirebaseAppIDCodingKey)
+    enum CodingKeys: String, CodingKey {
+        case tenantID, uid, isAnonymous, hasEmailPasswordCredential, providerData, email, phoneNumber, isEmailVerified, photoURL, displayName, metadata, APIKey, appID, tokenService, multiFactor
     }
-    coder.encode(tokenService, forKey: kTokenServiceCodingKey)
-    #if os(iOS)
-      coder.encode(multiFactor, forKey: kMultiFactorCodingKey)
-    #endif
-  }
 
-  public required init?(coder: NSCoder) {
-    guard let userID = coder.decodeObject(of: NSString.self, forKey: kUserIDCodingKey) as? String,
-          let apiKey = coder.decodeObject(of: NSString.self, forKey: kAPIKeyCodingKey) as? String,
-          let appID = coder.decodeObject(
-            of: NSString.self,
-            forKey: kFirebaseAppIDCodingKey
-          ) as? String,
-          let tokenService = coder.decodeObject(forKey: kTokenServiceCodingKey)
-          as? SecureTokenService else {
-      return nil
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(uid, forKey: .uid)
+        try container.encode(isAnonymous, forKey: .isAnonymous)
+        try container.encode(hasEmailPasswordCredential, forKey: .hasEmailPasswordCredential)
+        try container.encode(providerDataRaw, forKey: .providerData)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(phoneNumber, forKey: .phoneNumber)
+        try container.encode(isEmailVerified, forKey: .isEmailVerified)
+        try container.encodeIfPresent(photoURL, forKey: .photoURL)
+        try container.encodeIfPresent(displayName, forKey: .displayName)
+        try container.encode(metadata, forKey: .metadata)
+        try container.encodeIfPresent(tenantID, forKey: .tenantID)
+        if let auth {
+            try container.encode(auth.requestConfiguration.apiKey, forKey: .APIKey)
+            try container.encode(auth.requestConfiguration.appID, forKey: .appID)
+        }
+        try container.encode(tokenService, forKey: .tokenService)
+        #if os(iOS)
+        try container.encode(multiFactor, forKey: .multiFactor)
+        #endif
     }
-    let anonymous = coder.decodeBool(forKey: kAnonymousCodingKey)
-    let hasEmailPasswordCredential = coder.decodeBool(forKey: kHasEmailPasswordCredentialCodingKey)
-    let displayName = coder.decodeObject(
-      of: NSString.self,
-      forKey: kDisplayNameCodingKey
-    ) as? String
-    let photoURL = coder.decodeObject(forKey: kPhotoURLCodingKey) as? URL
-    let email = coder.decodeObject(of: NSString.self, forKey: kEmailCodingKey) as? String
-    let phoneNumber = coder.decodeObject(
-      of: NSString.self,
-      forKey: kPhoneNumberCodingKey
-    ) as? String
-    let emailVerified = coder.decodeBool(forKey: kEmailVerifiedCodingKey)
-    let providerData = coder.decodeObject(forKey: kProviderDataKey) as? [String: UserInfoImpl]
-    let metadata = coder.decodeObject(forKey: kMetadataCodingKey) as? UserMetadata
-    let tenantID = coder.decodeObject(of: NSString.self, forKey: kTenantIDCodingKey) as? String
-    #if os(iOS)
-      let multiFactor = coder.decodeObject(forKey: kMultiFactorCodingKey) as? MultiFactor
-    #endif
-    self.tokenService = tokenService
-    uid = userID
-    isAnonymous = anonymous
-    self.hasEmailPasswordCredential = hasEmailPasswordCredential
-    self.email = email
-    isEmailVerified = emailVerified
-    self.displayName = displayName
-    self.photoURL = photoURL
-    providerDataRaw = providerData ?? [:]
-    self.phoneNumber = phoneNumber
-    self.metadata = metadata ?? UserMetadata(withCreationDate: nil, lastSignInDate: nil)
-    self.tenantID = tenantID
-    // The `heartbeatLogger` and `appCheck` will be set later via a property update.
-    requestConfiguration = AuthRequestConfiguration(apiKey: apiKey, appID: appID)
-    taskQueue = AuthSerialTaskQueue()
-    #if os(iOS)
-      self.multiFactor = multiFactor ?? MultiFactor()
-      super.init()
-      multiFactor?.user = self
-    #endif
-  }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.uid = try container.decode(String.self, forKey: .uid)
+
+        let apiKey = try container.decode(String.self, forKey: .APIKey)
+        let appID = try container.decode(
+                String.self,
+                forKey: .appID
+        )
+        self.tokenService = try container.decode(SecureTokenService.self, forKey: .tokenService)
+        self.isAnonymous = try container.decode(Bool.self, forKey: .isAnonymous)
+        self.hasEmailPasswordCredential = try container.decode(Bool.self, forKey: .hasEmailPasswordCredential)
+        self.displayName = try container.decodeIfPresent(String.self,
+                                                forKey: .displayName
+        )
+        self.photoURL = try container.decodeIfPresent(URL.self, forKey: .photoURL)
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.phoneNumber = try container.decodeIfPresent(String.self,
+                                                forKey: .phoneNumber
+        )
+        self.isEmailVerified = try container.decode(Bool.self, forKey: .isEmailVerified)
+        self.providerDataRaw = try container.decodeIfPresent([String: UserInfoImpl].self, forKey: .providerData) ?? [:]
+        self.metadata = try container.decodeIfPresent(UserMetadata.self, forKey: .metadata) ?? UserMetadata(withCreationDate: nil, lastSignInDate: nil)
+        self.tenantID = try container.decodeIfPresent(String.self, forKey: .tenantID)
+        // The `heartbeatLogger` and `appCheck` will be set later via a property update.
+        self.requestConfiguration = AuthRequestConfiguration(apiKey: apiKey, appID: appID)
+        self.taskQueue = AuthSerialTaskQueue()
+        #if os(iOS)
+          self.multiFactor = multiFactor ?? MultiFactor()
+          multiFactor?.user = self
+        #endif
+    }
+
 }

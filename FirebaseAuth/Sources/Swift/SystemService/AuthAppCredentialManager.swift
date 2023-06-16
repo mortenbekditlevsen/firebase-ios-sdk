@@ -20,7 +20,7 @@
   /** @class FIRAuthAppCredentialManager
       @brief A class to manage app credentials backed by iOS Keychain.
    */
-  @objc(FIRAuthAppCredentialManager) public class AuthAppCredentialManager: NSObject {
+   public class AuthAppCredentialManager {
     let kKeychainDataKey = "app_credentials"
     let kFullCredentialKey = "full_credential"
     let kPendingReceiptsKey = "pending_receipts"
@@ -28,13 +28,13 @@
     /** @property credential
         @brief The full credential (which has a secret) to be used by the app, if one is available.
      */
-    @objc public var credential: AuthAppCredential?
+    public var credential: AuthAppCredential?
 
     /** @property maximumNumberOfPendingReceipts
         @brief The maximum (but not necessarily the minimum) number of pending receipts to be kept.
         @remarks Only tests should access this property.
      */
-    @objc public let maximumNumberOfPendingReceipts = 32
+    public let maximumNumberOfPendingReceipts = 32
 
     init(withKeychain keychain: AuthStorage) {
       keychainServices = keychain
@@ -53,7 +53,7 @@
       }
     }
 
-    @objc public func didStartVerification(withReceipt receipt: String,
+    public func didStartVerification(withReceipt receipt: String,
                                            timeout: TimeInterval,
                                            callback: @escaping (AuthAppCredential) -> Void) {
       pendingReceipts = pendingReceipts.filter { $0 != receipt }
@@ -68,7 +68,7 @@
       }
     }
 
-    @objc public func canFinishVerification(withReceipt receipt: String, secret: String) -> Bool {
+    public func canFinishVerification(withReceipt receipt: String, secret: String) -> Bool {
       guard pendingReceipts.contains(receipt) else {
         return false
       }
@@ -79,7 +79,7 @@
       return true
     }
 
-    @objc public func clearCredential() {
+    public func clearCredential() {
       credential = nil
       saveData()
     }

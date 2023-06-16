@@ -18,8 +18,8 @@ import Foundation
  @brief Utility class for constructing Twitter Sign In credentials.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRTwitterAuthProvider) open class TwitterAuthProvider: NSObject {
-  @objc public static let id = "twitter.com"
+ open class TwitterAuthProvider {
+  public static let id = "twitter.com"
 
   /**
       @brief Creates an `AuthCredential` for a Twitter sign in.
@@ -28,12 +28,12 @@ import Foundation
       @param secret The Twitter OAuth secret.
       @return An AuthCredential containing the Twitter credentials.
    */
-  @objc public class func credential(withToken token: String, secret: String) -> AuthCredential {
+  public class func credential(withToken token: String, secret: String) -> AuthCredential {
     return TwitterAuthCredential(withToken: token, secret: secret)
   }
 
   @available(*, unavailable)
-  @objc override public init() {
+   public init() {
     fatalError("This class is not meant to be initialized.")
   }
 }
@@ -49,7 +49,7 @@ class TwitterAuthCredential: AuthCredential, NSSecureCoding {
     super.init(provider: TwitterAuthProvider.id)
   }
 
-  @objc override func prepare(_ request: VerifyAssertionRequest) {
+  override func prepare(_ request: VerifyAssertionRequest) {
     request.providerAccessToken = token
     request.providerOAuthTokenSecret = secret
   }

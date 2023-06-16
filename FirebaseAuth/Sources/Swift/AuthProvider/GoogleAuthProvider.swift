@@ -18,8 +18,8 @@ import Foundation
  @brief Utility class for constructing Google Sign In credentials.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRGoogleAuthProvider) open class GoogleAuthProvider: NSObject {
-  @objc public static let id = "google.com"
+ open class GoogleAuthProvider {
+  public static let id = "google.com"
 
   /**
       @brief Creates an `AuthCredential` for a Google sign in.
@@ -28,19 +28,19 @@ import Foundation
       @param accessToken The Access Token from Google.
       @return An AuthCredential containing the Google credentials.
    */
-  @objc public class func credential(withIDToken IDToken: String,
+  public class func credential(withIDToken IDToken: String,
                                      accessToken: String) -> AuthCredential {
     return GoogleAuthCredential(withIDToken: IDToken, accessToken: accessToken)
   }
 
   @available(*, unavailable)
-  @objc override public init() {
+   public init() {
     fatalError("This class is not meant to be initialized.")
   }
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRGoogleAuthCredential) class GoogleAuthCredential: AuthCredential, NSSecureCoding {
+ class GoogleAuthCredential: AuthCredential, NSSecureCoding {
   let idToken: String
   let accessToken: String
 
@@ -50,7 +50,7 @@ import Foundation
     super.init(provider: GoogleAuthProvider.id)
   }
 
-  @objc override func prepare(_ request: VerifyAssertionRequest) {
+  override func prepare(_ request: VerifyAssertionRequest) {
     request.providerIDToken = idToken
     request.providerAccessToken = accessToken
   }

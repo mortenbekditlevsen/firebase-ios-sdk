@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 /** @class GoogleAuthProvider
     @brief The implementation for Google auth provider related methods.
  */
-@interface GoogleAuthProvider : NSObject <AuthProvider>
+@interface GoogleAuthProvider  <AuthProvider>
 @end
 
 NS_ASSUME_NONNULL_END

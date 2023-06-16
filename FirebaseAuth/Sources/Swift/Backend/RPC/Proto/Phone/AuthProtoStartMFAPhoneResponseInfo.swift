@@ -14,7 +14,7 @@
 
 import Foundation
 
-class AuthProtoStartMFAPhoneResponseInfo: NSObject, AuthProto {
+class AuthProtoStartMFAPhoneResponseInfo: AuthProto {
   var sessionInfo: String?
 
   required init(dictionary: [String: AnyHashable]) {

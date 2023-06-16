@@ -19,31 +19,31 @@ import CommonCrypto
  @brief Utility class for constructing OAuth Sign In credentials.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIROAuthProvider) open class OAuthProvider: NSObject, FederatedAuthProvider {
-  @objc public static let id = "OAuth"
+ open class OAuthProvider: FederatedAuthProvider {
+  public static let id = "OAuth"
 
   /** @property scopes
       @brief Array used to configure the OAuth scopes.
    */
-  @objc public var scopes: [String]
+  public var scopes: [String]
 
   /** @property customParameters
       @brief Dictionary used to configure the OAuth custom parameters.
    */
-  @objc public var customParameters: [String: String]
+  public var customParameters: [String: String]
 
   /** @property providerID
       @brief The provider ID indicating the specific OAuth provider this OAuthProvider instance
             represents.
    */
-  @objc public let providerID: String
+  public let providerID: String
 
   /**
       @param providerID The provider ID of the IDP for which this auth provider instance will be
           configured.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-  @objc(providerWithProviderID:) public class func provider(providerID: String) -> OAuthProvider {
+   public class func provider(providerID: String) -> OAuthProvider {
     return OAuthProvider(providerID: providerID, auth: Auth.auth())
   }
 
@@ -53,7 +53,7 @@ import CommonCrypto
       @param auth The auth instance to be associated with the `OAuthProvider` instance.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-  @objc(providerWithProviderID:auth:) public class func provider(providerID: String,
+   public class func provider(providerID: String,
                                                                  auth: Auth) -> OAuthProvider {
     return OAuthProvider(providerID: providerID, auth: auth)
   }
@@ -63,7 +63,7 @@ import CommonCrypto
           configured.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-  @objc(providerWithProviderID:) public convenience init(providerID: String) {
+   public convenience init(providerID: String) {
     self.init(providerID: providerID, auth: Auth.auth())
   }
 
@@ -73,7 +73,7 @@ import CommonCrypto
       @param auth The auth instance to be associated with the `OAuthProvider` instance.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-  @objc(providerWithProviderID:auth:) public init(providerID: String, auth: Auth) {
+   public init(providerID: String, auth: Auth) {
     if auth.requestConfiguration.emulatorHostAndPort == nil {
       if providerID == FacebookAuthProvider.id {
         fatalError("Sign in with Facebook is not supported via generic IDP; the Facebook TOS " +
@@ -118,7 +118,7 @@ import CommonCrypto
           available.
       @return A `AuthCredential` for the specified provider ID, ID token and access token.
    */
-  @objc(credentialWithProviderID:IDToken:accessToken:)
+  
   public static func credential(withProviderID providerID: String,
                                 idToken: String,
                                 accessToken: String?) -> OAuthCredential {
@@ -133,7 +133,7 @@ import CommonCrypto
       @param accessToken The access token associated with the Auth credential be created
       @return An `AuthCredential`.
    */
-  @objc(credentialWithProviderID:accessToken:)
+  
   public static func credential(withProviderID providerID: String,
                                 accessToken: String) -> OAuthCredential {
     return OAuthCredential(withProviderID: providerID, accessToken: accessToken)
@@ -150,7 +150,7 @@ import CommonCrypto
           available.
       @return A `AuthCredential` for the specified provider ID, ID token and access token.
    */
-  @objc(credentialWithProviderID:IDToken:rawNonce:accessToken:)
+  
   public static func credential(withProviderID providerID: String, idToken: String,
                                 rawNonce: String,
                                 accessToken: String) -> OAuthCredential {
@@ -171,7 +171,7 @@ import CommonCrypto
       @param rawNonce The raw nonce associated with the Auth credential being created.
       @return A `AuthCredential`.
    */
-  @objc(credentialWithProviderID:IDToken:rawNonce:)
+  
   public static func credential(withProviderID providerID: String, idToken: String,
                                 rawNonce: String) -> OAuthCredential {
     return OAuthCredential(withProviderID: providerID, idToken: idToken, rawNonce: rawNonce)
@@ -185,7 +185,7 @@ import CommonCrypto
         @param completion Optionally; a block which is invoked asynchronously on the main thread when
             the mobile web flow is completed.
      */
-    @objc(getCredentialWithUIDelegate:completion:)
+    
     public func getCredentialWith(_ UIDelegate: AuthUIDelegate?,
                                   completion: ((AuthCredential?, Error?) -> Void)? = nil) {
       guard let urlTypes = auth.mainBundleUrlTypes,
@@ -282,7 +282,7 @@ import CommonCrypto
    * created.
    *  @return An `AuthCredential`.
    */
-  @objc(appleCredentialWithIDToken:rawNonce:fullName:)
+  
   public static func appleCredential(withIDToken idToken: String,
                                      rawNonce: String?,
                                      fullName: PersonNameComponents?) -> OAuthCredential {

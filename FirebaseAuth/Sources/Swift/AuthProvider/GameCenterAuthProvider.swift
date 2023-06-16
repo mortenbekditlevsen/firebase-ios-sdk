@@ -20,13 +20,13 @@
    @brief A concrete implementation of `AuthProvider` for Game Center Sign In. Not available on watchOS.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRGameCenterAuthProvider) open class GameCenterAuthProvider: NSObject {
-    @objc public static let id = "gc.apple.com"
+   open class GameCenterAuthProvider {
+    public static let id = "gc.apple.com"
 
     /** @fn
         @brief Creates an `AuthCredential` for a Game Center sign in.
      */
-    @objc public class func getCredential(completion: @escaping (AuthCredential?, Error?) -> Void) {
+    public class func getCredential(completion: @escaping (AuthCredential?, Error?) -> Void) {
       /**
        Linking GameKit.framework without using it on macOS results in App Store rejection.
        Thus we don't link GameKit.framework to our SDK directly. `optionalLocalPlayer` is used for
@@ -103,23 +103,23 @@
     }
 
     @available(*, unavailable)
-    @objc override public init() {
+   public init() {
       fatalError("This class is not meant to be initialized.")
     }
   }
 
   // Change to internal
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  @objc(FIRGameCenterAuthCredential)
+  
   public class GameCenterAuthCredential: AuthCredential, NSSecureCoding {
-    @objc public let playerID: String
-    @objc public let teamPlayerID: String?
-    @objc public let gamePlayerID: String?
-    @objc public let publicKeyURL: URL?
-    @objc public let signature: Data?
-    @objc public let salt: Data?
-    @objc public let timestamp: UInt64
-    @objc public let displayName: String
+    public let playerID: String
+    public let teamPlayerID: String?
+    public let gamePlayerID: String?
+    public let publicKeyURL: URL?
+    public let signature: Data?
+    public let salt: Data?
+    public let timestamp: UInt64
+    public let displayName: String
 
     /**
         @brief Designated initializer.

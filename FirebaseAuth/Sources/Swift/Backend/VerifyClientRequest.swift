@@ -15,7 +15,7 @@
 import Foundation
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRVerifyClientRequest)
+
 public class VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest {
   /// The endpoint for the verifyClient request.
   private static let verifyClientEndpoint = "verifyClient"
@@ -29,7 +29,7 @@ public class VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest {
   /** @var response
       @brief The corresponding response for this request
    */
-  @objc public var response: AuthRPCResponse = VerifyClientResponse()
+  public var response: AuthRPCResponse = VerifyClientResponse()
 
   public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
     var postBody = [String: AnyHashable]()
@@ -41,12 +41,12 @@ public class VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest {
   }
 
   /// The APNS device token.
-  @objc public private(set) var appToken: String?
+  public private(set) var appToken: String?
 
   /// The flag that denotes if the appToken  pertains to Sandbox or Production.
-  @objc public private(set) var isSandbox: Bool
+  public private(set) var isSandbox: Bool
 
-  @objc public init(withAppToken: String?,
+  public init(withAppToken: String?,
                     isSandbox: Bool,
                     requestConfiguration: AuthRequestConfiguration) {
     appToken = withAppToken

@@ -23,15 +23,15 @@ private let kTenantIDKey = "tenantId"
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 class WithdrawMFARequest: IdentityToolkitRequest, AuthRPCRequest {
-  @objc public var idToken: String?
-  @objc public var mfaEnrollmentID: String?
+  public var idToken: String?
+  public var mfaEnrollmentID: String?
 
   /** @var response
       @brief The corresponding response for this request
    */
-  @objc public var response: AuthRPCResponse = WithdrawMFAResponse()
+  public var response: AuthRPCResponse = WithdrawMFAResponse()
 
-  @objc public init(idToken: String?,
+  public init(idToken: String?,
                     mfaEnrollmentID: String?,
                     requestConfiguration: AuthRequestConfiguration) {
     self.idToken = idToken

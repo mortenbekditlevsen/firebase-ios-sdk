@@ -176,7 +176,7 @@
       waitForExpectations(timeout: 5)
     }
 
-    private class FakeApplication: NSObject, AuthAPNSTokenApplication {
+    private class FakeApplication: AuthAPNSTokenApplication {
       var registerCalled = false
       func registerForRemoteNotifications() {
         registerCalled = true

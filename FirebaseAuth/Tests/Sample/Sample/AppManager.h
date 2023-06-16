@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 /** @class AppManager
     @brief A manager of global FIRApp instances.
  */
-@interface AppManager : NSObject
+@interface AppManager 
 
 /** @property count
     @brief The total count of apps under management, including the default app.

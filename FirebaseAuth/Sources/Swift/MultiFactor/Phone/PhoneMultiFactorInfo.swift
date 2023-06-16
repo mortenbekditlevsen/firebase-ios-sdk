@@ -21,14 +21,14 @@ import Foundation
        The identifier of this second factor is "phone".
        This class is available on iOS only.
    */
-  @objc(FIRPhoneMultiFactorInfo) public class PhoneMultiFactorInfo: MultiFactorInfo {
-    @objc(FIRPhoneMultiFactorID) public static let PhoneMultiFactorID = "FIRPhoneMultiFactorID"
+   public class PhoneMultiFactorInfo: MultiFactorInfo {
+     public static let PhoneMultiFactorID = "FIRPhoneMultiFactorID"
 
     /**
         @brief This is the phone number associated with the current second factor.
      */
-    @objc public var phoneNumber: String
-    @objc override public init(proto: AuthProtoMFAEnrollment) {
+    public var phoneNumber: String
+    override public init(proto: AuthProtoMFAEnrollment) {
       guard let phoneInfo = proto.phoneInfo else {
         fatalError("Internal Auth Error: Missing phone number in Multi Factor Enrollment")
       }

@@ -29,16 +29,16 @@ private let kSecretKey = "secret"
 /** @class FIRAuthAppCredential
     @brief A class represents a credential that proves the identity of the app.
  */
-@objc(FIRAuthAppCredential) public class AuthAppCredential: NSObject, NSSecureCoding {
+ public class AuthAppCredential: NSSecureCoding {
   /** @property receipt
       @brief The server acknowledgement of receiving client's claim of identity.
    */
-  @objc public var receipt: String
+  public var receipt: String
 
   /** @property secret
       @brief The secret that the client received from server via a trusted channel, if ever.
    */
-  @objc public var secret: String?
+  public var secret: String?
 
   /** @fn initWithReceipt:secret:
       @brief Initializes the instance.
@@ -46,7 +46,7 @@ private let kSecretKey = "secret"
       @param secret The secret that the client received from server via a trusted channel, if ever.
       @return The initialized instance.
    */
-  @objc public init(receipt: String, secret: String?) {
+  public init(receipt: String, secret: String?) {
     self.secret = secret
     self.receipt = receipt
   }

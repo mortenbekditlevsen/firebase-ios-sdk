@@ -680,7 +680,7 @@
       var delegate: UIApplicationDelegate?
     }
 
-    class FakePresenter: NSObject, AuthWebViewControllerDelegate {
+    class FakePresenter: AuthWebViewControllerDelegate {
       func webViewController(_ webViewController: AuthWebViewController,
                              canHandle URL: URL) -> Bool {
         XCTFail("Do not call")
@@ -789,7 +789,7 @@
       }
     }
 
-    private class FakeUIDelegate: NSObject, AuthUIDelegate {
+    private class FakeUIDelegate: AuthUIDelegate {
       func present(_ viewControllerToPresent: UIViewController, animated flag: Bool,
                    completion: (() -> Void)? = nil) {
         guard let safariController = viewControllerToPresent as? SFSafariViewController,

@@ -598,7 +598,7 @@ class AuthBackendRPCImplementationTests: RPCBaseTests {
 
   // TODO: enable heartbeat logger tests for SPM
   #if COCOAPODS
-    private class FakeHeartbeatLogger: NSObject, FIRHeartbeatLoggerProtocol {
+    private class FakeHeartbeatLogger: FIRHeartbeatLoggerProtocol {
       var onFlushHeartbeatsIntoPayloadHandler: (() -> _ObjC_HeartbeatsPayload)?
 
       func log() {
@@ -710,7 +710,7 @@ class AuthBackendRPCImplementationTests: RPCBaseTests {
     }
   #endif
 
-  private class FakeRequest: NSObject, AuthRPCRequest {
+  private class FakeRequest: AuthRPCRequest {
     func requestConfiguration() -> AuthRequestConfiguration {
       return configuration
     }
@@ -767,7 +767,7 @@ class AuthBackendRPCImplementationTests: RPCBaseTests {
     }
   }
 
-  private class FakeResponse: NSObject, AuthRPCResponse {
+  private class FakeResponse: AuthRPCResponse {
     let decodingError: NSError?
     var receivedDictionary: [String: AnyHashable] = [:]
     init(withDecodingError error: NSError? = nil) {

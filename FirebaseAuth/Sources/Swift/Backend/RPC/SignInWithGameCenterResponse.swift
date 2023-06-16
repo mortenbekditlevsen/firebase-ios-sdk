@@ -14,17 +14,17 @@
 
 import Foundation
 
-@objc(FIRSignInWithGameCenterResponse) public class SignInWithGameCenterResponse: NSObject,
+public class SignInWithGameCenterResponse:
   AuthRPCResponse {
-  @objc(IDToken) public var idToken: String?
-  @objc public var refreshToken: String?
-  @objc public var localID: String?
-  @objc public var playerID: String?
-  @objc public var teamPlayerID: String?
-  @objc public var gamePlayerID: String?
-  @objc public var approximateExpirationDate: Date?
-  @objc public var isNewUser: Bool = false
-  @objc public var displayName: String?
+   public var idToken: String?
+  public var refreshToken: String?
+  public var localID: String?
+  public var playerID: String?
+  public var teamPlayerID: String?
+  public var gamePlayerID: String?
+  public var approximateExpirationDate: Date?
+  public var isNewUser: Bool = false
+  public var displayName: String?
 
   public func setFields(dictionary: [String: AnyHashable]) throws {
     idToken = dictionary["idToken"] as? String

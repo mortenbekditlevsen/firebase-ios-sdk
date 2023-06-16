@@ -17,26 +17,26 @@ import Foundation
 /** @class ActionCodeInfo
     @brief Manages information regarding action codes.
  */
-@objc(FIRActionCodeInfo) public class ActionCodeInfo: NSObject {
+ public class ActionCodeInfo {
   /**
       @brief The operation being performed.
    */
-  @objc public let operation: ActionCodeOperation
+  public let operation: ActionCodeOperation
 
   /** @property email
       @brief The email address to which the code was sent. The new email address in the case of
           `ActionCodeOperationRecoverEmail`.
    */
-  @objc public let email: String
+  public let email: String
 
   /** @property previousEmail
       @brief The email that is being recovered in the case of `ActionCodeOperationRecoverEmail`.
    */
-  @objc public let previousEmail: String?
+  public let previousEmail: String?
 
   // TODO: Below here change to internal.
 
-  @objc public init(withOperation operation: ActionCodeOperation, email: String,
+  public init(withOperation operation: ActionCodeOperation, email: String,
                     newEmail: String?) {
     self.operation = operation
     if let newEmail {
@@ -53,7 +53,7 @@ import Foundation
       @param requestType Request type returned in in the server response.
       @return The corresponding ActionCodeOperation for the supplied request type.
    */
-  @objc public
+  public
   class func actionCodeOperation(forRequestType requestType: String?) -> ActionCodeOperation {
     switch requestType {
     case "PASSWORD_RESET": return .passwordReset

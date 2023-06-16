@@ -18,14 +18,14 @@ import Foundation
     @brief Public representation of a credential.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthCredential) open class AuthCredential: NSObject {
-  @objc public let provider: String
+ open class AuthCredential {
+  public let provider: String
   init(provider: String) {
     self.provider = provider
   }
 
   // TODO: remove public after FIRUser port
-  @objc(prepareVerifyAssertionRequest:) public func prepare(_ request: VerifyAssertionRequest) {
+   public func prepare(_ request: VerifyAssertionRequest) {
     fatalError("This method must be overridden by a subclass.")
   }
 }

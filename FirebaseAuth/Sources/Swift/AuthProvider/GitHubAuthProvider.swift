@@ -18,8 +18,8 @@ import Foundation
  @brief Utility class for constructing GitHub Sign In credentials.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRGitHubAuthProvider) open class GitHubAuthProvider: NSObject {
-  @objc public static let id = "github.com"
+ open class GitHubAuthProvider {
+  public static let id = "github.com"
 
   /**
       @brief Creates an `AuthCredential` for a GitHub sign in.
@@ -27,12 +27,12 @@ import Foundation
       @param token The GitHub OAuth access token.
       @return An AuthCredential containing the GitHub credentials.
    */
-  @objc public class func credential(withToken token: String) -> AuthCredential {
+  public class func credential(withToken token: String) -> AuthCredential {
     return GitHubAuthCredential(withToken: token)
   }
 
   @available(*, unavailable)
-  @objc override public init() {
+   public init() {
     fatalError("This class is not meant to be initialized.")
   }
 }
@@ -46,7 +46,7 @@ class GitHubAuthCredential: AuthCredential, NSSecureCoding {
     super.init(provider: GitHubAuthProvider.id)
   }
 
-  @objc override func prepare(_ request: VerifyAssertionRequest) {
+  override func prepare(_ request: VerifyAssertionRequest) {
     request.providerAccessToken = token
   }
 

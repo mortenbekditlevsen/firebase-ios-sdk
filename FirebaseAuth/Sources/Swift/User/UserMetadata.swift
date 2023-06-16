@@ -18,19 +18,19 @@ import Foundation
     @brief A data class representing the metadata corresponding to a Firebase user.
  */
 
-@objc(FIRUserMetadata) public class UserMetadata: NSObject, NSSecureCoding {
+ public class UserMetadata: Codable {
   /** @property lastSignInDate
       @brief Stores the last sign in date for the corresponding Firebase user.
    */
-  @objc public let lastSignInDate: Date?
+  public let lastSignInDate: Date?
 
   /** @property creationDate
       @brief Stores the creation date for the corresponding Firebase user.
    */
-  @objc public let creationDate: Date?
+  public let creationDate: Date?
 
   // TODO: Nothing public below here
-  @objc public init(withCreationDate creationDate: Date?, lastSignInDate: Date?) {
+  public init(withCreationDate creationDate: Date?, lastSignInDate: Date?) {
     self.creationDate = creationDate
     self.lastSignInDate = lastSignInDate
   }

@@ -140,7 +140,7 @@
       var delegate: UIApplicationDelegate?
     }
 
-    private class FakeForwardingDelegate: NSObject, UIApplicationDelegate {
+    private class FakeForwardingDelegate: UIApplicationDelegate {
       let notificationManager: AuthNotificationManager
       var forwardsNotification = false
       var notificationReceived = false

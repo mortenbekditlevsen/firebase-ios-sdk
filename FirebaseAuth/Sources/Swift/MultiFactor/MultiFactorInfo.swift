@@ -27,28 +27,28 @@ import Foundation
    @brief Safe public structure used to represent a second factor entity from a client perspective.
        This class is available on iOS only.
    */
-  @objc(FIRMultiFactorInfo) public class MultiFactorInfo: NSObject, NSSecureCoding {
+   public class MultiFactorInfo: NSSecureCoding {
     /**
         @brief The multi-factor enrollment ID.
      */
-    @objc(UID) public var uid: String
+     public var uid: String
 
     /**
         @brief The user friendly name of the current second factor.
      */
-    @objc public var displayName: String?
+    public var displayName: String?
 
     /**
         @brief The second factor enrollment date.
      */
-    @objc public var enrollmentDate: Date?
+    public var enrollmentDate: Date?
 
     /**
         @brief The identifier of the second factor.
      */
     var factorID: String?
 
-    @objc public init(proto: AuthProtoMFAEnrollment) {
+    public init(proto: AuthProtoMFAEnrollment) {
       guard let uid = proto.mfaEnrollmentID else {
         fatalError("Auth Internal Error: Failed to inialize MFA: missing enrollment ID")
       }

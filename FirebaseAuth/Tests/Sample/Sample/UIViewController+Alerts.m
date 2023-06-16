@@ -43,7 +43,7 @@ static NSString *const kCancel = @"Cancel";
 /*! @class SimpleTextPromptDelegate
     @brief A @c UIAlertViewDelegate which allows @c UIAlertView to be used with blocks more easily.
  */
-@interface SimpleTextPromptDelegate : NSObject <UIAlertViewDelegate>
+@interface SimpleTextPromptDelegate  <UIAlertViewDelegate>
 
 /*! @fn init
     @brief Please use initWithCompletionHandler.

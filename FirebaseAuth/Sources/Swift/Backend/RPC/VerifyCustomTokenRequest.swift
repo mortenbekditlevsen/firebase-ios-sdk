@@ -35,18 +35,18 @@ private let kReturnSecureTokenKey = "returnSecureToken"
 private let kTenantIDKey = "tenantId"
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRVerifyCustomTokenRequest) public class VerifyCustomTokenRequest: IdentityToolkitRequest,
+ public class VerifyCustomTokenRequest: IdentityToolkitRequest,
   AuthRPCRequest {
-  @objc public let token: String
+  public let token: String
 
-  @objc public var returnSecureToken: Bool
+  public var returnSecureToken: Bool
 
   /** @var response
       @brief The corresponding response for this request
    */
-  @objc public var response: AuthRPCResponse = VerifyCustomTokenResponse()
+  public var response: AuthRPCResponse = VerifyCustomTokenResponse()
 
-  @objc public init(token: String, requestConfiguration: AuthRequestConfiguration) {
+  public init(token: String, requestConfiguration: AuthRequestConfiguration) {
     self.token = token
     returnSecureToken = true
     super.init(endpoint: kVerifyCustomTokenEndpoint, requestConfiguration: requestConfiguration)

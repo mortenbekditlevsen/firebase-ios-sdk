@@ -16,7 +16,7 @@ import Foundation
 
 // TODO(ncooke3): Reshape API to conform to `AuthStorage`.
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class AuthSharedKeychainServices: NSObject {
+class AuthSharedKeychainServices {
   // MARK: - Private methods for shared keychain operations
 
   /** @fn getItemWithQuery:error:
@@ -57,7 +57,7 @@ class AuthSharedKeychainServices: NSObject {
    @param query The query to query the keychain.
    @return Whether the operation succeed.
    */
-  @objc public func setItem(_ item: Data, withQuery query: [String: Any]) throws {
+  public func setItem(_ item: Data, withQuery query: [String: Any]) throws {
     let status: OSStatus
     let function: String
     if (try getItem(query: query)) != nil {
@@ -82,7 +82,7 @@ class AuthSharedKeychainServices: NSObject {
    @param query The query to query the keychain.
    @return Whether the operation succeed.
    */
-  @objc public func removeItem(query: [String: Any]) throws {
+  public func removeItem(query: [String: Any]) throws {
     let status = SecItemDelete(query as CFDictionary)
     if status == noErr || status == errSecItemNotFound {
       return

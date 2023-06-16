@@ -22,7 +22,7 @@ import Foundation
 typealias FIRFetchAuthDomainCallback = (String?, Error?) -> Void
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRAuthWebUtils) public class AuthWebUtils: NSObject {
+ public class AuthWebUtils {
   static func randomString(withLength length: Int) -> String {
     var randomString = ""
     for _ in 0 ..< length {
@@ -33,7 +33,7 @@ typealias FIRFetchAuthDomainCallback = (String?, Error?) -> Void
     return randomString
   }
 
-  @objc public static func isCallbackSchemeRegistered(forCustomURLScheme scheme: String,
+  public static func isCallbackSchemeRegistered(forCustomURLScheme scheme: String,
                                                       urlTypes: [[String: Any]]) -> Bool {
     let expectedCustomScheme = scheme.lowercased()
     for urlType in urlTypes {
@@ -138,7 +138,7 @@ typealias FIRFetchAuthDomainCallback = (String?, Error?) -> Void
     return nil
   }
 
-  @objc public static func dictionary(withHttpArgumentsString argString: String?)
+  public static func dictionary(withHttpArgumentsString argString: String?)
     -> [String: String] {
     guard let argString else {
       return [:]
@@ -173,7 +173,7 @@ typealias FIRFetchAuthDomainCallback = (String?, Error?) -> Void
       .removingPercentEncoding ?? ""
   }
 
-  @objc public static func parseURL(_ urlString: String) -> [String: String] {
+  public static func parseURL(_ urlString: String) -> [String: String] {
     let urlComponents = URLComponents(string: urlString)
     guard let linkURL = urlComponents?.query else {
       return [:]

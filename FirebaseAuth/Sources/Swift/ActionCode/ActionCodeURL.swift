@@ -17,39 +17,39 @@ import Foundation
 /** @class FIRActionCodeURL
     @brief This class will allow developers to easily extract information about out of band links.
  */
-@objc(FIRActionCodeURL) public class ActionCodeURL: NSObject {
+ public class ActionCodeURL {
   /** @property APIKey
       @brief Returns the API key from the link. nil, if not provided.
    */
-  @objc public let apiKey: String?
+  public let apiKey: String?
 
   /** @property operation
       @brief Returns the mode of oob action. The property will be of `FIRActionCodeOperation` type.
           It will return `FIRActionCodeOperationUnknown` if no oob action is provided.
    */
-  @objc public let operation: ActionCodeOperation
+  public let operation: ActionCodeOperation
 
   /** @property code
       @brief Returns the email action code from the link. nil, if not provided.
    */
-  @objc public let code: String?
+  public let code: String?
 
   /** @property continueURL
       @brief Returns the continue URL from the link. nil, if not provided.
    */
-  @objc public let continueURL: URL?
+  public let continueURL: URL?
 
   /** @property languageCode
       @brief Returns the language code from the link. nil, if not provided.
    */
-  @objc public let languageCode: String?
+  public let languageCode: String?
 
   /** @fn actionCodeURLWithLink:
       @brief Construct an `ActionCodeURL` from an out of band link (e.g. email link).
       @param link The oob link string used to construct the action code URL.
       @return The `ActionCodeURL` object constructed based on the oob link provided.
    */
-  @objc(actionCodeURLWithLink:) public init?(link: String) {
+   public init?(link: String) {
     var queryItems = ActionCodeURL.parseURL(link)
     if queryItems.count == 0 {
       let urlComponents = URLComponents(string: link)
@@ -73,7 +73,7 @@ import Foundation
 
   // TODO: internal below here.
 
-  @objc public class func parseURL(_ urlString: String) -> [String: String] {
+  public class func parseURL(_ urlString: String) -> [String: String] {
     guard let linkURL = URLComponents(string: urlString)?.query else {
       return [:]
     }

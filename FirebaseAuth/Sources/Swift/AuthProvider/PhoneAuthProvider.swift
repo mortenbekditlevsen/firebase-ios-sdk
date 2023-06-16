@@ -20,13 +20,13 @@ import FirebaseCore
      This class is available on iOS only.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRPhoneAuthProvider) open class PhoneAuthProvider: NSObject {
-  @objc public static let id = "phone"
+ open class PhoneAuthProvider {
+  public static let id = "phone"
   #if os(iOS)
     /**
      @brief Returns an instance of `PhoneAuthProvider` for the default `Auth` object.
      */
-    @objc(provider) public class func provider() -> PhoneAuthProvider {
+     public class func provider() -> PhoneAuthProvider {
       return PhoneAuthProvider(auth: Auth.auth())
     }
 
@@ -34,7 +34,7 @@ import FirebaseCore
      @brief Returns an instance of `PhoneAuthProvider` for the provided `Auth` object.
      @param auth The auth object to associate with the phone auth provider instance.
      */
-    @objc(providerWithAuth:)
+    
     public class func provider(auth: Auth) -> PhoneAuthProvider {
       return PhoneAuthProvider(auth: auth)
     }
@@ -58,7 +58,7 @@ import FirebaseCore
      invalid.
      + `AuthErrorCodeMissingPhoneNumber` - Indicates that a phone number was not provided.
      */
-    @objc(verifyPhoneNumber:UIDelegate:completion:)
+    
     public func verifyPhoneNumber(_ phoneNumber: String,
                                   uiDelegate: AuthUIDelegate?,
                                   completion: ((_: String?, _: Error?) -> Void)?) {
@@ -98,7 +98,7 @@ import FirebaseCore
      @param completion The callback to be invoked when the verification flow is finished.
      */
 
-    @objc(verifyPhoneNumber:UIDelegate:multiFactorSession:completion:)
+    
     public func verifyPhoneNumber(_ phoneNumber: String,
                                   uiDelegate: AuthUIDelegate?,
                                   multiFactorSession session: MultiFactorSession? = nil,
@@ -161,7 +161,7 @@ import FirebaseCore
              factor challenge.
          @param completion The callback to be invoked when the verification flow is finished.
      */
-    @objc(verifyPhoneNumberWithMultiFactorInfo:UIDelegate:multiFactorSession:completion:)
+    
     public func verifyPhoneNumber(with multiFactorInfo: PhoneMultiFactorInfo,
                                   uiDelegate: AuthUIDelegate?,
                                   multiFactorSession session: MultiFactorSession?,
@@ -200,7 +200,7 @@ import FirebaseCore
         @return The corresponding phone auth credential for the verification ID and verification code
             provided.
      */
-    @objc(credentialWithVerificationID:verificationCode:)
+    
     public func credential(withVerificationID verificationID: String,
                            verificationCode: String) -> PhoneAuthCredential {
       return PhoneAuthCredential(withProviderID: PhoneAuthProvider.id,

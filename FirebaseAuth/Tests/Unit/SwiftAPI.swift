@@ -230,7 +230,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
 
   #if !os(macOS) && !os(watchOS)
     func FIRAuthUIDelegate_h() {
-      class AuthUIImpl: NSObject, AuthUIDelegate {
+      class AuthUIImpl: AuthUIDelegate {
         func present(_ viewControllerToPresent: UIViewController, animated flag: Bool,
                      completion: (() -> Void)? = nil) {}
 
@@ -253,7 +253,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
 
   #if !os(macOS) && !os(watchOS)
     func FIRFedederatedAuthProvider_h() {
-      class FederatedAuthImplementation: NSObject, FederatedAuthProvider {
+      class FederatedAuthImplementation: FederatedAuthProvider {
         @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
         func credential(with UIDelegate: AuthUIDelegate?) async throws -> FirebaseAuth
           .AuthCredential {

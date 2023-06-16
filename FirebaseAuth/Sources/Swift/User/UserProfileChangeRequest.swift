@@ -20,11 +20,11 @@ import Foundation
         property value to nil is not the same as leaving the property unassigned.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-@objc(FIRUserProfileChangeRequest) public class UserProfileChangeRequest: NSObject {
+ public class UserProfileChangeRequest {
   /** @property displayName
    @brief The name of the user.
    */
-  @objc public var displayName: String? {
+  public var displayName: String? {
     get { return _displayName }
     set(newDisplayName) {
       kAuthGlobalWorkQueue.async {
@@ -42,7 +42,7 @@ import Foundation
   /** @property photoURL
    @brief The URL of the user's profile photo.
    */
-  @objc public var photoURL: URL? {
+  public var photoURL: URL? {
     get { return _photoURL }
     set(newPhotoURL) {
       kAuthGlobalWorkQueue.async {
@@ -65,7 +65,7 @@ import Foundation
    @param completion Optionally; the block invoked when the user profile change has been applied.
    Invoked asynchronously on the main thread in the future.
    */
-  @objc public func commitChanges(withCompletion completion: ((Error?) -> Void)? = nil) {
+  public func commitChanges(withCompletion completion: ((Error?) -> Void)? = nil) {
     kAuthGlobalWorkQueue.async {
       if self.consumed {
         fatalError("Internal Auth Error: commitChanges should only be called once.")

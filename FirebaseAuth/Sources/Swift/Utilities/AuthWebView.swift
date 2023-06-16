@@ -20,7 +20,7 @@
   /** @class AuthWebView
       @brief A class responsible for creating a WKWebView for use within Firebase Auth.
    */
-  @objc(FIRAuthWebView) public class AuthWebView: UIView {
+   public class AuthWebView: UIView {
     public lazy var webView: WKWebView = createWebView()
     public lazy var spinner: UIActivityIndicatorView = createSpinner()
 

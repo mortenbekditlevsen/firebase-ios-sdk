@@ -21,7 +21,7 @@
       @brief A protocol to handle user interface interactions for Firebase Auth.
           This protocol is available on iOS, macOS Catalyst, and tvOS only.
    */
-  @objc(FIRAuthUIDelegate) public protocol AuthUIDelegate: NSObjectProtocol {
+   public protocol AuthUIDelegate {
     /** @fn presentViewController:animated:completion:
          @brief If implemented, this method will be invoked when Firebase Auth needs to display a view
              controller.
@@ -30,7 +30,7 @@
          @param completion The block to execute after the presentation finishes. This block has no return
              value and takes no parameters.
      */
-    @objc(presentViewController:animated:completion:)
+    
     func present(_ viewControllerToPresent: UIViewController,
                  animated flag: Bool,
                  completion: (() -> Void)?)
@@ -42,7 +42,7 @@
          @param completion The block to execute after the presentation finishes. This block has no return
              value and takes no parameters.
      */
-    @objc(dismissViewControllerAnimated:completion:)
+    
     func dismiss(animated flag: Bool, completion: (() -> Void)?)
   }
 
