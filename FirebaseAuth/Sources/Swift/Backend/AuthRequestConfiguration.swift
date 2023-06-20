@@ -14,10 +14,21 @@
 
 import Foundation
 
+// Dummy protocol since I don't have heartbeatlogger working yet
+public protocol FIRHeartbeatLoggerProtocol {
+
+}
+
+// Dummy protocol since I don't have AppCheck working yet
+public protocol AppCheckInterop {
+    func getToken(forcingRefresh: Bool, callback: (Result<String, Error>) -> Void)
+
+}
+
 // TODO: Investigate how to directly depend on FIRHeartbeatLogger instead of using a protocol so
 // FirebaseCoreExtension can be an implementation only protocol.
-import FirebaseCoreExtension
-import FirebaseAppCheckInterop
+//import FirebaseCoreExtension
+//import FirebaseAppCheckInterop
 
 /** @class FIRAuthRequestConfiguration
    @brief Defines configurations to be added to a request to Firebase Auth's backend.
@@ -61,6 +72,7 @@ import FirebaseAppCheckInterop
    @brief If set, the local emulator host and port to point to instead of the remote backend.
    */
   public var emulatorHostAndPort: String?
+
 
   
   public init(apiKey: String,

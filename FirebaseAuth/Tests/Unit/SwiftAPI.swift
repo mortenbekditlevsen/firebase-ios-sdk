@@ -18,7 +18,7 @@ import Foundation
 import XCTest
 
 @testable import FirebaseAuth
-import FirebaseCore
+//import FirebaseCore
 
 #if !os(macOS)
   import UIKit

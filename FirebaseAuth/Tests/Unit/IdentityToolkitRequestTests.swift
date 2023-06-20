@@ -16,7 +16,7 @@ import Foundation
 import XCTest
 
 @testable import FirebaseAuth
-import FirebaseCore
+//import FirebaseCore
 
 /// @class IdentityToolkitRequestTests
 ///    @brief Tests for @c IdentityToolkitRequest

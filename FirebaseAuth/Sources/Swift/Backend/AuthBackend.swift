@@ -13,14 +13,14 @@
 // limitations under the License.
 
 import Foundation
-import FirebaseCore
-import FirebaseCoreExtension
-import FirebaseCoreInternal
-#if COCOAPODS
-  import GTMSessionFetcher
-#else
-  import GTMSessionFetcherCore
-#endif
+//import FirebaseCore
+//import FirebaseCoreExtension
+//import FirebaseCoreInternal
+//#if COCOAPODS
+//  import GTMSessionFetcher
+//#else
+//  import GTMSessionFetcherCore
+//#endif
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 public protocol AuthBackendRPCIssuer {
@@ -41,16 +41,23 @@ public protocol AuthBackendRPCIssuer {
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
-  let fetcherService: GTMSessionFetcherService
+  let fetcherService: URLSession
 
     init() {
-    fetcherService = GTMSessionFetcherService()
-    fetcherService.userAgent = AuthBackend.authUserAgent()
-    fetcherService.callbackQueue = kAuthGlobalWorkQueue
+        let configuration = URLSessionConfiguration()
+        configuration.httpAdditionalHeaders = ["User-Agent": AuthBackend.authUserAgent()]
+
+        let queue = OperationQueue()
+        queue.underlyingQueue = kAuthGlobalWorkQueue
+
+        fetcherService = URLSession(configuration: configuration, delegate: nil, delegateQueue: queue)
+//    fetcherService.userAgent = AuthBackend.authUserAgent()
+//    fetcherService.callbackQueue = kAuthGlobalWorkQueue
 
     // Avoid reusing the session to prevent
     // https://github.com/firebase/firebase-ios-sdk/issues/1261
-    fetcherService.reuseSession = false
+//    fetcherService.reuseSession = false
+        // XXX TODO: LOOK AT REUSE ISSUE
   }
 
   public func asyncPostToURL(withRequest request: AuthRPCRequest,
@@ -61,13 +68,20 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
     AuthBackend.request(withURL: request.requestURL(),
                         contentType: contentType,
                         requestConfiguration: requestConfiguration) { request in
-      let fetcher = self.fetcherService.fetcher(with: request)
-      if let _ = requestConfiguration.emulatorHostAndPort {
-        fetcher.allowLocalhostRequest = true
-        fetcher.allowedInsecureSchemes = ["http"]
-      }
-      fetcher.bodyData = body
-      fetcher.beginFetch(completionHandler: completionHandler)
+        var request = request
+        //      let fetcher = self.fetcherService.fetcher(with: request)
+        //        let urlRequest = URLR
+        //        // XXX TODO: Look at emulator stuff
+        ////      if let _ = requestConfiguration.emulatorHostAndPort {
+        ////        fetcher.allowLocalhostRequest = true
+        ////        fetcher.allowedInsecureSchemes = ["http"]
+        ////      }
+        //      fetcher.bodyData = body
+        request.httpBody = body
+        self.fetcherService.dataTask(with: request) { data, response, error in
+            completionHandler(data, error)
+        }
+//      fetcher.beginFetch(completionHandler: completionHandler)
     }
   }
 }
@@ -75,7 +89,12 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
  public class AuthBackend {
   static func authUserAgent() -> String {
-    return "FirebaseAuth.iOS/\(FirebaseVersion()) \(GTMFetcherStandardUserAgentString(nil))"
+      // XXX TODO:
+      // GTMUseragent is bundle id followed by a space and
+      // then the os version. Fake for now
+      let gtmUserAgent = "1.2.3 16.5"
+//    return "FirebaseAuth.iOS/\(FirebaseVersion()) \(GTMFetcherStandardUserAgentString(nil))"
+      return "FirebaseAuth.iOS/\(FirebaseVersion()) \(gtmUserAgent)"
   }
 
   private static var gBackendImplementation: AuthBackendImplementation?
@@ -144,13 +163,16 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
     }
     if let appCheck = requestConfiguration.appCheck {
       appCheck.getToken(forcingRefresh: false) { tokenResult in
-        if let error = tokenResult.error {
-          AuthLog.logWarning(code: "I-AUT000018",
-                             message: "Error getting App Check token; using placeholder " +
-                               "token instead. Error: \(error)")
-        }
-        request.setValue(tokenResult.token, forHTTPHeaderField: "X-Firebase-AppCheck")
-        completion(request)
+          switch tokenResult {
+          case .failure(let error):
+              AuthLog.logWarning(code: "I-AUT000018",
+                                 message: "Error getting App Check token; using placeholder " +
+                                   "token instead. Error: \(error)")
+
+          case .success(let token):
+              request.setValue(token, forHTTPHeaderField: "X-Firebase-AppCheck")
+              completion(request)
+          }
       }
     } else {
       completion(request)

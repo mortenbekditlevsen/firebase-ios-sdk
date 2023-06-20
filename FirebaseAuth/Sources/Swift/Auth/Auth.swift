@@ -14,17 +14,32 @@
 
 import Foundation
 
-import FirebaseCore
-import FirebaseCoreExtension
-import FirebaseAppCheckInterop
-import FirebaseAuthInterop
-#if COCOAPODS
-  @_implementationOnly import GoogleUtilities
-#else
-  @_implementationOnly import GoogleUtilities_AppDelegateSwizzler
-  @_implementationOnly import GoogleUtilities_Environment
-#endif
+public class FirebaseApp {
+    var options: FirebaseAppOptions = .init()
+    var name: String = ""
+    private static var shared: FirebaseApp = .init()
+    static func app() -> FirebaseApp? { shared }
+    var heartbeatLogger: FIRHeartbeatLoggerProtocol? = nil
+}
 
+public class FirebaseAppOptions {
+    var apiKey: String? = ""
+    var name: String? = ""
+    var clientID: String? = ""
+    var googleAppID: String = ""
+}
+
+////import FirebaseCore
+////import FirebaseCoreExtension
+//import FirebaseAppCheckInterop
+//import FirebaseAuthInterop
+//#if COCOAPODS
+//  @_implementationOnly import GoogleUtilities
+//#else
+//  @_implementationOnly import GoogleUtilities_AppDelegateSwizzler
+//  @_implementationOnly import GoogleUtilities_Environment
+//#endif
+//
 #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
   import UIKit
 #endif
@@ -72,6 +87,14 @@ import FirebaseAuthInterop
     }
   }
 #endif
+
+// XXX TODO: Dummy implementation
+public protocol AuthInterop {
+    func getToken(forcingRefresh forceRefresh: Bool,
+                         completion callback: @escaping (String?, Error?) -> Void)
+
+    func getUserID() -> String?
+}
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 extension Auth: AuthInterop {
@@ -1683,8 +1706,8 @@ extension Auth: AuthInterop {
     mainBundleUrlTypes = Bundle.main
       .object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
 
-    let appCheck = ComponentType<AppCheckInterop>.instance(for: AppCheckInterop.self,
-                                                           in: app.container)
+//    let appCheck = ComponentType<AppCheckInterop>.instance(for: AppCheckInterop.self,
+//                                                           in: app.container)
     guard let apiKey = app.options.apiKey else {
       fatalError("Missing apiKey for Auth initialization")
     }
@@ -1694,14 +1717,14 @@ extension Auth: AuthInterop {
     #if os(iOS)
       authURLPresenter = AuthURLPresenter()
       settings = AuthSettings()
-      GULAppDelegateSwizzler.proxyOriginalDelegateIncludingAPNSMethods()
-      GULSceneDelegateSwizzler.proxyOriginalSceneDelegate()
+//      GULAppDelegateSwizzler.proxyOriginalDelegateIncludingAPNSMethods()
+//      GULSceneDelegateSwizzler.proxyOriginalSceneDelegate()
     #endif
     requestConfiguration = AuthRequestConfiguration(apiKey: apiKey,
                                                     appID: app.options.googleAppID,
                                                     auth: nil,
                                                     heartbeatLogger: app.heartbeatLogger,
-                                                    appCheck: appCheck)
+                                                    appCheck: nil)
     requestConfiguration.auth = self
 
     protectedDataInitialization(keychainStorageProvider)
@@ -1920,14 +1943,16 @@ extension Auth: AuthInterop {
       scheduleAutoTokenRefresh()
     }
     var internalNotificationParameters: [String: Any] = [:]
-    if let app = app {
-      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationAppKey] = app
-    }
-    if let token, token.count > 0 {
-      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationTokenKey] = token
-    }
-    internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationUIDKey] = currentUser?
-      .uid
+
+      // XXX TODO: WHat's this?
+//    if let app = app {
+//      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationAppKey] = app
+//    }
+//    if let token, token.count > 0 {
+//      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationTokenKey] = token
+//    }
+//    internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationUIDKey] = currentUser?
+//      .uid
     let notifications = NotificationCenter.default
     DispatchQueue.main.async {
       notifications.post(name: NSNotification.Name.FIRAuthStateDidChangeInternal,

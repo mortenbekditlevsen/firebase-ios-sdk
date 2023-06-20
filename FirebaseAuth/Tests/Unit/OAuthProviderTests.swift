@@ -15,7 +15,7 @@
 import Foundation
 import XCTest
 
-import FirebaseCore
+//import FirebaseCore
 @testable import FirebaseAuth
 
 #if os(iOS)

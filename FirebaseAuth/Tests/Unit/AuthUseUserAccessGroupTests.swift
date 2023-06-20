@@ -16,7 +16,7 @@ import Foundation
 import XCTest
 
 @testable import FirebaseAuth
-import FirebaseCore
+//import FirebaseCore
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 class UseUserAccessGroupTests: RPCBaseTests {

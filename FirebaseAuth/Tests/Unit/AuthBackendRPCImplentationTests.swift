@@ -16,8 +16,8 @@ import Foundation
 import XCTest
 
 @testable import FirebaseAuth
-import FirebaseCoreExtension
-import FirebaseCoreInternal
+//import FirebaseCoreExtension
+//import FirebaseCoreInternal
 import HeartbeatLoggingTestUtils
 
 private let kFakeAPIKey = "kTestAPIKey"

@@ -399,15 +399,18 @@ import CommonCrypto
         var components = URLComponents(string: percentEncoded)
         if let appCheck {
           appCheck.getToken(forcingRefresh: false) { tokenResult in
-            if let error = tokenResult.error {
-              AuthLog.logWarning(code: "I-AUT000018",
-                                 message: "Error getting App Check token; using placeholder " +
-                                   "token instead. Error: \(error)")
-            }
-            let appCheckTokenFragment = "fac=\(tokenResult.token)"
-            components?.fragment = appCheckTokenFragment
-            completion(components?.url, nil)
-          }
+              switch tokenResult {
+              case .failure(let error):
+                  AuthLog.logWarning(code: "I-AUT000018",
+                                     message: "Error getting App Check token; using placeholder " +
+                                       "token instead. Error: \(error)")
+              case .success(let token):
+                  let appCheckTokenFragment = "fac=\(token)"
+                  components?.fragment = appCheckTokenFragment
+                  completion(components?.url, nil)
+
+              }
+         }
         } else {
           completion(components?.url, nil)
         }

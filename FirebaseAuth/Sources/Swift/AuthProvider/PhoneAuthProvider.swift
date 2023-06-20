@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import Foundation
-import FirebaseCore
+//import FirebaseCore
 
 /**
  @brief A concrete implementation of `AuthProvider` for phone auth providers.

@@ -429,13 +429,13 @@ let package = Package(
     .target(
       name: "FirebaseAuth",
       dependencies: [
-        "FirebaseAppCheckInterop",
-        "FirebaseAuthInterop",
+//        "FirebaseAppCheckInterop",
+//        "FirebaseAuthInterop",
         "FirebaseCore",
         "FirebaseCoreExtension",
-        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
-        .product(name: "GULEnvironment", package: "GoogleUtilities"),
-        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
+//        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
+//        .product(name: "GULEnvironment", package: "GoogleUtilities"),
+//        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
       ],
       path: "FirebaseAuth/Sources/Swift",
       linkerSettings: [
