@@ -23,7 +23,7 @@ let firebaseVersion = "10.10.0"
 
 let package = Package(
   name: "Firebase",
-  platforms: [.iOS(.v11), .macCatalyst(.v13), .macOS(.v10_13), .tvOS(.v12), .watchOS(.v7)],
+  platforms: [.iOS(.v11), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v12), .watchOS(.v7)],
   products: [
     .library(
       name: "FirebaseAnalytics",
@@ -137,6 +137,7 @@ let package = Package(
     ),
   ],
   dependencies: [
+    .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
     .package(
       url: "https://github.com/google/promises.git",
       "2.1.0" ..< "3.0.0"
@@ -436,6 +437,7 @@ let package = Package(
 //        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
 //        .product(name: "GULEnvironment", package: "GoogleUtilities"),
 //        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
+        .product(name: "Crypto", package: "swift-crypto")
       ],
       path: "FirebaseAuth/Sources/Swift",
       linkerSettings: [

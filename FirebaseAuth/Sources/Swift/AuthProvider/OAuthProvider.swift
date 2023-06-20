@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import Foundation
-#if !os(Linux)
-import CommonCrypto
+import Crypto
 /**
  @brief Utility class for constructing OAuth Sign In credentials.
  */
@@ -426,16 +425,10 @@ import CommonCrypto
     guard let sessionIdData = string.data(using: .utf8) as? NSData else {
       fatalError("FirebaseAuth Internal error: Failed to create hash for sessionID")
     }
-    let digestLength = Int(CC_SHA256_DIGEST_LENGTH)
-    var hash = [UInt8](repeating: 0, count: digestLength)
-    CC_SHA256(sessionIdData.bytes, UInt32(sessionIdData.length), &hash)
-    let dataHash = NSData(bytes: hash, length: digestLength)
-    var bytes = [UInt8](repeating: 0, count: digestLength)
-    dataHash.getBytes(&bytes, length: digestLength)
-
+      let sha256 = SHA256.hash(data: sessionIdData)
     var hexString = ""
-    for byte in bytes {
-      hexString += String(format: "%02x", UInt8(byte))
+      for byte in sha256 {
+      hexString += String(format: "%02x", byte)
     }
     return hexString
   }
@@ -454,4 +447,3 @@ import CommonCrypto
   private let callbackScheme: String
   private let usingClientIDScheme: Bool
 }
-#endif
