@@ -47,7 +47,7 @@ public class AuthAppCredentialManager {
             let decoder = JSONDecoder()
             if let appCredentials = try? decoder.decode(AppCredentials.self, from: encodedData) {
                 self.credential = appCredentials.credential
-                self.pendingReceipts = appCredentials.pendingReceipts
+                self.pendingReceipts = appCredentials.pendingReceipts ?? []
             }
         }
     }
