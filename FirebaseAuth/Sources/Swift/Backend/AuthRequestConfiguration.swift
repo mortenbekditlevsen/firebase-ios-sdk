@@ -13,17 +13,7 @@
 // limitations under the License.
 
 import Foundation
-
-// Dummy protocol since I don't have heartbeatlogger working yet
-public protocol FIRHeartbeatLoggerProtocol {
-
-}
-
-// Dummy protocol since I don't have AppCheck working yet
-public protocol AppCheckInterop {
-    func getToken(forcingRefresh: Bool, callback: (Result<String, Error>) -> Void)
-
-}
+import FirebaseCoreSwift
 
 // TODO: Investigate how to directly depend on FIRHeartbeatLogger instead of using a protocol so
 // FirebaseCoreExtension can be an implementation only protocol.

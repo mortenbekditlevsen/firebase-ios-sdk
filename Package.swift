@@ -139,6 +139,31 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
     .package(
+      url: "https://github.com/apple/swift-atomics.git",
+      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
+    ),
+    .package(
+        url: "https://github.com/apple/swift-nio.git",
+        from: "2.40.0"
+    ),
+    .package(url: "https://github.com/apple/swift-log.git",
+             from: "1.0.0"),
+    .package(
+        url: "https://github.com/apple/swift-nio-ssl.git",
+         from: "2.19.0"
+    ),
+    .package(
+      name: "leveldb",
+      url: "https://github.com/mortenbekditlevsen/leveldb.git",
+      .revision("c38963739c2048a84db6823228df1eb9bd16a5ca")
+//      "1.22.2" ..< "1.23.0"
+    ),
+    .package(
+      url: "https://github.com/apple/swift-collections.git",
+      .branch("main")
+//      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
+    ),
+    .package(
       url: "https://github.com/google/promises.git",
       "2.1.0" ..< "3.0.0"
     ),
@@ -175,16 +200,19 @@ let package = Package(
       url: "https://github.com/erikdoe/ocmock.git",
       revision: "c5eeaa6dde7c308a5ce48ae4d4530462dd3a1110"
     ),
-    .package(
-      url: "https://github.com/firebase/leveldb.git",
-      "1.22.2" ..< "1.23.0"
-    ),
+//    .package(
+//      url: "https://github.com/firebase/leveldb.git",
+//      "1.22.2" ..< "1.23.0"
+//    ),
     .package(
       url: "https://github.com/SlaunchaMan/GCDWebServer.git",
       revision: "935e2736044e71e5341663c3cc9a335ba6867a2b"
     ),
   ],
   targets: [
+    .target(name: "FirebaseCoreSwift",
+            path: "FirebaseCoreSwift/Sources"
+           ),
     .target(
       name: "Firebase",
       path: "CoreOnly/Sources",
@@ -426,10 +454,33 @@ let package = Package(
         .headerSearchPath("../../../.."),
       ]
     ),
+    .target(
+        name: "FirebaseDatabaseSwiftCore",
+        dependencies: [ "FirebaseSharedSwift",
+                        "leveldb",
+                        .product(name: "Atomics", package: "swift-atomics"),
+                        .product(name: "Logging", package: "swift-log"),
+                        .product(name: "SortedCollections", package: "swift-collections"),
+                        .product(name: "NIOWebSocket", package: "swift-nio"),
+                        .product(name: "NIOSSL", package: "swift-nio-ssl"),
+                        .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux, .windows, .android]))],
+        path: "FirebaseDatabaseSwiftCore/Sources",
+        exclude: [
+          "third_party/LevelDB/LICENSE",
+        ]
+      ),
+      .testTarget(
+        name: "DatabaseSwiftCoreUnit",
+        dependencies: ["FirebaseDatabaseSwiftCore"],
+        path: "FirebaseDatabaseSwiftCore/Tests/Unit"
+      ),
 
     .target(
       name: "FirebaseAuth",
       dependencies: [
+        "FirebaseCoreSwift",
+        .product(name: "Logging", package: "swift-log"),
+
 //        "FirebaseAppCheckInterop",
 //        "FirebaseAuthInterop",
 //        "FirebaseCore",

@@ -13,21 +13,7 @@
 // limitations under the License.
 
 import Foundation
-
-public class FirebaseApp {
-    var options: FirebaseAppOptions = .init()
-    var name: String = ""
-    private static var shared: FirebaseApp = .init()
-    static func app() -> FirebaseApp? { shared }
-    var heartbeatLogger: FIRHeartbeatLoggerProtocol? = nil
-}
-
-public class FirebaseAppOptions {
-    var apiKey: String? = ""
-    var name: String? = ""
-    var clientID: String? = ""
-    var googleAppID: String = ""
-}
+import FirebaseCoreSwift
 
 ////import FirebaseCore
 ////import FirebaseCoreExtension
@@ -88,13 +74,6 @@ public class FirebaseAppOptions {
   }
 #endif
 
-// XXX TODO: Dummy implementation
-public protocol AuthInterop {
-    func getToken(forcingRefresh forceRefresh: Bool,
-                         completion callback: @escaping (String?, Error?) -> Void)
-
-    func getUserID() -> String?
-}
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
 extension Auth: AuthInterop {
