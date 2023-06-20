@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import Foundation
+#if !os(Linux)
 import CommonCrypto
-
 /**
  @brief Utility class for constructing OAuth Sign In credentials.
  */
@@ -454,3 +454,4 @@ import CommonCrypto
   private let callbackScheme: String
   private let usingClientIDScheme: Bool
 }
+#endif
