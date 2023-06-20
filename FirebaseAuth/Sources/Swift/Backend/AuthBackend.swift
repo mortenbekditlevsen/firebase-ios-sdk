@@ -13,6 +13,11 @@
 // limitations under the License.
 
 import Foundation
+
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 //import FirebaseCore
 //import FirebaseCoreExtension
 //import FirebaseCoreInternal
