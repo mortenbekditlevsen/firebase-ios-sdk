@@ -185,10 +185,11 @@ extension Auth: AuthInterop {
    */
   public class func auth(app: FirebaseApp) -> Auth {
       // XXX TODO
-      fatalError()
+//      fatalError()
 //    let provider = ComponentType<AuthProvider>.instance(for: AuthProvider.self,
 //                                                        in: app.container)
 //    return provider.auth()
+      return Auth(app: app, keychainStorageProvider: AuthUserDefaults.self)
   }
 
   /** @property app
