@@ -1475,8 +1475,9 @@ extension Auth: AuthInterop {
   
   public func removeStateDidChangeListener(_ listenerHandle: AnyObject) {
     NotificationCenter.default.removeObserver(listenerHandle)
-    objc_sync_enter(Auth.self)
-    defer { objc_sync_exit(Auth.self) }
+      // XXX TODO
+//    objc_sync_enter(Auth.self)
+//    defer { objc_sync_exit(Auth.self) }
     listenerHandles.remove(listenerHandle)
   }
 
@@ -1511,9 +1512,10 @@ extension Auth: AuthInterop {
         listener(auth, auth.currentUser)
       }
     }
-    objc_sync_enter(Auth.self)
+        // XXX TODO
+//    objc_sync_enter(Auth.self)
     listenerHandles.add(listener)
-    objc_sync_exit(Auth.self)
+//    objc_sync_exit(Auth.self)
     DispatchQueue.main.async {
       listener(self, self.currentUser)
     }
@@ -1894,9 +1896,10 @@ extension Auth: AuthInterop {
       @param app The Firebase app to set keychain service name for.
    */
   class func setKeychainServiceNameForApp(_ app: FirebaseApp) {
-    objc_sync_enter(Auth.self)
+      // XXX TODO
+//    objc_sync_enter(Auth.self)
     gKeychainServiceNameForAppName[app.name] = "firebase_auth_\(app.options.googleAppID)"
-    objc_sync_exit(Auth.self)
+//    objc_sync_exit(Auth.self)
   }
 
   /** @fn keychainServiceNameForAppName:
@@ -1904,8 +1907,9 @@ extension Auth: AuthInterop {
       @param appName The name of the Firebase app to get keychain service name for.
    */
   class func keychainServiceName(forAppName appName: String) -> String? {
-    objc_sync_enter(Auth.self)
-    defer { objc_sync_exit(Auth.self) }
+      // XXX TODO
+//    objc_sync_enter(Auth.self)
+//    defer { objc_sync_exit(Auth.self) }
     return gKeychainServiceNameForAppName[appName]
   }
 
@@ -1914,9 +1918,10 @@ extension Auth: AuthInterop {
       @param appName The name of the Firebase app to delete keychain service name for.
    */
   class func deleteKeychainServiceNameForAppName(_ appName: String) {
-    objc_sync_enter(Auth.self)
+      // XXX TODO
+//    objc_sync_enter(Auth.self)
     gKeychainServiceNameForAppName.removeValue(forKey: appName)
-    objc_sync_exit(Auth.self)
+//    objc_sync_exit(Auth.self)
   }
 
   internal func signOutByForce(withUserID userID: String) throws {
