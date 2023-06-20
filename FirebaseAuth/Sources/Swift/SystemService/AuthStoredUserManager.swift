@@ -126,6 +126,10 @@ import Foundation
                             accessGroup: String,
                             shareAuthStateAcrossDevices: Bool,
                             projectIdentifier: String) throws {
+#if os(Linux)
+      return
+      #else
+
     var query = keychainQuery(
       accessGroup: accessGroup,
       shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
@@ -146,6 +150,7 @@ import Foundation
     archiver.finishEncoding()
 
     try keychainServices.setItem(archiver.encodedData, withQuery: query)
+      #endif
   }
 
   /// Remove the user that stored locally.
@@ -160,6 +165,10 @@ import Foundation
   public func removeStoredUser(accessGroup: String,
                                shareAuthStateAcrossDevices: Bool,
                                projectIdentifier: String) throws {
+#if os(Linux)
+      return
+      #else
+
     var query = keychainQuery(
       accessGroup: accessGroup,
       shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
@@ -173,6 +182,7 @@ import Foundation
     }
 
     try keychainServices.removeItem(query: query)
+      #endif
   }
 
   // MARK: - Private Helpers

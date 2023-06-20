@@ -25,6 +25,10 @@ class AuthSharedKeychainServices {
    @return The item of the given query. `nil`` if not exist.
    */
   func getItem(query: [String: Any]) throws -> Data? {
+#if os(Linux)
+      return nil
+      #else
+
     var mutableQuery = query
     mutableQuery[kSecReturnData as String] = true
     mutableQuery[kSecReturnAttributes as String] = true
@@ -49,6 +53,7 @@ class AuthSharedKeychainServices {
     } else {
       throw AuthErrorUtils.keychainError(function: "SecItemCopyMatching", status: status)
     }
+      #endif
   }
 
   /** @fn setItem:withQuery:error:
@@ -58,6 +63,10 @@ class AuthSharedKeychainServices {
    @return Whether the operation succeed.
    */
   public func setItem(_ item: Data, withQuery query: [String: Any]) throws {
+#if os(Linux)
+      return
+      #else
+
     let status: OSStatus
     let function: String
     if (try getItem(query: query)) != nil {
@@ -75,6 +84,7 @@ class AuthSharedKeychainServices {
       return
     }
     throw AuthErrorUtils.keychainError(function: function, status: status)
+      #endif
   }
 
   /** @fn getItemWithQuery:error:
@@ -83,10 +93,15 @@ class AuthSharedKeychainServices {
    @return Whether the operation succeed.
    */
   public func removeItem(query: [String: Any]) throws {
+#if os(Linux)
+      return
+      #else
+
     let status = SecItemDelete(query as CFDictionary)
     if status == noErr || status == errSecItemNotFound {
       return
     }
     throw AuthErrorUtils.keychainError(function: "SecItemDelete", status: status)
+      #endif
   }
 }
