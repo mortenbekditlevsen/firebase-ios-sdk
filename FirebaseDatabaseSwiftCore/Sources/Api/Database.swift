@@ -7,35 +7,6 @@
 
 import Foundation
 
-public class FirebaseApp: Equatable {
-    public static func == (lhs: FirebaseApp, rhs: FirebaseApp) -> Bool {
-        lhs.name == rhs.name && lhs.options == rhs.options
-    }
-
-    public struct Options: Equatable {
-        public init(databaseURL: String? = nil, projectID: String? = nil, googleAppID: String) {
-            self.databaseURL = databaseURL
-            self.projectID = projectID
-            self.googleAppID = googleAppID
-        }
-
-        var databaseURL: String?
-        var projectID: String?
-        var googleAppID: String
-    }
-    var name: String
-    var options: Options
-    public init(options: Options, name: String) {
-        self.options = options
-        self.name = name
-    }
-    static var isDefaultAppConfigured: Bool { defaultApp != nil }
-    public static func configure(name: String? = nil, options: Options) {
-        defaultApp = FirebaseApp(options: options, name: name ?? "[DEFAULT]")
-    }
-    static private(set) var defaultApp: FirebaseApp?
-}
-
 /**
  * The entry point for accessing a Firebase Database.  You can get an instance
  * by calling [FIRDatabase database]. To access a location in the database and

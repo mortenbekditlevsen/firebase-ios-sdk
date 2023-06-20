@@ -146,7 +146,7 @@ extension Auth: AuthInterop {
    raised.
    */
   public class func auth() -> Auth {
-    guard let defaultApp = FirebaseApp.app() else {
+    guard let defaultApp = FirebaseApp.defaultApp else {
       fatalError("The default FirebaseApp instance must be configured before the default Auth " +
         "instance can be initialized. One way to ensure this is to call " +
         "`FirebaseApp.configure()` in the App Delegate's " +
