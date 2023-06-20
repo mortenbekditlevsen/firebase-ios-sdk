@@ -26,10 +26,11 @@ typealias FIRFetchAuthDomainCallback = (String?, Error?) -> Void
   static func randomString(withLength length: Int) -> String {
     var randomString = ""
     for _ in 0 ..< length {
-      let randomValue = UInt32(arc4random_uniform(26) + 65)
+        let randomValue = UInt32.random(in: 65 ..< 91)
       guard let randomCharacter = Unicode.Scalar(randomValue) else { continue }
       randomString += String(Character(randomCharacter))
     }
+      // XXX TODO: test that this is actually a random string
     return randomString
   }
 

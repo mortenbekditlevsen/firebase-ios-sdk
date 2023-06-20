@@ -95,6 +95,9 @@ final class AuthKeychainServices: AuthStorage {
   // MARK: - Private methods for non-sharing keychain operations
 
   private func item(query: [String: Any]) throws -> Data? {
+      #if os(Linux)
+      return nil
+      #else
     var returningQuery = query
     returningQuery[kSecReturnData as String] = true
     returningQuery[kSecReturnAttributes as String] = true
@@ -139,9 +142,14 @@ final class AuthKeychainServices: AuthStorage {
     } else {
       throw AuthErrorUtils.keychainError(function: "SecItemCopyMatching", status: status)
     }
+      #endif
   }
 
   private func setItem(query: [String: Any], attributes: [String: Any]) throws {
+#if os(Linux)
+return
+#else
+
     let combined = attributes.merging(query, uniquingKeysWith: { _, last in last })
     var hasItem = false
 
@@ -156,14 +164,20 @@ final class AuthKeychainServices: AuthStorage {
     }
     let function = hasItem ? "SecItemUpdate" : "SecItemAdd"
     throw AuthErrorUtils.keychainError(function: function, status: status)
+      #endif
   }
 
   private func deleteItem(query: [String: Any]) throws {
+#if os(Linux)
+return
+#else
+
     let status = SecItemDelete(query as CFDictionary)
     if status == noErr || status == errSecItemNotFound {
       return
     }
     throw AuthErrorUtils.keychainError(function: "SecItemDelete", status: status)
+      #endif
   }
 
   /** @fn deleteLegacyItemsWithKey:
@@ -171,12 +185,17 @@ final class AuthKeychainServices: AuthStorage {
       @param key The key for the item.
    */
   private func deleteLegacyItem(key: String) {
+#if os(Linux)
+return
+#else
+
     if legacyEntryDeletedForKey.contains(key) {
       return
     }
     let query = legacyGenericPasswordQuery(key: key)
     SecItemDelete(query as CFDictionary)
     legacyEntryDeletedForKey.insert(key)
+      #endif
   }
 
   /** @fn genericPasswordQueryWithKey:
