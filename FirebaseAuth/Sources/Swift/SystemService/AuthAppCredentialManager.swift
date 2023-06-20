@@ -21,6 +21,10 @@
       @brief A class to manage app credentials backed by iOS Keychain.
    */
 public class AuthAppCredentialManager {
+    struct AppCredentials: Codable {
+        let credential: AuthAppCredential?
+        let pendingReceipts: [String]?
+    }
     let kKeychainDataKey = "app_credentials"
     let kFullCredentialKey = "full_credential"
     let kPendingReceiptsKey = "pending_receipts"
@@ -41,18 +45,10 @@ public class AuthAppCredentialManager {
         if let encodedData = try? keychain.data(forKey: kKeychainDataKey) {
 
             let decoder = JSONDecoder()
-            if let credential = try? decoder.decode(AuthAppCredential.self, from: encodedData) {
-                self.credential = credential
+            if let appCredentials = try? decoder.decode(AppCredentials.self, from: encodedData) {
+                self.credential = appCredentials.credential
+                self.pendingReceipts = appCredentials.pendingReceipts
             }
-
-            // XXX TODO - credential and receipts are in same archive
-//            if let pendingReceipts = unarchiver.decodeObject(
-//                of: [NSString.self, NSArray.self],
-//                forKey: kPendingReceiptsKey
-//            ) as? [String] {
-//                self.pendingReceipts = pendingReceipts
-//            }
-
         }
     }
 
@@ -91,15 +87,11 @@ public class AuthAppCredentialManager {
 
     private func saveData() {
         let encoder = JSONEncoder()
-        let data = try? encoder.encode(credential)
-        // XXX TODO, archive contains both credential
-        // and pendingreceipts
-        // Wrap in extra container object
-//      let archiver = NSKeyedArchiver(requiringSecureCoding: true)
-//      archiver.encode(credential, forKey: kFullCredentialKey)
-//      archiver.encode(pendingReceipts, forKey: kPendingReceiptsKey)
-//      archiver.finishEncoding()
-      try? keychainServices.setData(data, forKey: kKeychainDataKey)
+
+        let appCredentials = AppCredentials(credential: credential, pendingReceipts: pendingReceipts)
+        if let data = try? encoder.encode(appCredentials) {
+            try? keychainServices.setData(data, forKey: kKeychainDataKey)
+        }
     }
 
     private func callbackWithReceipt(_ receipt: String) {
