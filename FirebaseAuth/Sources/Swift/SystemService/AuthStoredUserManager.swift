@@ -145,11 +145,14 @@ import Foundation
     // TODO(ncooke3): The Objective-C code has an #if for watchOS here.
     // Does this work for watchOS?
 
-    let archiver = NSKeyedArchiver(requiringSecureCoding: false)
-    archiver.encode(user, forKey: Self.storedUserCoderKey)
-    archiver.finishEncoding()
+      let encoder = JSONEncoder()
+      let data = try encoder.encode(user)
+//
+//    let archiver = NSKeyedArchiver(requiringSecureCoding: false)
+//    archiver.encode(user, forKey: Self.storedUserCoderKey)
+//    archiver.finishEncoding()
 
-    try keychainServices.setItem(archiver.encodedData, withQuery: query)
+    try keychainServices.setItem(data, withQuery: query)
       #endif
   }
 

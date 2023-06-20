@@ -20,37 +20,40 @@
   /** @class FIRAuthAppCredentialManager
       @brief A class to manage app credentials backed by iOS Keychain.
    */
-   public class AuthAppCredentialManager {
+public class AuthAppCredentialManager {
     let kKeychainDataKey = "app_credentials"
     let kFullCredentialKey = "full_credential"
     let kPendingReceiptsKey = "pending_receipts"
 
     /** @property credential
-        @brief The full credential (which has a secret) to be used by the app, if one is available.
+     @brief The full credential (which has a secret) to be used by the app, if one is available.
      */
     public var credential: AuthAppCredential?
 
     /** @property maximumNumberOfPendingReceipts
-        @brief The maximum (but not necessarily the minimum) number of pending receipts to be kept.
-        @remarks Only tests should access this property.
+     @brief The maximum (but not necessarily the minimum) number of pending receipts to be kept.
+     @remarks Only tests should access this property.
      */
     public let maximumNumberOfPendingReceipts = 32
 
     init(withKeychain keychain: AuthStorage) {
-      keychainServices = keychain
-      if let encodedData = try? keychain.data(forKey: kKeychainDataKey),
-         let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: encodedData) {
-        if let credential = unarchiver.decodeObject(of: AuthAppCredential.self,
-                                                    forKey: kFullCredentialKey) {
-          self.credential = credential
+        keychainServices = keychain
+        if let encodedData = try? keychain.data(forKey: kKeychainDataKey) {
+
+            let decoder = JSONDecoder()
+            if let credential = try? decoder.decode(AuthAppCredential.self, from: encodedData) {
+                self.credential = credential
+            }
+
+            // XXX TODO - credential and receipts are in same archive
+//            if let pendingReceipts = unarchiver.decodeObject(
+//                of: [NSString.self, NSArray.self],
+//                forKey: kPendingReceiptsKey
+//            ) as? [String] {
+//                self.pendingReceipts = pendingReceipts
+//            }
+
         }
-        if let pendingReceipts = unarchiver.decodeObject(
-          of: [NSString.self, NSArray.self],
-          forKey: kPendingReceiptsKey
-        ) as? [String] {
-          self.pendingReceipts = pendingReceipts
-        }
-      }
     }
 
     public func didStartVerification(withReceipt receipt: String,
@@ -87,11 +90,16 @@
     // MARK: Internal methods
 
     private func saveData() {
-      let archiver = NSKeyedArchiver(requiringSecureCoding: true)
-      archiver.encode(credential, forKey: kFullCredentialKey)
-      archiver.encode(pendingReceipts, forKey: kPendingReceiptsKey)
-      archiver.finishEncoding()
-      try? keychainServices.setData(archiver.encodedData, forKey: kKeychainDataKey)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(credential)
+        // XXX TODO, archive contains both credential
+        // and pendingreceipts
+        // Wrap in extra container object
+//      let archiver = NSKeyedArchiver(requiringSecureCoding: true)
+//      archiver.encode(credential, forKey: kFullCredentialKey)
+//      archiver.encode(pendingReceipts, forKey: kPendingReceiptsKey)
+//      archiver.finishEncoding()
+      try? keychainServices.setData(data, forKey: kKeychainDataKey)
     }
 
     private func callbackWithReceipt(_ receipt: String) {

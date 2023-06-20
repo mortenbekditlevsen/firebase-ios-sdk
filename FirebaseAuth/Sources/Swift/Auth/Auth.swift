@@ -2085,12 +2085,10 @@ extension Auth: AuthInterop {
     } else {
       let userKey = "\(firebaseAppName)\(kUserKey)"
       if let user {
-        let archiver = NSKeyedArchiver(requiringSecureCoding: true)
-        archiver.encode(user, forKey: userKey)
-        archiver.finishEncoding()
-        let archiveData = archiver.encodedData
+          let encoder = JSONEncoder()
+          let data = try encoder.encode(user)
         // Save the user object's encoded value.
-        try keychainServices.setData(archiveData as Data, forKey: userKey)
+        try keychainServices.setData(data, forKey: userKey)
       } else {
         try keychainServices.removeData(forKey: userKey)
       }
