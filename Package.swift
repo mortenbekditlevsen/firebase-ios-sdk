@@ -431,8 +431,8 @@ let package = Package(
       dependencies: [
 //        "FirebaseAppCheckInterop",
 //        "FirebaseAuthInterop",
-        "FirebaseCore",
-        "FirebaseCoreExtension",
+//        "FirebaseCore",
+//        "FirebaseCoreExtension",
 //        .product(name: "GULAppDelegateSwizzler", package: "GoogleUtilities"),
 //        .product(name: "GULEnvironment", package: "GoogleUtilities"),
 //        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
