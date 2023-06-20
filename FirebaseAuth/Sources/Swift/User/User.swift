@@ -724,7 +724,7 @@ public class User: Equatable, Codable, UserInfo {
         self.link(withEmailCredential: emailCredential, completion: completion)
         return
       }
-      #if !os(watchOS)
+#if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
         if let gameCenterCredential = credential as? GameCenterAuthCredential {
           self.link(withGameCenterCredential: gameCenterCredential, completion: completion)
           return
@@ -1773,7 +1773,7 @@ public class User: Equatable, Codable, UserInfo {
     }
   }
 
-  #if !os(watchOS)
+#if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
     private func link(withGameCenterCredential gameCenterCredential: GameCenterAuthCredential,
                       completion: ((AuthDataResult?, Error?) -> Void)?) {
       internalGetToken { accessToken, error in

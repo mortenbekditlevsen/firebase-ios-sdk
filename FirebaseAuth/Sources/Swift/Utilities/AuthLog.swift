@@ -15,6 +15,17 @@
 import Foundation
 //import FirebaseCoreExtension
 
+struct FirebaseLogger {
+    static func log(level: FirebaseLoggerLevel, service: String, code: String, message: String) {
+        print(message)
+
+    }
+}
+
+enum FirebaseLoggerLevel {
+    case info, debug, notice, warning, error
+}
+
 enum AuthLog {
   static func logInfo(code: String, message: String) {
     FirebaseLogger.log(level: .info, service: "[FirebaseAuth]", code: code, message: message)

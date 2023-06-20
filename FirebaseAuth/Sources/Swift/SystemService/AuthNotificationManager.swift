@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if !os(macOS) && !os(watchOS)
+#if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
   import Foundation
   import UIKit
 

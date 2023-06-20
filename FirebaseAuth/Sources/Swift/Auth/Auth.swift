@@ -1953,13 +1953,13 @@ extension Auth: AuthInterop {
 //    }
 //    internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationUIDKey] = currentUser?
 //      .uid
-    let notifications = NotificationCenter.default
-    DispatchQueue.main.async {
-      notifications.post(name: NSNotification.Name.FIRAuthStateDidChangeInternal,
-                         object: self,
-                         userInfo: internalNotificationParameters)
-      notifications.post(name: Auth.authStateDidChangeNotification, object: self)
-    }
+//    let notifications = NotificationCenter.default
+//    DispatchQueue.main.async {
+//      notifications.post(name: NSNotification.Name.FIRAuthStateDidChangeInternal,
+//                         object: self,
+//                         userInfo: internalNotificationParameters)
+//      notifications.post(name: Auth.authStateDidChangeNotification, object: self)
+//    }
   }
 
   /** @fn scheduleAutoTokenRefreshWithDelay:
@@ -2170,7 +2170,7 @@ extension Auth: AuthInterop {
       }
       return
     }
-    #if !os(watchOS)
+#if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
       if let gameCenterCredential = credential as? GameCenterAuthCredential {
         signInAndRetrieveData(withGameCenterCredential: gameCenterCredential,
                               callback: callback)
@@ -2312,7 +2312,7 @@ extension Auth: AuthInterop {
     }
   #endif
 
-  #if !os(watchOS)
+#if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
     /** @fn signInAndRetrieveDataWithGameCenterCredential:callback:
         @brief Signs in using a game center credential.
         @param credential The Game Center Auth Credential used to sign in.
