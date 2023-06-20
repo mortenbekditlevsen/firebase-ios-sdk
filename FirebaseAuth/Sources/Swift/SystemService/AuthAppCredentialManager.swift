@@ -91,7 +91,7 @@ public class AuthAppCredentialManager {
 
     private func saveData() {
         let encoder = JSONEncoder()
-        let data = try encoder.encode(credential)
+        let data = try? encoder.encode(credential)
         // XXX TODO, archive contains both credential
         // and pendingreceipts
         // Wrap in extra container object
