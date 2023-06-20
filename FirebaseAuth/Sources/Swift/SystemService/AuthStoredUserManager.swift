@@ -180,6 +180,10 @@ import Foundation
   private func keychainQuery(accessGroup: String,
                              shareAuthStateAcrossDevices: Bool,
                              projectIdentifier: String) -> [String: Any] {
+#if os(Linux)
+      return [:]
+      #else
+
     var query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrAccessGroup as String: accessGroup,
@@ -189,5 +193,6 @@ import Foundation
     query[kSecUseDataProtectionKeychain as String] = true
 
     return query
+      #endif
   }
 }

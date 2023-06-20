@@ -72,6 +72,10 @@ final class AuthKeychainServices: AuthStorage {
   }
 
   func setData(_ data: Data, forKey key: String) throws {
+#if os(Linux)
+      return
+      #else
+
     if key.isEmpty {
       fatalError("The key cannot be empty.")
     }
@@ -80,6 +84,7 @@ final class AuthKeychainServices: AuthStorage {
       kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
     ]
     try setItem(query: genericPasswordQuery(key: key), attributes: attributes)
+      #endif
   }
 
   func removeData(forKey key: String) throws {
@@ -203,6 +208,9 @@ return
       @param key The key for the value being manipulated, used as the account field in the query.
    */
   private func genericPasswordQuery(key: String) -> [String: Any] {
+      #if os(Linux)
+      return [:]
+      #else
     var query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrAccount as String: kAccountPrefix + key,
@@ -210,6 +218,7 @@ return
     ]
     query[kSecUseDataProtectionKeychain as String] = true
     return query
+      #endif
   }
 
   /** @fn legacyGenericPasswordQueryWithKey:
@@ -218,9 +227,14 @@ return
       @param key The key for the value being manipulated, used as the account field in the query.
    */
   private func legacyGenericPasswordQuery(key: String) -> [String: Any] {
+#if os(Linux)
+      return [:]
+      #else
+
     [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrAccount as String: key,
     ]
+      #endif
   }
 }
