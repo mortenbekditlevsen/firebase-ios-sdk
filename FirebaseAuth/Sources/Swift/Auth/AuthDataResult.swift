@@ -19,7 +19,7 @@ import Foundation
         action. It contains references to a `User` instance and a `AdditionalUserInfo` instance.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class AuthDataResult: NSSecureCoding {
+ public class AuthDataResult: Codable {
   /** @property user
       @brief The signed in user.
    */
@@ -61,19 +61,25 @@ import Foundation
     return true
   }
 
-  public func encode(with coder: NSCoder) {
-    coder.encode(user, forKey: kUserCodingKey)
-    coder.encode(additionalUserInfo, forKey: kAdditionalUserInfoCodingKey)
-    coder.encode(credential, forKey: kCredentialCodingKey)
-  }
+     enum CodingKeys: String, CodingKey {
+         case additionalUserInfo
+         case user
+         case credential
+     }
 
-  public required init?(coder: NSCoder) {
-    guard let user = coder.decodeObject(forKey: kUserCodingKey) as? User else {
-      return nil
-    }
-    self.user = user
-    additionalUserInfo = coder.decodeObject(forKey: kAdditionalUserInfoCodingKey)
-      as? AdditionalUserInfo
-    credential = coder.decodeObject(forKey: kCredentialCodingKey) as? OAuthCredential
-  }
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+
+         try container.encode(user, forKey: .user)
+         try container.encodeIfPresent(additionalUserInfo, forKey: .additionalUserInfo)
+         try container.encodeIfPresent(credential, forKey: .credential)
+     }
+
+     public required init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.additionalUserInfo = try container.decodeIfPresent(AdditionalUserInfo.self, forKey: .additionalUserInfo)
+         self.credential =  try container.decodeIfPresent(OAuthCredential.self, forKey: .credential)
+         self.user = try container.decode(User.self, forKey: .user)
+     }
+
 }

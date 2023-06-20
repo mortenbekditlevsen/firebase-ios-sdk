@@ -111,7 +111,7 @@
   // Change to internal
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
   
-  public class GameCenterAuthCredential: AuthCredential, NSSecureCoding {
+  public class GameCenterAuthCredential: AuthCredential, Codable {
     public let playerID: String
     public let teamPlayerID: String?
     public let gamePlayerID: String?
@@ -146,36 +146,44 @@
       super.init(provider: GameCenterAuthProvider.id)
     }
 
-    public static var supportsSecureCoding = true
 
-    public func encode(with coder: NSCoder) {
-      coder.encode(playerID, forKey: "playerID")
-      coder.encode(teamPlayerID, forKey: "teamPlayerID")
-      coder.encode(gamePlayerID, forKey: "gamePlayerID")
-      coder.encode(publicKeyURL, forKey: "publicKeyURL")
-      coder.encode(signature, forKey: "signature")
-      coder.encode(salt, forKey: "salt")
-      coder.encode(timestamp, forKey: "timestamp")
-      coder.encode(displayName, forKey: "displayName")
-    }
-
-    public required init?(coder: NSCoder) {
-      guard let playerID = coder.decodeObject(forKey: "playerID") as? String,
-            let teamPlayerID = coder.decodeObject(forKey: "teamPlayerID") as? String,
-            let gamePlayerID = coder.decodeObject(forKey: "gamePlayerID") as? String,
-            let timestamp = coder.decodeObject(forKey: "timestamp") as? UInt64,
-            let displayName = coder.decodeObject(forKey: "displayName") as? String else {
-        return nil
+      enum CodingKeys: CodingKey {
+          case playerID
+          case teamPlayerID
+          case gamePlayerID
+          case publicKeyURL
+          case signature
+          case salt
+          case timestamp
+          case displayName
       }
-      self.playerID = playerID
-      self.teamPlayerID = teamPlayerID
-      self.gamePlayerID = gamePlayerID
-      self.timestamp = timestamp
-      self.displayName = displayName
-      publicKeyURL = coder.decodeObject(forKey: "publicKeyURL") as? URL
-      signature = coder.decodeObject(forKey: "signature") as? Data
-      salt = coder.decodeObject(forKey: "salt") as? Data
-      super.init(provider: GameCenterAuthProvider.id)
-    }
+
+      public func encode(to encoder: Encoder) throws {
+          var container = encoder.container(keyedBy: CodingKeys.self)
+          try container.encode(self.playerID, forKey: .playerID)
+          try container.encodeIfPresent(self.teamPlayerID, forKey: .teamPlayerID)
+          try container.encodeIfPresent(self.gamePlayerID, forKey: .gamePlayerID)
+          try container.encodeIfPresent(self.publicKeyURL, forKey: .publicKeyURL)
+          try container.encodeIfPresent(self.signature, forKey: .signature)
+          try container.encodeIfPresent(self.salt, forKey: .salt)
+          try container.encode(self.timestamp, forKey: .timestamp)
+          try container.encode(self.displayName, forKey: .displayName)
+      }
+
+      public required init(from decoder: Decoder) throws {
+          let container = try decoder.container(keyedBy: CodingKeys.self)
+          self.playerID = try container.decode(String.self, forKey: .playerID)
+          self.teamPlayerID = try container.decode(String.self, forKey: .teamPlayerID)
+          self.gamePlayerID = try container.decode(String.self, forKey: .gamePlayerID)
+          self.timestamp = try container.decode(UInt64.self, forKey: .timestamp)
+
+          self.displayName = try container.decode(String.self, forKey: .displayName)
+
+          self.publicKeyURL = try container.decodeIfPresent(URL.self, forKey: .publicKeyURL)
+          self.signature = try container.decodeIfPresent(Data.self, forKey: .signature)
+          self.salt = try container.decodeIfPresent(Data.self, forKey: .salt)
+          super.init(provider: GameCenterAuthProvider.id)
+
+      }
   }
 #endif

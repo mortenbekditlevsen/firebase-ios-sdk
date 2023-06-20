@@ -15,7 +15,7 @@
 import Foundation
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class OAuthCredential: AuthCredential, NSSecureCoding {
+ public class OAuthCredential: AuthCredential, Codable {
   /** @property IDToken
       @brief The ID Token associated with this credential.
    */
@@ -101,28 +101,38 @@ import Foundation
 
   // MARK: Secure Coding
 
-  public static var supportsSecureCoding: Bool = true
+     enum CodingKeys: String, CodingKey {
+         case idToken
+         case rawNonce
+         case accessToken
+         case pendingToken
+         case secret
+         case fullName
+     }
 
-  public func encode(with coder: NSCoder) {
-    coder.encode(idToken, forKey: "IDToken")
-    coder.encode(rawNonce, forKey: "rawNonce")
-    coder.encode(accessToken, forKey: "accessToken")
-    coder.encode(pendingToken, forKey: "pendingToken")
-    coder.encode(secret, forKey: "secret")
-    coder.encode(fullName, forKey: "fullName")
-  }
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encodeIfPresent(self.idToken, forKey: .idToken)
+         try container.encodeIfPresent(self.rawNonce, forKey: .rawNonce)
+         try container.encodeIfPresent(self.accessToken, forKey: .accessToken)
+         try container.encodeIfPresent(self.pendingToken, forKey: .pendingToken)
+         try container.encodeIfPresent(self.secret, forKey: .secret)
+         try container.encodeIfPresent(self.fullName, forKey: .fullName)
+     }
 
-  public required init?(coder: NSCoder) {
-    idToken = coder.decodeObject(forKey: "IDToken") as? String
-    rawNonce = coder.decodeObject(forKey: "rawNonce") as? String
-    accessToken = coder.decodeObject(forKey: "accessToken") as? String
-    pendingToken = coder.decodeObject(forKey: "pendingToken") as? String
-    secret = coder.decodeObject(forKey: "secret") as? String
-    fullName = coder.decodeObject(forKey: "fullName") as? PersonNameComponents
-    OAuthResponseURLString = nil
-    sessionID = nil
-    super.init(provider: OAuthProvider.id)
-  }
+     public required init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+
+         idToken = try container.decodeIfPresent(String.self, forKey: .idToken)
+         rawNonce = try container.decodeIfPresent(String.self, forKey: .rawNonce)
+         accessToken = try container.decodeIfPresent(String.self,  forKey: .accessToken)
+         pendingToken = try container.decodeIfPresent(String.self, forKey: .pendingToken)
+         secret = try container.decodeIfPresent(String.self, forKey: .secret)
+         fullName = try container.decodeIfPresent(PersonNameComponents.self, forKey: .fullName)
+         OAuthResponseURLString = nil
+         sessionID = nil
+         super.init(provider: OAuthProvider.id)
+     }
 
   private static func nonEmptyString(_ string: String?) -> Bool {
     guard let string else {

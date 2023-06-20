@@ -19,7 +19,7 @@ import Foundation
         This class is available on iOS only.
  */
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class PhoneAuthCredential: AuthCredential, NSSecureCoding {
+ public class PhoneAuthCredential: AuthCredential, Codable {
   enum CredentialKind {
     case phoneNumber(_ phoneNumber: String, _ temporaryProof: String)
     case verification(_ id: String, _ code: String)
@@ -38,30 +38,33 @@ import Foundation
     super.init(provider: providerID)
   }
 
-  public static var supportsSecureCoding = true
+     enum CodingKeys: CodingKey {
+         case phoneNumber, temporaryProof, verificationID, verificationCode
+     }
 
-  public func encode(with coder: NSCoder) {
-    switch credentialKind {
-    case let .phoneNumber(phoneNumber, temporaryProof):
-      coder.encode(phoneNumber, forKey: "phoneNumber")
-      coder.encode(temporaryProof, forKey: "temporaryProof")
-    case let .verification(id, code):
-      coder.encode(id, forKey: "verificationID")
-      coder.encode(code, forKey: "verificationCode")
-    }
-  }
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         switch credentialKind {
+         case let .phoneNumber(phoneNumber, temporaryProof):
+             try container.encode(phoneNumber, forKey: .phoneNumber)
+             try container.encode(temporaryProof, forKey: .temporaryProof)
+         case let .verification(id, code):
+             try container.encode(id, forKey: .verificationID)
+             try container.encode(code, forKey: .verificationCode)
+         }
+     }
 
-  public required init?(coder: NSCoder) {
-    if let verificationID = coder.decodeObject(forKey: "verificationID") as? String,
-       let verificationCode = coder.decodeObject(forKey: "verificationCode") as? String {
-      credentialKind = .verification(verificationID, verificationCode)
-      super.init(provider: PhoneAuthProvider.id)
-    } else if let temporaryProof = coder.decodeObject(forKey: "temporaryProof") as? String,
-              let phoneNumber = coder.decodeObject(forKey: "phoneNumber") as? String {
-      credentialKind = .phoneNumber(phoneNumber, temporaryProof)
-      super.init(provider: PhoneAuthProvider.id)
-    } else {
-      return nil
-    }
+     required public init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         if let phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber), let temporaryProof = try container.decodeIfPresent(String.self, forKey: .temporaryProof) {
+             self.credentialKind = .phoneNumber(phoneNumber, temporaryProof)
+         } else if let verificationID = try container.decodeIfPresent(String.self, forKey: .verificationID), let verificationCode = try container.decodeIfPresent(String.self, forKey: .verificationCode) {
+             self.credentialKind = .verification(verificationID, verificationCode)
+         } else {
+             // XXX TODO
+             throw DecodingError.typeMismatch(String.self, .init(codingPath: [], debugDescription: "xxx"))
+         }
+         super.init(provider: PhoneAuthProvider.id)
+
   }
 }

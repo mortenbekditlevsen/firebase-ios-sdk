@@ -27,7 +27,7 @@ import Foundation
    @brief Safe public structure used to represent a second factor entity from a client perspective.
        This class is available on iOS only.
    */
-   public class MultiFactorInfo: NSSecureCoding {
+   public class MultiFactorInfo: Codable {
     /**
         @brief The multi-factor enrollment ID.
      */
@@ -59,32 +59,5 @@ import Foundation
 
     // MARK: - NSSecureCoding
 
-    private static var secureCodingWorkaround = true
-    public class var supportsSecureCoding: Bool { return secureCodingWorkaround }
-
-    public required init?(coder: NSCoder) {
-      guard let uid = coder.decodeObject(of: [NSString.self], forKey: kUIDCodingKey) as? String,
-            let factorID = coder.decodeObject(of: [NSString.self],
-                                              forKey: kFactorIDCodingKey) as? String else {
-        return nil
-      }
-      self.uid = uid
-      self.factorID = factorID
-      displayName = coder.decodeObject(
-        of: [NSString.self],
-        forKey: kDisplayNameCodingKey
-      ) as? String
-      enrollmentDate = coder.decodeObject(
-        of: [NSDate.self],
-        forKey: kEnrollmentDateCodingKey
-      ) as? Date
-    }
-
-    public func encode(with coder: NSCoder) {
-      coder.encode(uid, forKey: kUIDCodingKey)
-      coder.encode(displayName, forKey: kDisplayNameCodingKey)
-      coder.encode(enrollmentDate, forKey: kEnrollmentDateCodingKey)
-      coder.encode(factorID, forKey: kFactorIDCodingKey)
-    }
   }
 #endif

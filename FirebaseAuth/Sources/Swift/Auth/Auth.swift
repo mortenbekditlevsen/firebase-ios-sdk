@@ -212,7 +212,7 @@ extension Auth: AuthInterop {
   /** @property settings
    @brief Contains settings related to the auth object.
    */
-  @NSCopying public var settings: AuthSettings?
+  public var settings: AuthSettings?
 
   /** @property userAccessGroup
    @brief The current user access group that the Auth instance is using. Default is nil.

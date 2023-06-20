@@ -14,7 +14,7 @@
 
 import Foundation
 
- public class AdditionalUserInfo: NSSecureCoding {
+ public class AdditionalUserInfo: Codable {
   private static let providerIDCodingKey = "providerID"
   private static let profileCodingKey = "profile"
   private static let usernameCodingKey = "username"
@@ -60,37 +60,30 @@ import Foundation
     self.isNewUser = isNewUser
   }
 
-  public static var supportsSecureCoding: Bool {
-    return true
-  }
+     enum CodingKeys: CodingKey {
+         case providerID
+         case profile
+         case username
+         case isNewUser
+     }
 
-  public required init?(coder aDecoder: NSCoder) {
-    providerID = aDecoder.decodeObject(
-      of: NSString.self,
-      forKey: AdditionalUserInfo.providerIDCodingKey
-    ) as String?
-    profile = aDecoder.decodeObject(
-      of: NSDictionary.self,
-      forKey: AdditionalUserInfo.profileCodingKey
-    ) as? [String: Any]
-    username = aDecoder.decodeObject(
-      of: NSString.self,
-      forKey: AdditionalUserInfo.usernameCodingKey
-    ) as String?
-    if let newUser = aDecoder.decodeObject(
-      of: NSNumber.self,
-      forKey: AdditionalUserInfo.newUserKey
-    ) {
-      isNewUser = newUser.intValue == 1
-    } else {
-      isNewUser = false
-    }
-  }
+     public required init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.providerID = try container.decode(String.self, forKey: .providerID)
+         // XXX TODO
+         self.profile = nil
+         self.username = try container.decode(String.self, forKey: .username)
+         self.isNewUser = try container.decodeIfPresent(Bool.self, forKey: .isNewUser) ?? false
 
-  public func encode(with aCoder: NSCoder) {
-    aCoder.encode(providerID, forKey: AdditionalUserInfo.providerIDCodingKey)
-    aCoder.encode(profile, forKey: AdditionalUserInfo.profileCodingKey)
-    aCoder.encode(username, forKey: AdditionalUserInfo.usernameCodingKey)
-    aCoder.encode(isNewUser ? NSNumber(1) : NSNumber(0), forKey: AdditionalUserInfo.newUserKey)
-  }
+     }
+
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encodeIfPresent(providerID, forKey: .providerID)
+         try container.encodeIfPresent(username, forKey: .username)
+         try container.encode(isNewUser, forKey: .isNewUser)
+         // XXX TODO
+//         try container.encode(profile, forKey: .profile)
+     }
+    
 }

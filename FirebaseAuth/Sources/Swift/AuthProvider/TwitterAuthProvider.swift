@@ -39,7 +39,7 @@ import Foundation
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class TwitterAuthCredential: AuthCredential, NSSecureCoding {
+class TwitterAuthCredential: AuthCredential, Codable {
   let token: String
   let secret: String
 
@@ -54,20 +54,21 @@ class TwitterAuthCredential: AuthCredential, NSSecureCoding {
     request.providerOAuthTokenSecret = secret
   }
 
-  static var supportsSecureCoding = true
-
-  func encode(with coder: NSCoder) {
-    coder.encode(token, forKey: "token")
-    coder.encode(secret, forKey: "secret")
-  }
-
-  required init?(coder: NSCoder) {
-    guard let token = coder.decodeObject(forKey: "token") as? String,
-          let secret = coder.decodeObject(forKey: "secret") as? String else {
-      return nil
+    enum CodingKeys: CodingKey {
+        case token
+        case secret
     }
-    self.token = token
-    self.secret = secret
-    super.init(provider: TwitterAuthProvider.id)
-  }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.token, forKey: .token)
+        try container.encode(self.secret, forKey: .secret)
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.token = try container.decode(String.self, forKey: .token)
+        self.secret = try container.decode(String.self, forKey: .secret)
+        super.init(provider: TwitterAuthProvider.id)
+    }
 }

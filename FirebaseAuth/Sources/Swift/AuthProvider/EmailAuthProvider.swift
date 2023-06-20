@@ -45,7 +45,7 @@ import Foundation
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class EmailAuthCredential: AuthCredential, NSSecureCoding {
+class EmailAuthCredential: AuthCredential, Codable {
   let email: String
 
   enum EmailType {
@@ -67,28 +67,34 @@ class EmailAuthCredential: AuthCredential, NSSecureCoding {
     super.init(provider: EmailAuthProvider.id)
   }
 
-  public static var supportsSecureCoding = true
+    enum CodingKeys: String, CodingKey {
+        case email
+        case link
+        case password
+    }
 
-  public func encode(with coder: NSCoder) {
-    coder.encode(email, forKey: "email")
-    switch emailType {
-    case let .password(password): coder.encode(password, forKey: "password")
-    case let .link(link): coder.encode(link, forKey: "link")
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(email, forKey: .email)
+        switch emailType {
+        case .link(let link):
+            try container.encode(link, forKey: .link)
+        case .password(let password):
+            try container.encode(password, forKey: .password)
+        }
     }
-  }
 
-  public required init?(coder: NSCoder) {
-    guard let email = coder.decodeObject(forKey: "email") as? String else {
-      return nil
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.email = try container.decode(String.self, forKey: .email)
+        if let link = try container.decodeIfPresent(String.self, forKey: .link) {
+            self.emailType = .link(link)
+        } else {
+            let password = try container.decode(String.self, forKey: .password)
+            self.emailType = .password(password)
+        }
+            super.init(provider: EmailAuthProvider.id)
+
     }
-    self.email = email
-    if let password = coder.decodeObject(forKey: "password") as? String {
-      emailType = .password(password)
-    } else if let link = coder.decodeObject(forKey: "link") as? String {
-      emailType = .link(link)
-    } else {
-      return nil
-    }
-    super.init(provider: EmailAuthProvider.id)
-  }
+
 }

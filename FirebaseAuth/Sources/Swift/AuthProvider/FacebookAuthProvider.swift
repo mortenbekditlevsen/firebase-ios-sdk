@@ -38,7 +38,7 @@ import Foundation
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class FacebookAuthCredential: AuthCredential, NSSecureCoding {
+class FacebookAuthCredential: AuthCredential, Codable {
   let accessToken: String
 
   init(withAccessToken accessToken: String) {
@@ -50,17 +50,19 @@ class FacebookAuthCredential: AuthCredential, NSSecureCoding {
     request.providerAccessToken = accessToken
   }
 
-  static var supportsSecureCoding = true
-
-  func encode(with coder: NSCoder) {
-    coder.encode(accessToken, forKey: "accessToken")
-  }
-
-  required init?(coder: NSCoder) {
-    guard let accessToken = coder.decodeObject(forKey: "accessToken") as? String else {
-      return nil
+    enum CodingKeys: CodingKey {
+        case accessToken
     }
-    self.accessToken = accessToken
-    super.init(provider: FacebookAuthProvider.id)
-  }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.accessToken, forKey: .accessToken)
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.accessToken = try container.decode(String.self, forKey: .accessToken)
+        super.init(provider: FacebookAuthProvider.id)
+
+    }
 }

@@ -38,7 +38,7 @@ import Foundation
 }
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class GitHubAuthCredential: AuthCredential, NSSecureCoding {
+class GitHubAuthCredential: AuthCredential, Codable {
   let token: String
 
   init(withToken token: String) {
@@ -50,17 +50,21 @@ class GitHubAuthCredential: AuthCredential, NSSecureCoding {
     request.providerAccessToken = token
   }
 
-  static var supportsSecureCoding = true
-
-  func encode(with coder: NSCoder) {
-    coder.encode(token, forKey: "token")
-  }
-
-  required init?(coder: NSCoder) {
-    guard let token = coder.decodeObject(forKey: "token") as? String else {
-      return nil
+    enum CodingKeys: CodingKey {
+        case token
     }
-    self.token = token
-    super.init(provider: GitHubAuthProvider.id)
-  }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.token, forKey: .token)
+    }
+
+
+    required public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.token = try container.decode(String.self, forKey: .token)
+
+        super.init(provider: GitHubAuthProvider.id)
+
+    }
 }
