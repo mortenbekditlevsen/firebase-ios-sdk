@@ -501,12 +501,12 @@ let package = Package(
 //        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
         .product(name: "Crypto", package: "swift-crypto")
       ],
-      path: "FirebaseAuth/Sources/Swift",
-      linkerSettings: [
-        .linkedFramework("Security"),
-//        .linkedFramework("Foundation"),
-        .linkedFramework("SafariServices", .when(platforms: [.iOS])),
-      ]
+      path: "FirebaseAuth/Sources/Swift"
+//      linkerSettings: [
+//        .linkedFramework("Security", .when(platforms: [.iOS, .macOS, .tvOS, .watchOS]),
+////        .linkedFramework("Foundation"),
+//        .linkedFramework("SafariServices", .when(platforms: [.iOS])),
+//      ]
     ),
     // Internal headers only for consuming from Swift.
     .target(
