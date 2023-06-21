@@ -21,6 +21,7 @@ func main() async {
     }
 
 //    try? auth.signOut()
+    auth.currentUser?.uid
     let database = Database.database()
     database.isPersistenceEnabled = false
 //    database.reference().child("chatroom_index/a").observeSingleEventOfType(.value) { snapshot in

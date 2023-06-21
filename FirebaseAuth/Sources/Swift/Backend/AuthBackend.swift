@@ -82,7 +82,9 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
         //      fetcher.bodyData = body
         request.httpBody = body
         request.httpMethod = "POST"
+
         let task = self.fetcherService.dataTask(with: request) { data, response, error in
+            print("RESPONSE", data, error)
             completionHandler(data, error)
         }
 
