@@ -360,6 +360,8 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
           let rawDecode = try JSONSerialization.jsonObject(with: data,
                                                            options: JSONSerialization.ReadingOptions
                                                              .mutableLeaves)
+            print("RAWDECODE", rawDecode)
+            print("as [String: Any]", rawDecode as? [String: Any])
           guard let decodedDictionary = rawDecode as? [String: AnyHashable] else {
               print("Couldn't cast to [String: AnyHashable]", error)
             if error != nil {
