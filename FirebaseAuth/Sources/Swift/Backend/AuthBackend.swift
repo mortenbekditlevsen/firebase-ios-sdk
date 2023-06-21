@@ -356,6 +356,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         // successful response or error message.
         var dictionary: [String: AnyHashable]
         do {
+            print("decoding", String(data: data, encoding: .utf8) ?? "-")
           let rawDecode = try JSONSerialization.jsonObject(with: data,
                                                            options: JSONSerialization.ReadingOptions
                                                              .mutableLeaves)
@@ -370,6 +371,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
           }
           dictionary = decodedDictionary
         } catch let jsonError {
+            print("JSON ERR", jsonError, error)
           if error != nil {
             // We have an error, but we couldn't decode the body, so we have no
             // additional information other than the raw response and the
