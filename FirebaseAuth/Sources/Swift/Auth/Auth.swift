@@ -393,6 +393,7 @@ extension Auth: AuthInterop {
       return
     }
     AuthBackend.post(withRequest: request) { rawResponse, error in
+        print("POST RESPONSE", rawResponse, error)
       if let error {
         callback(nil, error)
         return
@@ -430,6 +431,7 @@ extension Auth: AuthInterop {
   public func signIn(withEmail email: String, password: String) async throws -> AuthDataResult {
     return try await withCheckedThrowingContinuation { continuation in
       self.signIn(withEmail: email, password: password) { authData, error in
+          print("SIGNIN", authData, error)
         if let authData {
           continuation.resume(returning: authData)
         } else {
