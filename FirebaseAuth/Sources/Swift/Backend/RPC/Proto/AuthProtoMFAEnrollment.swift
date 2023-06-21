@@ -25,7 +25,7 @@ import Foundation
 
   public var dictionary: [String: Any]
 
-  public required init(dictionary: [String: AnyHashable]) {
+  public required init(dictionary: [String: Any]) {
     self.dictionary = dictionary
     phoneInfo = dictionary["phoneInfo"] as? String
     mfaEnrollmentID = dictionary["mfaEnrollmentId"] as? String

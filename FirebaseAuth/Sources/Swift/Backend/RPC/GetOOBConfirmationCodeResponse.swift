@@ -20,7 +20,7 @@ public class GetOOBConfirmationCodeResponse:
   AuthRPCResponse {
   public var OOBCode: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     OOBCode = dictionary[kOOBCodeKey] as? String
   }
 }

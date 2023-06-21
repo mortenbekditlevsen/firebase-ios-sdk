@@ -95,8 +95,8 @@ private let kIDTokenKey = "idToken"
                useStaging: false)
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
-    let body: [String: AnyHashable] = [
+  public func unencodedHTTPRequestBody() throws -> [String: Any] {
+    let body: [String: Any] = [
       kProviderIDKey: providerID,
       kTokenTypeKey: "\(tokenType.rawValue)",
       kTokenKey: token,

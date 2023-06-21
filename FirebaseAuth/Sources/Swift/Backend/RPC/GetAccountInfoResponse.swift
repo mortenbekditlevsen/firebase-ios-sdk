@@ -190,8 +190,8 @@ public class GetAccountInfoResponseProviderUserInfo {
    @brief The requested users' profiles.
    */
   public var users: [GetAccountInfoResponseUser]?
-  public func setFields(dictionary: [String: AnyHashable]) throws {
-    guard let usersData = dictionary["users"] as? [[String: AnyHashable]] else {
+  public func setFields(dictionary: [String: Any]) throws {
+    guard let usersData = dictionary["users"] as? [[String: Any]] else {
       throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
     }
     guard usersData.count == 1 else {

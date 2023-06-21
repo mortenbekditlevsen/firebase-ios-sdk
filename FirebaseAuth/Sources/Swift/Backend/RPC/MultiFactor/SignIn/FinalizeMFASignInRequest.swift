@@ -42,8 +42,8 @@ class FinalizeMFASignInRequest: IdentityToolkitRequest, AuthRPCRequest {
                useStaging: false)
   }
 
-  func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
-    var body: [String: AnyHashable] = [:]
+  func unencodedHTTPRequestBody() throws -> [String: Any] {
+    var body: [String: Any] = [:]
     if let mfaPendingCredential = mfaPendingCredential {
       body["mfaPendingCredential"] = mfaPendingCredential
     }

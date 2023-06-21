@@ -56,7 +56,7 @@ private let kLocalIDKey = "localId"
     super.init(endpoint: kDeleteAccountEndpoint, requestConfiguration: requestConfiguration)
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
+  public func unencodedHTTPRequestBody() throws -> [String: Any] {
     [
       kIDTokenKey: accessToken,
       kLocalIDKey: localID,

@@ -15,10 +15,10 @@
 import Foundation
 
  public protocol AuthProto {
-  init(dictionary: [String: AnyHashable])
-     var dictionary: [String: AnyHashable] { get }
+  init(dictionary: [String: Any])
+     var dictionary: [String: Any] { get }
 }
 
 public extension AuthProto {
-    var dictionary: [String: AnyHashable] { [:] }
+    var dictionary: [String: Any] { [:] }
 }

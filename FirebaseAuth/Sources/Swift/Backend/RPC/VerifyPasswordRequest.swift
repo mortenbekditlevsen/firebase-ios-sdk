@@ -105,8 +105,8 @@ private let kTenantIDKey = "tenantId"
     super.init(endpoint: kVerifyPasswordEndpoint, requestConfiguration: requestConfiguration)
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
-    var body: [String: AnyHashable] = [
+  public func unencodedHTTPRequestBody() throws -> [String: Any] {
+    var body: [String: Any] = [
       kEmailKey: email,
       kPasswordKey: password,
     ]

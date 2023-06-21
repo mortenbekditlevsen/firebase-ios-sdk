@@ -40,7 +40,7 @@ public class VerifyCustomTokenResponse: AuthRPCResponse {
    */
   public var isNewUser: Bool = false
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     idToken = dictionary["idToken"] as? String
     if let dateString = dictionary["expiresIn"] as? NSString {
       approximateExpirationDate = Date(timeIntervalSinceNow: dateString.doubleValue)

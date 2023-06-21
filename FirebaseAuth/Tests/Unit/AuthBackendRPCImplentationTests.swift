@@ -774,7 +774,7 @@ class AuthBackendRPCImplementationTests: RPCBaseTests {
       decodingError = error
     }
 
-    func setFields(dictionary: [String: AnyHashable]) throws {
+    func setFields(dictionary: [String: Any]) throws {
       if let decodingError {
         throw decodingError
       }

@@ -18,7 +18,7 @@ class FinalizeMFAEnrollmentResponse: AuthRPCResponse {
   var idToken: String?
   var refreshToken: String?
 
-  func setFields(dictionary: [String: AnyHashable]) throws {
+  func setFields(dictionary: [String: Any]) throws {
     idToken = dictionary["idToken"] as? String
     refreshToken = dictionary["refreshToken"] as? String
   }

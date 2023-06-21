@@ -85,7 +85,7 @@ public class SetAccountInfoResponseProviderUserInfo {
    */
   public var refreshToken: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     email = dictionary["email"] as? String
     displayName = dictionary["displayName"] as? String
     idToken = dictionary["idToken"] as? String

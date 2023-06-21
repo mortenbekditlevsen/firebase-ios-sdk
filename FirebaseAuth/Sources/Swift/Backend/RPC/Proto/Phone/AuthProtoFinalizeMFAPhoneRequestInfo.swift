@@ -17,7 +17,7 @@ import Foundation
 
 public class AuthProtoFinalizeMFAPhoneRequestInfo:
   AuthProto {
-  public required init(dictionary: [String: AnyHashable]) {
+  public required init(dictionary: [String: Any]) {
     fatalError()
   }
 
@@ -28,8 +28,8 @@ public class AuthProtoFinalizeMFAPhoneRequestInfo:
     code = verificationCode
   }
 
-  public var dictionary: [String: AnyHashable] {
-    var dict: [String: AnyHashable] = [:]
+  public var dictionary: [String: Any] {
+    var dict: [String: Any] = [:]
     if let sessionInfo = sessionInfo {
       dict["sessionInfo"] = sessionInfo
     }

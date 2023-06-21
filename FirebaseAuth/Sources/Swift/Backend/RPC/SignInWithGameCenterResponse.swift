@@ -26,7 +26,7 @@ public class SignInWithGameCenterResponse:
   public var isNewUser: Bool = false
   public var displayName: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     idToken = dictionary["idToken"] as? String
     refreshToken = dictionary["refreshToken"] as? String
     localID = dictionary["localId"] as? String

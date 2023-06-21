@@ -32,7 +32,7 @@ import Foundation
    */
   public var refreshToken: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     idToken = dictionary["idToken"] as? String
     if let approximateExpirationDate = dictionary["expiresIn"] as? String {
       self

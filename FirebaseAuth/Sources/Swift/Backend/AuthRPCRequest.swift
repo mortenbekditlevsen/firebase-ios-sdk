@@ -42,7 +42,7 @@ import Foundation
       @return The HTTP body data representing the request before any encoding, or nil for error.
    */
   
-  func unencodedHTTPRequestBody() throws -> [String: AnyHashable]
+  func unencodedHTTPRequestBody() throws -> [String: Any]
 
   /** @fn requestConfiguration
       @brief Obtains the request configurations if available.

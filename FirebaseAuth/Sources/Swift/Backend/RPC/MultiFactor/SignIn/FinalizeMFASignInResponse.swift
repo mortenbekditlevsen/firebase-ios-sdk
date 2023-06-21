@@ -19,7 +19,7 @@ public class FinalizeMFASignInResponse:
   public var IDToken: String?
   public var refreshToken: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     IDToken = dictionary["idToken"] as? String
     refreshToken = dictionary["refreshToken"] as? String
   }

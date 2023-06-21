@@ -65,8 +65,8 @@ private let kTenantIDKey = "tenantId"
     super.init(endpoint: kResetPasswordEndpoint, requestConfiguration: requestConfiguration)
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
-    var postBody: [String: AnyHashable] = [:]
+  public func unencodedHTTPRequestBody() throws -> [String: Any] {
+    var postBody: [String: Any] = [:]
 
     postBody[kOOBCodeKey] = oobCode
     if let updatedPassword {

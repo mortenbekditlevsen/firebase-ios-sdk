@@ -354,7 +354,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         }
         // Try to decode the HTTP response data which may contain either a
         // successful response or error message.
-        var dictionary: [String: AnyHashable]
+        var dictionary: [String: Any]
         do {
             print("decoding", String(data: data, encoding: .utf8) ?? "-")
           let rawDecode = try JSONSerialization.jsonObject(with: data,
@@ -362,7 +362,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
                                                              .mutableLeaves)
             print("RAWDECODE", rawDecode)
             print("as [String: Any]", rawDecode as? [String: Any])
-          guard let decodedDictionary = rawDecode as? [String: AnyHashable] else {
+          guard let decodedDictionary = rawDecode as? [String: Any] else {
               print("Couldn't cast to [String: AnyHashable]", error)
             if error != nil {
               callback(AuthErrorUtils.unexpectedErrorResponse(deserializedResponse: rawDecode,

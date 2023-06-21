@@ -203,7 +203,7 @@ import Foundation
 
   public var MFAInfo: [AuthProtoMFAEnrollment]?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     federatedID = dictionary["federatedId"] as? String
     providerID = dictionary["providerId"] as? String
     localID = dictionary["localId"] as? String

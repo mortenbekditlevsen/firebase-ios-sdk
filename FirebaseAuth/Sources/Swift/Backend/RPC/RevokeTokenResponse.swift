@@ -15,7 +15,7 @@
 import Foundation
 
  public class RevokeTokenResponse: AuthRPCResponse {
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     // Nothing to set or throw.
   }
 }

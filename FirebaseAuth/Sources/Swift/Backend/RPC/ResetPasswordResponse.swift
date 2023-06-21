@@ -40,7 +40,7 @@ import Foundation
    */
   public var requestType: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     email = dictionary["email"] as? String
     requestType = dictionary["requestType"] as? String
     verifiedEmail = dictionary["newEmail"] as? String

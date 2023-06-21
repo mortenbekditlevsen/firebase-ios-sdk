@@ -22,7 +22,7 @@ public class VerifyClientResponse: AuthRPCResponse {
   /// The date after which delivery of the silent push notification is considered to have failed.
   public private(set) var suggestedTimeOutDate: Date?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     receipt = dictionary["receipt"] as? String
     let suggestedTimeout = dictionary["suggestedTimeout"]
     if let string = suggestedTimeout as? String,

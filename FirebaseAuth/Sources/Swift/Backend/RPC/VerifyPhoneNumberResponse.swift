@@ -59,7 +59,7 @@ public class VerifyPhoneNumberResponse:
     nil
   }
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     idToken = dictionary["idToken"] as? String
     refreshToken = dictionary["refreshToken"] as? String
     isNewUser = (dictionary["isNewUser"] as? Bool) ?? false

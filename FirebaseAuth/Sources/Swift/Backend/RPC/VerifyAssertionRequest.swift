@@ -212,7 +212,7 @@ private let kLastNameKey = "lastName"
     super.init(endpoint: kVerifyAssertionEndpoint, requestConfiguration: requestConfiguration)
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: AnyHashable] {
+  public func unencodedHTTPRequestBody() throws -> [String: Any] {
     var components = URLComponents()
     var queryItems: [URLQueryItem] = [URLQueryItem(name: kProviderIDKey, value: providerID)]
     if let providerIDToken = providerIDToken {
@@ -260,7 +260,7 @@ private let kLastNameKey = "lastName"
 
     components.queryItems = queryItems
 
-    var body: [String: AnyHashable] = [
+    var body: [String: Any] = [
       kRequestURIKey: requestURI ?? "http://localhost", // Unused by server, but required
     ]
 

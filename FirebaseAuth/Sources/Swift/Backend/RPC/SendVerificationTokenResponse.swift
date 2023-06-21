@@ -18,7 +18,7 @@ public class SendVerificationCodeResponse:
   AuthRPCResponse {
   public var verificationID: String?
 
-  public func setFields(dictionary: [String: AnyHashable]) throws {
+  public func setFields(dictionary: [String: Any]) throws {
     verificationID = dictionary["sessionInfo"] as? String
   }
 }
