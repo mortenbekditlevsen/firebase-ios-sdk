@@ -361,6 +361,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
                                                            options: JSONSerialization.ReadingOptions
                                                              .mutableLeaves)
           guard let decodedDictionary = rawDecode as? [String: AnyHashable] else {
+              print("Couldn't cast to [String: AnyHashable]", error)
             if error != nil {
               callback(AuthErrorUtils.unexpectedErrorResponse(deserializedResponse: rawDecode,
                                                               underlyingError: error))
@@ -423,6 +424,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         do {
           try response.setFields(dictionary: dictionary)
         } catch {
+            print("CAN't SET FIELDS")
           callback(AuthErrorUtils
             .RPCResponseDecodingError(deserializedResponse: dictionary, underlyingError: error))
           return

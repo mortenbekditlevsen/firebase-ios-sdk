@@ -197,6 +197,7 @@ public class GetAccountInfoResponseProviderUserInfo {
     guard usersData.count == 1 else {
       throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
     }
+      print("USERSDATA", usersData[0])
     users = [GetAccountInfoResponseUser(dictionary: usersData[0])]
   }
 }
