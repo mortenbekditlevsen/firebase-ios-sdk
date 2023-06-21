@@ -85,10 +85,12 @@ private let kFiveMinutes = 5 * 60.0
     taskQueue.enqueueTask { complete in
       if !forceRefresh, self.hasValidAccessToken() {
         complete()
+          print("CALLBACK", self.accessToken)
         callback(self.accessToken, nil, false)
       } else {
         AuthLog.logDebug(code: "I-AUT000017", message: "Fetching new token from backend.")
         self.requestAccessToken(retryIfExpired: true) { token, error, tokenUpdated in
+            print("CALLBACK 2", token, error, tokenUpdated)
           complete()
           callback(token, error, tokenUpdated)
         }
@@ -143,6 +145,7 @@ private let kFiveMinutes = 5 * 60.0
     let request = SecureTokenRequest.refreshRequest(refreshToken: refreshToken,
                                                     requestConfiguration: requestConfiguration)
     AuthBackend.post(withRequest: request) { rawResponse, error in
+        print("SecureTokenRequest POSt", rawResponse, error)
       var tokenUpdated = false
       if let response = rawResponse as? SecureTokenResponse {
         if let newAccessToken = response.accessToken,

@@ -1920,6 +1920,7 @@ public class User: Equatable, Codable, UserInfo {
   public func internalGetToken(forceRefresh: Bool = false,
                                callback: @escaping (String?, Error?) -> Void) {
     tokenService.fetchAccessToken(forcingRefresh: forceRefresh) { token, error, tokenUpdated in
+        print("internalGetToken: \(token) \(error) \(tokenUpdated)")
       if let error {
         self.signOutIfTokenIsInvalid(withError: error)
         callback(nil, error)

@@ -223,6 +223,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
                         callback: @escaping ((AuthRPCResponse?, Error?) -> Void)) {
     let response = request.response
     post(withRequest: request, response: response) { error in
+        print("POST RESPONSE", error)
       if let error = error {
         callback(nil, error)
       } else if let auth = request.requestConfiguration().auth,
@@ -336,7 +337,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         return
       }
     }
-
+      print("ASYNCPOST TO URL", request)
     rpcIssuer
       .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json") {
         data, error in
