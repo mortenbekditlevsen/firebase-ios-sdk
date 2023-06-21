@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import FirebaseCoreSwift
 
 class DatabaseConnectionContext {
     /// Auth token if available.
@@ -43,10 +43,10 @@ let FIRAuthStateDidChangeInternalNotificationTokenKey = "FIRAuthStateDidChangeIn
 
 private class FAuthStateListenerWrapper {
     private let listener: (String) -> Void
-    private weak var auth: DatabaseAuthInterop?
+    private weak var auth: AuthInterop?
     private let queue: DispatchQueue
 
-    init(listener: @escaping (String) -> Void, auth: DatabaseAuthInterop, queue: DispatchQueue) {
+    init(listener: @escaping (String) -> Void, auth: AuthInterop, queue: DispatchQueue) {
         self.listener = listener
         self.auth = auth
         self.queue = queue
@@ -79,9 +79,9 @@ private class FAuthStateListenerWrapper {
     }
 }
 
-protocol DatabaseAuthInterop: AnyObject {
-    func getTokenForcingRefresh(_ forceRefresh: Bool, withCallback callback: (String?, Error?) -> Void)
-}
+//protocol DatabaseAuthInterop: AnyObject {
+//    func getTokenForcingRefresh(_ forceRefresh: Bool, withCallback callback: (String?, Error?) -> Void)
+//}
 
 protocol DatabaseAppCheckTokenResultInterop {
     var token: String? { get }
@@ -101,7 +101,7 @@ protocol DatabaseAppCheckInterop {
 class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtocol {
 
     var appCheck: DatabaseAppCheckInterop? // FIRAppCheckInterop
-    var auth: DatabaseAuthInterop? // FIRAuthInterop
+    var auth: AuthInterop? // FIRAuthInterop
 
     /// Strong references to the auth listeners as they are only weak in
     /// FIRFirebaseApp.
@@ -117,7 +117,7 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
 
     private let dispatchQueue: DispatchQueue
 
-    private init(auth: DatabaseAuthInterop?,
+    private init(auth: AuthInterop?,
          appCheck: DatabaseAppCheckInterop?,
                  dispatchQueue: DispatchQueue) {
         self.appCheck = appCheck
@@ -153,7 +153,7 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
         var authError: Error? = nil
         if let auth = auth {
             dispatchGroup.enter()
-            auth.getTokenForcingRefresh(forceRefresh) { token, error in
+            auth.getToken(forcingRefresh: forceRefresh) { token, error in
                 authToken = token
                 authError = error
                 dispatchGroup.leave()
@@ -216,7 +216,7 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
         self.appCheckNotificationObservers.append(observer)
     }
 
-    class func contextProvider(auth: DatabaseAuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
+    class func contextProvider(auth: AuthInterop?, appCheck: DatabaseAppCheckInterop?, dispatchQueue: DispatchQueue) -> DatabaseConnectionContextProviderProtocol {
         DatabaseConnectionContextProvider(auth: auth, appCheck: appCheck, dispatchQueue: dispatchQueue)
     }
 }

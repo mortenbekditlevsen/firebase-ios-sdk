@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import Foundation
-import FirebaseCoreSwift
+@_exported import FirebaseCoreSwift
 
 ////import FirebaseCore
 ////import FirebaseCoreExtension
@@ -168,7 +168,10 @@ extension Auth: AuthInterop {
 //    let provider = ComponentType<AuthProvider>.instance(for: AuthProvider.self,
 //                                                        in: app.container)
 //    return provider.auth()
-      return Auth(app: app, keychainStorageProvider: AuthUserDefaults.self)
+      let auth = Auth(app: app, keychainStorageProvider: AuthUserDefaults.self)
+      app.auth = auth
+
+      return auth
   }
 
   /** @property app

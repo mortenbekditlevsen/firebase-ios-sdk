@@ -65,24 +65,32 @@ class FLevelDBStorageEngine: FStorageEngine {
     
     public static var firebaseDir: URL {
 #if os(iOS) || os(watchOS)
-        let fileManager = FileManager.default
-        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
-        return documentsDir.appendingPathComponent("firebase")
+            let fileManager = FileManager.default
+            let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+            let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
+            return documentsDir.appendingPathComponent("firebase")
 #elseif os(tvOS)
-        let fileManager = FileManager.default
-        let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
-        let cachesDir = urls[0] // Yes, it's a hard error if we have no documents directory
-        return cachesDir.appendingPathComponent("firebase")
+            let fileManager = FileManager.default
+            let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
+            let cachesDir = urls[0] // Yes, it's a hard error if we have no documents directory
+            return cachesDir.appendingPathComponent("firebase")
 #elseif os(macOS)
-        return NSHomeDirectory().appendingPathComponent(".firebase")
+
+        if #available(macOS 13.0, *) {
+
+            return URL(filePath: NSHomeDirectory())
+                .appendingPathComponent("firebase")
+        } else {
+            return URL(fileURLWithPath: NSHomeDirectory())
+                .appendingPathComponent("firebase")
+        }
 #else
-        // On other platforms like linux .documentsDirectory is a global /Users/xxx/Documents folder
-        // This is likely ok since the database names include the firebase database url too.
-        let fileManager = FileManager.default
-        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
-        return documentsDir.appendingPathComponent("firebase")
+            // On other platforms like linux .documentsDirectory is a global /Users/xxx/Documents folder
+            // This is likely ok since the database names include the firebase database url too.
+            let fileManager = FileManager.default
+            let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+            let documentsDir = urls[0] // Yes, it's a hard error if we have no documents directory
+            return documentsDir.appendingPathComponent("firebase")
 #endif
     }
 

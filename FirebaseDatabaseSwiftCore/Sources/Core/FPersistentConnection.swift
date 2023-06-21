@@ -193,10 +193,10 @@ class FPersistentConnection: FConnectionDelegate {
         deviceName = UIDevice.current.model
 #elseif os(macOS)
         let systemVersionDictionary = NSDictionary(contentsOfFile: "/System/Library/CoreServices/SystemVersion.plist")
-        if let version = systemVersionDictionary["ProductVersion"] as? String {
+        if let version = systemVersionDictionary?["ProductVersion"] as? String {
             systemVersion = version
         }
-        if let name = systemVersionDictionary["ProductName"] as? String {
+        if let name = systemVersionDictionary?["ProductName"] as? String {
             deviceName = name
         }
 #endif

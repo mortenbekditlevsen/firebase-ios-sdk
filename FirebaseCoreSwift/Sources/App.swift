@@ -38,6 +38,7 @@ public class FirebaseApp: Equatable {
         public var apiKey: String?
         public var clientID: String?
     }
+    public var auth: AuthInterop?
     public var name: String
     public var options: Options
     public init(options: Options, name: String) {
@@ -52,7 +53,7 @@ public class FirebaseApp: Equatable {
     public static private(set) var defaultApp: FirebaseApp?
 }
 
-public protocol AuthInterop {
+public protocol AuthInterop: AnyObject {
     func getToken(forcingRefresh forceRefresh: Bool,
                          completion callback: @escaping (String?, Error?) -> Void)
 

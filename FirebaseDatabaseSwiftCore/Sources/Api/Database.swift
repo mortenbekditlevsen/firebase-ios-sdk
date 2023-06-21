@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+@_exported import FirebaseCoreSwift
 /**
  * The entry point for accessing a Firebase Database.  You can get an instance
  * by calling [FIRDatabase database]. To access a location in the database and

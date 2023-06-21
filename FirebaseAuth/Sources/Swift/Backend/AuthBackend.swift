@@ -49,15 +49,13 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
   let fetcherService: URLSession
 
     init() {
-        let configuration = URLSessionConfiguration()
+        let configuration = URLSessionConfiguration.default
         configuration.httpAdditionalHeaders = ["User-Agent": AuthBackend.authUserAgent()]
 
         let queue = OperationQueue()
         queue.underlyingQueue = kAuthGlobalWorkQueue
 
         fetcherService = URLSession(configuration: configuration, delegate: nil, delegateQueue: queue)
-//    fetcherService.userAgent = AuthBackend.authUserAgent()
-//    fetcherService.callbackQueue = kAuthGlobalWorkQueue
 
     // Avoid reusing the session to prevent
     // https://github.com/firebase/firebase-ios-sdk/issues/1261
@@ -83,9 +81,12 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
         ////      }
         //      fetcher.bodyData = body
         request.httpBody = body
-        self.fetcherService.dataTask(with: request) { data, response, error in
+        request.httpMethod = "POST"
+        let task = self.fetcherService.dataTask(with: request) { data, response, error in
             completionHandler(data, error)
         }
+
+        task.resume()
 //      fetcher.beginFetch(completionHandler: completionHandler)
     }
   }
@@ -333,6 +334,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         return
       }
     }
+
     rpcIssuer
       .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json") {
         data, error in

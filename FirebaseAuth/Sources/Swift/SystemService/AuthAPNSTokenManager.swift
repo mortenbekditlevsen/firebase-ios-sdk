@@ -19,11 +19,11 @@
   // TODO: This may be needed for extension detecting support
   // @_implementationOnly //import FirebaseCoreExtension
 
-  #if SWIFT_PACKAGE
-    @_implementationOnly import GoogleUtilities_Environment
-  #else
-    @_implementationOnly import GoogleUtilities
-  #endif // SWIFT_PACKAGE
+//  #if SWIFT_PACKAGE
+//    @_implementationOnly import GoogleUtilities_Environment
+//  #else
+//    @_implementationOnly import GoogleUtilities
+//  #endif // SWIFT_PACKAGE
 
   public protocol AuthAPNSTokenApplication {
     func registerForRemoteNotifications()
@@ -138,14 +138,14 @@
 
     private func isProductionApp() -> Bool {
       let defaultAppTypeProd = true
-      if GULAppEnvironmentUtil.isSimulator() {
-        AuthLog.logInfo(code: "I-AUT000006", message: "Assuming prod APNs token type on simulator.")
-        return defaultAppTypeProd
-      }
-      // Apps distributed via AppStore or TestFlight use the Production APNS certificates.
-      if GULAppEnvironmentUtil.isFromAppStore() {
-        return defaultAppTypeProd
-      }
+//      if GULAppEnvironmentUtil.isSimulator() {
+//        AuthLog.logInfo(code: "I-AUT000006", message: "Assuming prod APNs token type on simulator.")
+//        return defaultAppTypeProd
+//      }
+//      // Apps distributed via AppStore or TestFlight use the Production APNS certificates.
+//      if GULAppEnvironmentUtil.isFromAppStore() {
+//        return defaultAppTypeProd
+//      }
 
       // TODO: resolve https://github.com/firebase/firebase-ios-sdk/issues/10921
       if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {

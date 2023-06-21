@@ -23,8 +23,9 @@ let firebaseVersion = "10.10.0"
 
 let package = Package(
   name: "Firebase",
-  platforms: [.iOS(.v11), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v12), .watchOS(.v7)],
+  platforms: [.iOS(.v13), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v12), .watchOS(.v7)],
   products: [
+    .executable(name: "SampleApp", targets: ["SampleApp"]),
     .library(
       name: "FirebaseAnalytics",
       targets: ["FirebaseAnalyticsTarget"]
@@ -46,6 +47,10 @@ let package = Package(
     .library(
       name: "FirebaseAuth",
       targets: ["FirebaseAuth"]
+    ),
+    .library(
+      name: "FirebaseDatabaseSwiftCore",
+      targets: ["FirebaseDatabaseSwiftCore"]
     ),
     .library(
       name: "FirebaseAppCheck",
@@ -455,9 +460,15 @@ let package = Package(
       ]
     ),
     .target(
+        name: "SampleApp",
+        dependencies: ["FirebaseDatabaseSwiftCore", "FirebaseAuth"],
+        path: "SampleApp/Sources"
+    ),
+    .target(
         name: "FirebaseDatabaseSwiftCore",
         dependencies: [ "FirebaseSharedSwift",
                         "leveldb",
+                        "FirebaseCoreSwift",
                         .product(name: "Atomics", package: "swift-atomics"),
                         .product(name: "Logging", package: "swift-log"),
                         .product(name: "SortedCollections", package: "swift-collections"),
@@ -493,6 +504,7 @@ let package = Package(
       path: "FirebaseAuth/Sources/Swift",
       linkerSettings: [
         .linkedFramework("Security"),
+        .linkedFramework("Foundation"),
         .linkedFramework("SafariServices", .when(platforms: [.iOS])),
       ]
     ),

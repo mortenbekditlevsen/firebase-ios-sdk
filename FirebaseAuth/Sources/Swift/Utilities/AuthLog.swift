@@ -13,17 +13,34 @@
 // limitations under the License.
 
 import Foundation
+import Logging
 //import FirebaseCoreExtension
+var logger = Logger(label: "[FirebaseAuth]")
 
 struct FirebaseLogger {
     static func log(level: FirebaseLoggerLevel, service: String, code: String, message: String) {
         print(message)
+        logger.log(level: level.mapped, "\(code): \(message)")
 
     }
 }
 
 enum FirebaseLoggerLevel {
     case info, debug, notice, warning, error
+    var mapped: Logger.Level {
+        switch self {
+        case .debug:
+            return .debug
+        case .error:
+            return .error
+        case .warning:
+            return .warning
+        case .info:
+            return .info
+        case .notice:
+            return .notice
+        }
+    }
 }
 
 enum AuthLog {
