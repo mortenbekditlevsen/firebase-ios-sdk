@@ -504,7 +504,7 @@ let package = Package(
       path: "FirebaseAuth/Sources/Swift",
       linkerSettings: [
         .linkedFramework("Security"),
-        .linkedFramework("Foundation"),
+//        .linkedFramework("Foundation"),
         .linkedFramework("SafariServices", .when(platforms: [.iOS])),
       ]
     ),
