@@ -36,26 +36,31 @@ import Foundation
       super.init(proto: proto)
       factorID = Self.PhoneMultiFactorID
     }
-
-    // MARK: NSSecureCoding
-
-    private let kPhoneNumberCodingKey = "phoneNumber"
-
-    private static var secureCodingWorkaround = true
-    override public class var supportsSecureCoding: Bool { return secureCodingWorkaround }
-
-    public required init?(coder: NSCoder) {
-      guard let phoneNumber = coder.decodeObject(forKey: kPhoneNumberCodingKey) as? String else {
-        return nil
-      }
-      self.phoneNumber = phoneNumber
-      super.init(coder: coder)
-    }
-
-    override public func encode(with coder: NSCoder) {
-      super.encode(with: coder)
-      coder.encode(phoneNumber, forKey: kPhoneNumberCodingKey)
-    }
+       
+       required init(from decoder: Decoder) throws {
+           // XXX TODO: implement secure coding pattern
+           fatalError("init(from:) has not been implemented")
+       }
+       
+//    // MARK: NSSecureCoding
+//
+//    private let kPhoneNumberCodingKey = "phoneNumber"
+//
+//    private static var secureCodingWorkaround = true
+//    override public class var supportsSecureCoding: Bool { return secureCodingWorkaround }
+//
+//    public required init?(coder: NSCoder) {
+//      guard let phoneNumber = coder.decodeObject(forKey: kPhoneNumberCodingKey) as? String else {
+//        return nil
+//      }
+//      self.phoneNumber = phoneNumber
+//      super.init(coder: coder)
+//    }
+//
+//    override public func encode(with coder: NSCoder) {
+//      super.encode(with: coder)
+//      coder.encode(phoneNumber, forKey: kPhoneNumberCodingKey)
+//    }
   }
 
 #endif

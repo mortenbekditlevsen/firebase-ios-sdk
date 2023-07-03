@@ -25,7 +25,7 @@
       @brief A Class responsible for presenting URL via SFSafariViewController or WKWebView.
    */
   @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-public class AuthURLPresenter:
+public class AuthURLPresenter: NSObject,
     SFSafariViewControllerDelegate, AuthWebViewControllerDelegate {
     /** @fn
         @brief Presents an URL to interact with user.

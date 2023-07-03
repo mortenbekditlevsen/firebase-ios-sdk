@@ -232,12 +232,12 @@ class FPersistentConnection: FConnectionDelegate {
         }
     }
 
-    func listen(_ query: FQuerySpec,
-                             tagId: Int,
-                             hash: FSyncTreeHash,
-                             onComplete: @escaping (String) -> Void) {
-        listen(query, tagId: tagId, hash: hash, onComplete: onComplete)
-    }
+//    func listen(_ query: FQuerySpec,
+//                             tagId: Int,
+//                             hash: FSyncTreeHash,
+//                             onComplete: @escaping (String) -> Void) {
+//        listen(query, tagId: tagId, hash: hash, onComplete: onComplete)
+//    }
 
     func putData(_ data: Any,
                               forPath pathString: String,

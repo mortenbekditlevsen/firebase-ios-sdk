@@ -189,7 +189,7 @@
 
   // Protocol for UIApplication to enable unit testing
   public protocol ApplicationDelegate {
-    optional func application(_ application: Application,
+     func application(_ application: Application,
                                     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
                                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult)
                                       -> Void)

@@ -207,26 +207,38 @@ import Foundation
       enrolledFactors = multiFactorInfoArray
     }
 
-    override init() {}
+    init() {}
 
-    // MARK: - NSSecureCoding
+//    // MARK: - NSSecureCoding
+//
+//    private let kEnrolledFactorsCodingKey = "enrolledFactors"
+//
+//    public static var supportsSecureCoding: Bool {
+//      true
+//    }
 
-    private let kEnrolledFactorsCodingKey = "enrolledFactors"
+       enum CodingKeys: String, CodingKey {
+           case enrolledFactors
+       }
 
-    public static var supportsSecureCoding: Bool {
-      true
-    }
-
-    public func encode(with coder: NSCoder) {
-      coder.encode(enrolledFactors, forKey: kEnrolledFactorsCodingKey)
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(enrolledFactors, forKey: .enrolledFactors)
       // Do not encode `user` weak property.
     }
 
-    public required init?(coder: NSCoder) {
-      let enrolledFactors = coder
-        .decodeObject(forKey: kEnrolledFactorsCodingKey) as? [MultiFactorInfo]
-      self.enrolledFactors = enrolledFactors
-      // Do not decode `user` weak property.
-    }
+       required public init(from decoder: Decoder) throws {
+           let container = try decoder.container(keyedBy: CodingKeys.self)
+           self.enrolledFactors = try container.decodeIfPresent([MultiFactorInfo].self, forKey: .enrolledFactors)
+       }
+
+
+
+//    public required init?(coder: NSCoder) {
+//      let enrolledFactors = coder
+//        .decodeObject(forKey: kEnrolledFactorsCodingKey) as? [MultiFactorInfo]
+//      self.enrolledFactors = enrolledFactors
+//      // Do not decode `user` weak property.
+//    }
   }
 #endif

@@ -2053,8 +2053,10 @@ public class User: Equatable, Codable, UserInfo {
         self.requestConfiguration = AuthRequestConfiguration(apiKey: apiKey, appID: appID)
         self.taskQueue = AuthSerialTaskQueue()
         #if os(iOS)
-          self.multiFactor = multiFactor ?? MultiFactor()
-          multiFactor?.user = self
+        // XXX TODO: Is this correct?
+        let multiFactor = MultiFactor()
+        self.multiFactor = multiFactor
+        multiFactor.user = self
         #endif
     }
 

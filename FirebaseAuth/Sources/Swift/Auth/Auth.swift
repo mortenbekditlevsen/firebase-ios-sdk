@@ -41,37 +41,37 @@ import Foundation
 // }
 
 #if os(iOS)
-  @available(iOS 13.0, *)
-  extension Auth: UISceneDelegate {}
-
-  @available(iOS 13, *)
-  extension Auth: UIApplicationDelegate {
-    public func application(_ application: UIApplication,
-                            didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-      setAPNSToken(deviceToken, type: .unknown)
-    }
-
-    public func application(_ application: UIApplication,
-                            didFailToRegisterForRemoteNotificationsWithError error: Error) {
-      kAuthGlobalWorkQueue.sync {
-        self.tokenManager.cancel(withError: error)
-      }
-    }
-
-    public func application(_ application: UIApplication,
-                            didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-                            fetchCompletionHandler completionHandler:
-                            @escaping (UIBackgroundFetchResult) -> Void) {
-      _ = canHandleNotification(userInfo)
-      completionHandler(UIBackgroundFetchResult.noData)
-    }
-
-    public func application(_ application: UIApplication,
-                            open url: URL,
-                            options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool {
-      return canHandle(url)
-    }
-  }
+//  @available(iOS 13.0, *)
+//  extension Auth: UISceneDelegate {}
+//
+//  @available(iOS 13, *)
+//  extension Auth: UIApplicationDelegate {
+//    public func application(_ application: UIApplication,
+//                            didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+//      setAPNSToken(deviceToken, type: .unknown)
+//    }
+//
+//    public func application(_ application: UIApplication,
+//                            didFailToRegisterForRemoteNotificationsWithError error: Error) {
+//      kAuthGlobalWorkQueue.sync {
+//        self.tokenManager.cancel(withError: error)
+//      }
+//    }
+//
+//    public func application(_ application: UIApplication,
+//                            didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+//                            fetchCompletionHandler completionHandler:
+//                            @escaping (UIBackgroundFetchResult) -> Void) {
+//      _ = canHandleNotification(userInfo)
+//      completionHandler(UIBackgroundFetchResult.noData)
+//    }
+//
+//    public func application(_ application: UIApplication,
+//                            open url: URL,
+//                            options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool {
+//      return canHandle(url)
+//    }
+//  }
 #endif
 
 
@@ -1778,7 +1778,7 @@ extension Auth: AuthInterop {
         )
 
         // TODO: Does this swizzling still work?
-        GULSceneDelegateSwizzler.registerSceneDelegateInterceptor(strongSelf)
+//        GULSceneDelegateSwizzler.registerSceneDelegateInterceptor(strongSelf)
       #endif
     }
   }
