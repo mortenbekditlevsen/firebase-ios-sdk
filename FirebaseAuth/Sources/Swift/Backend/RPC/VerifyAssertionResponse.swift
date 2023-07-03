@@ -264,7 +264,7 @@ import Foundation
     oauthSecretToken = dictionary["oauthTokenSecret"] as? String
     pendingToken = dictionary["pendingToken"] as? String
 
-    if let mfaInfoDicts = dictionary["mfaInfo"] as? [[String: AnyHashable]] {
+    if let mfaInfoDicts = dictionary["mfaInfo"] as? [[String: Any]] {
       MFAInfo = mfaInfoDicts.map {
         AuthProtoMFAEnrollment(dictionary: $0)
       }

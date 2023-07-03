@@ -48,8 +48,8 @@ class AuthProtoStartMFAPhoneRequestInfo: AuthProto {
     self.reCAPTCHAToken = reCAPTCHAToken
   }
 
-  var dictionary: [String: AnyHashable] {
-    var dict: [String: AnyHashable] = [:]
+  var dictionary: [String: Any] {
+    var dict: [String: Any] = [:]
     if let phoneNumber = phoneNumber {
       dict[kPhoneNumberKey] = phoneNumber
     }

@@ -171,7 +171,7 @@ public class GetAccountInfoResponseProviderUserInfo {
     emailVerified = dictionary["emailVerified"] as? Bool ?? false
     passwordHash = dictionary["passwordHash"] as? String
     phoneNumber = dictionary["phoneNumber"] as? String
-    if let mfaEnrollmentData = dictionary["mfaInfo"] as? [[String: AnyHashable]] {
+    if let mfaEnrollmentData = dictionary["mfaInfo"] as? [[String: Any]] {
       mfaEnrollments = mfaEnrollmentData.map { AuthProtoMFAEnrollment(dictionary: $0)
       }
     } else {

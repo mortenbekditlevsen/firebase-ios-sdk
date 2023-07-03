@@ -337,7 +337,6 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         return
       }
     }
-      print("ASYNCPOST TO URL", request)
     rpcIssuer
       .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json") {
         data, error in
@@ -356,14 +355,10 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         // successful response or error message.
         var dictionary: [String: Any]
         do {
-            print("decoding", String(data: data, encoding: .utf8) ?? "-")
           let rawDecode = try JSONSerialization.jsonObject(with: data,
                                                            options: JSONSerialization.ReadingOptions
                                                              .mutableLeaves)
-            print("RAWDECODE", rawDecode)
-            print("as [String: Any]", rawDecode as? [String: Any])
           guard let decodedDictionary = rawDecode as? [String: Any] else {
-              print("Couldn't cast to [String: AnyHashable]", error)
             if error != nil {
               callback(AuthErrorUtils.unexpectedErrorResponse(deserializedResponse: rawDecode,
                                                               underlyingError: error))
@@ -396,7 +391,7 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         // case where we have an error with successfully decoded error details
         // first:
         if error != nil {
-          if let errorDictionary = dictionary["error"] as? [String: AnyHashable] {
+          if let errorDictionary = dictionary["error"] as? [String: Any] {
             if let errorMessage = errorDictionary["message"] as? String {
               if let clientError = AuthBackendRPCImplementation.clientError(
                 withServerErrorMessage: errorMessage,

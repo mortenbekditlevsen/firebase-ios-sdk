@@ -72,8 +72,8 @@ class FakeBackendRPCIssuer: AuthBackendRPCIssuer {
   var verifyPasswordRequester: ((VerifyPasswordRequest) -> Void)?
   var verifyPhoneNumberRequester: ((VerifyPhoneNumberRequest) -> Void)?
 
-  var fakeGetAccountProviderJSON: [[String: AnyHashable]]?
-  var fakeSecureTokenServiceJSON: [String: AnyHashable]?
+  var fakeGetAccountProviderJSON: [[String: Any]]?
+  var fakeSecureTokenServiceJSON: [String: Any]?
   var secureTokenNetworkError: NSError?
   var secureTokenErrorString: String?
 
