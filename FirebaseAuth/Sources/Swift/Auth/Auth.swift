@@ -40,7 +40,7 @@ import Foundation
 //    public static let AuthStateDidChange: NSNotification.Name
 // }
 
-#if os(iOS)
+//#if os(iOS)
 //  @available(iOS 13.0, *)
 //  extension Auth: UISceneDelegate {}
 //
@@ -72,7 +72,7 @@ import Foundation
 //      return canHandle(url)
 //    }
 //  }
-#endif
+//#endif
 
 
 @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
