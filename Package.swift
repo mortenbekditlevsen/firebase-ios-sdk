@@ -142,20 +142,20 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
+    .package(url: "https://github.com/apple/swift-crypto.git", "4.1.0" ..< "4.1.0"),
     .package(
       url: "https://github.com/apple/swift-atomics.git",
       .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
     ),
     .package(
         url: "https://github.com/apple/swift-nio.git",
-        from: "2.40.0"
+        from: "2.90.0"
     ),
     .package(url: "https://github.com/apple/swift-log.git",
-             from: "1.0.0"),
+             from: "1.6.4"),
     .package(
         url: "https://github.com/apple/swift-nio-ssl.git",
-         from: "2.19.0"
+         from: "2.36.0"
     ),
     .package(
       name: "leveldb",

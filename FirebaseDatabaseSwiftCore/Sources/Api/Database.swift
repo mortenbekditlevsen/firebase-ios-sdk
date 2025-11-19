@@ -241,7 +241,7 @@ public class Database {
 
     @discardableResult
     private func ensureRepo() -> FRepo {
-        if let repo = repo {
+        if let repo {
             return repo
         }
         let r = FRepoManager.createRepo(repoInfo,
