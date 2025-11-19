@@ -168,7 +168,7 @@ let package = Package(
       branch: "1.22.2-mine"
     ),
     .package(
-      url: "https://github.com/apple/swift-collections.git",
+      url: "https://github.com/mortenbekditlevsen/swift-collections.git",
       .branch("main")
 //      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
     ),
