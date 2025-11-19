@@ -72,7 +72,7 @@ final class AuthKeychainServices: AuthStorage {
   }
 
   func setData(_ data: Data, forKey key: String) throws {
-#if os(Linux)
+#if os(Linux) || os(Android)
       return
       #else
 
@@ -100,7 +100,7 @@ final class AuthKeychainServices: AuthStorage {
   // MARK: - Private methods for non-sharing keychain operations
 
   private func item(query: [String: Any]) throws -> Data? {
-      #if os(Linux)
+#if os(Linux) || os(Android)
       return nil
       #else
     var returningQuery = query
@@ -151,7 +151,7 @@ final class AuthKeychainServices: AuthStorage {
   }
 
   private func setItem(query: [String: Any], attributes: [String: Any]) throws {
-#if os(Linux)
+#if os(Linux) || os(Android)
 return
 #else
 
@@ -190,7 +190,7 @@ return
       @param key The key for the item.
    */
   private func deleteLegacyItem(key: String) {
-#if os(Linux)
+#if os(Linux) || os(Android)
 return
 #else
 
@@ -208,7 +208,7 @@ return
       @param key The key for the value being manipulated, used as the account field in the query.
    */
   private func genericPasswordQuery(key: String) -> [String: Any] {
-      #if os(Linux)
+#if os(Linux) || os(Android)
       return [:]
       #else
     var query: [String: Any] = [
@@ -227,7 +227,7 @@ return
       @param key The key for the value being manipulated, used as the account field in the query.
    */
   private func legacyGenericPasswordQuery(key: String) -> [String: Any] {
-#if os(Linux)
+#if os(Linux) || os(Android)
       return [:]
       #else
 
