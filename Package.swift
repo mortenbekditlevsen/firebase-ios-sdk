@@ -157,11 +157,15 @@ let package = Package(
         url: "https://github.com/apple/swift-nio-ssl.git",
          from: "2.36.0"
     ),
+//    .package(
+//      name: "leveldb",
+//      url: "https://github.com/mortenbekditlevsen/leveldb.git",
+//      .revision("c38963739c2048a84db6823228df1eb9bd16a5ca")
+//    ),
     .package(
       name: "leveldb",
       url: "https://github.com/mortenbekditlevsen/leveldb.git",
-      .revision("c38963739c2048a84db6823228df1eb9bd16a5ca")
-//      "1.22.2" ..< "1.23.0"
+      branch: "1.22.2-mine"
     ),
     .package(
       url: "https://github.com/apple/swift-collections.git",
