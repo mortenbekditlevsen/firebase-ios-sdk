@@ -173,7 +173,7 @@ return
   }
 
   private func deleteItem(query: [String: Any]) throws {
-#if os(Linux)
+#if os(Linux) || os(Android)
 return
 #else
 

@@ -126,7 +126,7 @@ import Foundation
                             accessGroup: String,
                             shareAuthStateAcrossDevices: Bool,
                             projectIdentifier: String) throws {
-#if os(Linux)
+#if os(Linux) || os(Android)
       return
       #else
 
@@ -168,7 +168,7 @@ import Foundation
   public func removeStoredUser(accessGroup: String,
                                shareAuthStateAcrossDevices: Bool,
                                projectIdentifier: String) throws {
-#if os(Linux)
+#if os(Linux) || os(Android)
       return
       #else
 
@@ -193,7 +193,7 @@ import Foundation
   private func keychainQuery(accessGroup: String,
                              shareAuthStateAcrossDevices: Bool,
                              projectIdentifier: String) -> [String: Any] {
-#if os(Linux)
+#if os(Linux) || os(Android)
       return [:]
       #else
 
