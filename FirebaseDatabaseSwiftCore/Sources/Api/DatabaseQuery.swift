@@ -743,9 +743,13 @@ public class DatabaseQuery {
         if limit <= 0 {
             fatalError("Limit can't be zero or less")
         }
+        
+        // On 32 bit platforms, this check is redundant
+#if __LP64__
         if (limit >= 2_147_483_648) {
             fatalError("Limit must be less than 2,147,483,648")
         }
+#endif
     }
 
     // MARK: - Properties
