@@ -513,11 +513,24 @@ class FLevelDBStorageEngine: FStorageEngine {
     }
 
     private static func ensureDir(_ path: inout URL, markAsDoNotBackup: Bool) {
+        let fileManager = FileManager.default
         do {
-            try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
+            try fileManager.createDirectory(at: path, withIntermediateDirectories: true)
         } catch {
             fatalError("Failed to create persistence directory. Error: \(error) Path: \(path.path)")
         }
+#if os(iOS) || os(tvOS) || os(watchOS) || os(macOS)
+        // Set file protection so the DB is accessible after first unlock,
+        // whether the directory was just created or already existed.
+        do {
+            try fileManager.setAttributes(
+                [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                ofItemAtPath: path.path)
+        } catch {
+            FFWarn("I-RDB076036",
+                   "Failed to set file protection attribute on persistence directory: \(error)")
+        }
+#endif
         guard markAsDoNotBackup else { return }
 #if os(iOS) || os(tvOS) || os(watchOS) || os(macOS)
         // Exclude from iCloud/device backup — only applicable on Apple platforms.

@@ -533,14 +533,7 @@ class FPersistentConnection: FConnectionDelegate {
     }
 
     private func setupNotifications() {
-#if os(watchOS)
-        let center = NotificationCenter.default
-        center.addObserver(forName: WKExtension.applicationWillEnterForegroundNotification,
-                           object: nil,
-                           queue: nil) { [weak self] _ in
-            self?.enteringForeground()
-        }
-#elseif os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS)
 
         let center = NotificationCenter.default
         center.addObserver(forName: UIApplication.willEnterForegroundNotification,

@@ -36,7 +36,9 @@ class FViewOperationResult {
 class FView {
     private let processor: FViewProcessor
     private var viewCache: FViewCache
+    // All accesses must be guarded by registrationsLock
     private var eventRegistrations: [FEventRegistration]
+    private let registrationsLock = NSLock()
     private let eventGenerator: FEventGenerator
     public let query: FQuerySpec
     var eventCache: FNode {
@@ -97,10 +99,14 @@ class FView {
 
     }
     var isEmpty: Bool {
-        eventRegistrations.isEmpty
+        registrationsLock.lock()
+        defer { registrationsLock.unlock() }
+        return eventRegistrations.isEmpty
     }
 
     func addEventRegistration(_ eventRegistration: FEventRegistration) {
+        registrationsLock.lock()
+        defer { registrationsLock.unlock() }
         eventRegistrations.append(eventRegistration)
     }
 
@@ -111,6 +117,8 @@ class FView {
      * @return Cancel events, if cancelError was provided.
      */
     func removeEventRegistration(_ matcher: FEventRegistrationMatcher, cancelError: Error?) -> [FEvent] {
+        registrationsLock.lock()
+        defer { registrationsLock.unlock() }
         var cancelEvents: [FEvent] = []
         if let cancelError = cancelError {
             assert(matcher == .all, "A cancel should cancel all event registrations.")
@@ -124,9 +132,7 @@ class FView {
         if matcher == .all {
             eventRegistrations = []
         } else {
-            eventRegistrations.removeAll { existing in
-                existing.matches(matcher)
-            }
+            eventRegistrations.removeAll { existing in existing.matches(matcher) }
         }
         return cancelEvents
     }
@@ -174,7 +180,9 @@ class FView {
         if let registration = registration {
             registrations = [registration]
         } else {
+            registrationsLock.lock()
             registrations = self.eventRegistrations
+            registrationsLock.unlock()
         }
         return eventGenerator.generateEventsForChanges(changes, eventCache: eventCache, eventRegistrations: registrations)
     }
