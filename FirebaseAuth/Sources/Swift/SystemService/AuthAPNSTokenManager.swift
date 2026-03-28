@@ -138,123 +138,75 @@
 
     private func isProductionApp() -> Bool {
       let defaultAppTypeProd = true
-//      if GULAppEnvironmentUtil.isSimulator() {
-//        AuthLog.logInfo(code: "I-AUT000006", message: "Assuming prod APNs token type on simulator.")
-//        return defaultAppTypeProd
-//      }
-//      // Apps distributed via AppStore or TestFlight use the Production APNS certificates.
-//      if GULAppEnvironmentUtil.isFromAppStore() {
-//        return defaultAppTypeProd
-//      }
 
-      // TODO: resolve https://github.com/firebase/firebase-ios-sdk/issues/10921
+      #if targetEnvironment(simulator)
+      AuthLog.logInfo(code: "I-AUT000006", message: "Assuming prod APNs token type on simulator.")
+      return defaultAppTypeProd
+      #endif
+
+      // Apps distributed via TestFlight use the Production APNs certificates.
       if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
-        // Distributed via TestFlight
         return defaultAppTypeProd
       }
 
-      let path = Bundle.main.bundlePath + "embedded.mobileprovision"
-      guard let url = URL(string: path) else {
+      // Check for embedded provisioning profile to detect development builds.
+      let path = Bundle.main.bundlePath + "/embedded.mobileprovision"
+      guard FileManager.default.fileExists(atPath: path) else {
         AuthLog.logInfo(code: "I-AUT000007", message: "\(path) does not exist")
         return defaultAppTypeProd
       }
       do {
-        let profileData = try Data(contentsOf: url)
+        let profileData = try Data(contentsOf: URL(fileURLWithPath: path))
 
-        // The "embedded.mobileprovision" sometimes contains characters with value 0, which signals the
-        // end of a c-string and halts the ASCII parser, or with value > 127, which violates strict 7-bit
-        // ASCII. Replace any 0s or invalid characters in the input.
-        let byteArray = [UInt8](profileData)
-        var outBytes: [UInt8] = []
-        for byte in byteArray {
-          if byte == 0 || byte > 127 {
-            outBytes.append(46) // ASCII '.'
-          } else {
-            outBytes.append(byte)
-          }
-        }
-        guard let embeddedProfile = String(bytes: outBytes, encoding: .utf8) else {
+        // The "embedded.mobileprovision" is DER-encoded and may contain null bytes
+        // (0x00) or non-ASCII bytes (>127) that break string parsing. Replace them
+        // with '.' so the XML plist section can be extracted as a UTF-8 string.
+        let sanitized = profileData.map { ($0 == 0 || $0 > 127) ? UInt8(46) : $0 }
+        guard let embeddedProfile = String(bytes: sanitized, encoding: .utf8) else {
           AuthLog.logInfo(code: "I-AUT000008",
-                          message: "Error while reading embedded mobileprovision. Failed to convert to String")
+                          message: "Failed to convert embedded mobileprovision to String")
           return defaultAppTypeProd
         }
 
-        // TODO: This code needs iOS 13. Use split instead?
-//        let scanner = Scanner(string: embeddedProfile)
-//        if scanner.scanUpToString("<plist") != nil {
-//          if let plistContents = scanner.scanUpToString("</plist>")
-//        }
+        // Locate the plist section embedded in the provisioning profile.
+        guard let plistStart = embeddedProfile.range(of: "<plist"),
+              let plistEnd = embeddedProfile.range(
+                of: "</plist>",
+                range: plistStart.upperBound ..< embeddedProfile.endIndex
+              )
+        else {
+          AuthLog.logInfo(code: "I-AUT000009",
+                          message: "Couldn't locate plist in embedded mobileprovision")
+          return defaultAppTypeProd
+        }
+        let plistString = String(embeddedProfile[plistStart.lowerBound ..< plistEnd.upperBound])
 
+        guard let plistData = plistString.data(using: .utf8),
+              let plistMap = try? PropertyListSerialization.propertyList(
+                from: plistData, options: [], format: nil
+              ) as? [String: Any]
+        else {
+          AuthLog.logInfo(code: "I-AUT000010",
+                          message: "Error converting embedded mobileprovision plist to dictionary")
+          return defaultAppTypeProd
+        }
+
+        guard let entitlements = plistMap["Entitlements"] as? [String: Any],
+              let apsEnvironment = entitlements["aps-environment"] as? String
+        else {
+          AuthLog.logInfo(code: "I-AUT000013",
+                          message: "No aps-environment set. If testing on a device APNs is not " +
+                            "correctly configured. Please recheck your provisioning profiles.")
+          return defaultAppTypeProd
+        }
+
+        AuthLog.logInfo(code: "I-AUT000012", message: "APNs environment in profile: \(apsEnvironment)")
+        return apsEnvironment != "development"
       } catch {
         AuthLog.logInfo(code: "I-AUT000008",
-                        message: "Error while reading embedded mobileprovision \(error)")
+                        message: "Error while reading embedded mobileprovision: \(error)")
         return defaultAppTypeProd
       }
-
-      // TODO: Finish this port
-
-//      NSMutableData *profileData = [NSMutableData dataWithContentsOfFile:path options:0 error:&error];
-//
-//      if (!profileData.length || error) {
-//        FIRLogInfo(kFIRLoggerAuth, @"I-AUT000007", @"Error while reading embedded mobileprovision %@",
-//                   error);
-//        return defaultAppTypeProd;
-//      }
-
-//      NSScanner *scanner = [NSScanner scannerWithString:embeddedProfile];
-//      NSString *plistContents;
-//      if ([scanner scanUpToString:@"<plist" intoString:nil]) {
-//        if ([scanner scanUpToString:@"</plist>" intoString:&plistContents]) {
-      // TODO: how does a file name get read with this append?
-//          plistContents = [plistContents stringByAppendingString:@"</plist>"];
-//        }
-//      }
-//
-//      if (!plistContents.length) {
-//        return defaultAppTypeProd;
-//      }
-//
-//      NSData *data = [plistContents dataUsingEncoding:NSUTF8StringEncoding];
-//      if (!data.length) {
-//        FIRLogInfo(kFIRLoggerAuth, @"I-AUT000009",
-//                   @"Couldn't read plist fetched from embedded mobileprovision");
-//        return defaultAppTypeProd;
-//      }
-//
-//      NSError *plistMapError;
-//      id plistData = [NSPropertyListSerialization propertyListWithData:data
-//                                                               options:NSPropertyListImmutable
-//                                                                format:nil
-//                                                                 error:&plistMapError];
-//      if (plistMapError || ![plistData isKindOfClass:[NSDictionary class]]) {
-//        FIRLogInfo(kFIRLoggerAuth, @"I-AUT000010", @"Error while converting assumed plist to dict %@",
-//                   plistMapError.localizedDescription);
-//        return defaultAppTypeProd;
-//      }
-//      NSDictionary *plistMap = (NSDictionary *)plistData;
-//
-//      if ([plistMap valueForKeyPath:@"ProvisionedDevices"]) {
-//        FIRLogInfo(kFIRLoggerAuth, @"I-AUT000011",
-//                   @"Provisioning profile has specifically provisioned devices, "
-//                   @"most likely a Dev profile.");
-//      }
-//
-//      NSString *apsEnvironment = [plistMap valueForKeyPath:@"Entitlements.aps-environment"];
-//      FIRLogDebug(kFIRLoggerAuth, @"I-AUT000012", @"APNS Environment in profile: %@", apsEnvironment);
-//
-//      // No aps-environment in the profile.
-//      if (!apsEnvironment.length) {
-//        FIRLogInfo(kFIRLoggerAuth, @"I-AUT000013",
-//                   @"No aps-environment set. If testing on a device APNS is not "
-//                   @"correctly configured. Please recheck your provisioning profiles.");
-//        return defaultAppTypeProd;
-//      }
-//
-//      if ([apsEnvironment isEqualToString:@"development"]) {
-//        return NO;
-//      }
-
-      return defaultAppTypeProd
     }
   }
 #endif

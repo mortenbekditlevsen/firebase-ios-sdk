@@ -6,25 +6,38 @@
 //
 
 import Foundation
+import Logging
 import NIOCore
 import NIOPosix
 import NIOHTTP1
 import NIOWebSocket
 import NIOSSL
 
+private enum WebSocketClientError: Error {
+    case invalidURL(String)
+    case tlsSetupFailed(Error)
+}
+
 final class WebSocketClient {
     private let webSocketHandler: WebSocketHandler
-    private let openClosure: () throws -> Void
     private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    // Bootstrap creation can fail during TLS setup; store the result so open()
+    // can throw a meaningful error rather than crashing at init time.
+    private let bootstrapResult: Result<ClientBootstrap, Error>
+    private let url: URL
+    private static let logger = Logger(label: "com.google.firebase.database.websocket")
 
     func open() throws {
-        try openClosure()
+        let bootstrap = try bootstrapResult.get()
+        guard let host = url.host else {
+            throw WebSocketClientError.invalidURL("URL has no host: \(url)")
+        }
+        _ = try bootstrap.connect(host: host, port: url.port ?? 443).wait()
     }
 
     func close() {
         guard let context = webSocketHandler.context else {
-            print("ERR, can't close")
-//            fatalError()
+            Self.logger.warning("close() called but WebSocket context is unavailable")
             return
         }
 
@@ -50,6 +63,7 @@ final class WebSocketClient {
          onOpen: @escaping () -> Void,
          onMessage: @escaping (String) -> Void,
          onClose: @escaping () -> Void) {
+        self.url = url
         self.webSocketHandler = WebSocketHandler(
             onOpen: onOpen,
             onMessage: onMessage,
@@ -57,36 +71,52 @@ final class WebSocketClient {
         )
 
         let httpHandler = HTTPInitialRequestHandler(url: url, headers: headers)
-
         let configuration = TLSConfiguration.makeClientConfiguration()
-        let sslContext = try! NIOSSLContext(configuration: configuration)
 
-        let bootstrap = ClientBootstrap(group: group)
-            // Enable SO_REUSEADDR.
-            .channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-            .channelInitializer { [webSocketHandler] channel in
-                let sslHandler =  try! NIOSSLClientHandler(context: sslContext, serverHostname: url.host!)
+        do {
+            let sslContext = try NIOSSLContext(configuration: configuration)
 
-                let websocketUpgrader = NIOWebSocketClientUpgrader(upgradePipelineHandler: { (channel: Channel, _: HTTPResponseHead) in
-                    channel.pipeline.addHandler(webSocketHandler)
-                })
+            let bootstrap = ClientBootstrap(group: group)
+                .channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+                .channelInitializer { [webSocketHandler] channel in
+                    do {
+                        // url.host may be nil for invalid URLs; passing nil to
+                        // NIOSSLClientHandler disables SNI but still allows TLS.
+                        let sslHandler = try NIOSSLClientHandler(
+                            context: sslContext,
+                            serverHostname: url.host
+                        )
 
-                let config: NIOHTTPClientUpgradeConfiguration = (
-                    upgraders: [ websocketUpgrader ],
-                    completionHandler: { _ in
-                        channel.pipeline.removeHandler(httpHandler, promise: nil)
-                })
+                        let websocketUpgrader = NIOWebSocketClientUpgrader(
+                            upgradePipelineHandler: { (channel: Channel, _: HTTPResponseHead) in
+                                channel.pipeline.addHandler(webSocketHandler)
+                            }
+                        )
 
-                return channel.pipeline.addHandler(sslHandler).flatMap {
-                    channel.pipeline.addHTTPClientHandlers(leftOverBytesStrategy: .forwardBytes,
-                                                           withClientUpgrade: config)
-                        .flatMap {
-                        channel.pipeline.addHandler(httpHandler)
+                        let config: NIOHTTPClientUpgradeConfiguration = (
+                            upgraders: [websocketUpgrader],
+                            completionHandler: { _ in
+                                channel.pipeline.removeHandler(httpHandler, promise: nil)
+                            }
+                        )
+
+                        return channel.pipeline.addHandler(sslHandler).flatMap {
+                            channel.pipeline.addHTTPClientHandlers(
+                                leftOverBytesStrategy: .forwardBytes,
+                                withClientUpgrade: config
+                            ).flatMap {
+                                channel.pipeline.addHandler(httpHandler)
+                            }
+                        }
+                    } catch {
+                        return channel.eventLoop.makeFailedFuture(error)
                     }
                 }
-        }
-        self.openClosure = {
-            _ = try bootstrap.connect(host: url.host!, port: url.port ?? 443).wait()
+
+            self.bootstrapResult = .success(bootstrap)
+        } catch {
+            Self.logger.error("TLS context creation failed: \(error)")
+            self.bootstrapResult = .failure(WebSocketClientError.tlsSetupFailed(error))
         }
     }
 }
@@ -97,6 +127,7 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
 
     public let url: URL
     private let extraHeaders: HTTPHeaders
+    private static let logger = Logger(label: "com.google.firebase.database.websocket.http")
 
     init(url: URL, headers: HTTPHeaders) {
         self.url = url
@@ -104,16 +135,15 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
     }
 
     func channelActive(context: ChannelHandlerContext) {
-        print("Client connected to \(context.remoteAddress!)")
+        Self.logger.debug("Client connected to \(context.remoteAddress?.description ?? "unknown")")
 
-        // We are connected. It's time to send the message to the server to initialize the upgrade dance.
         var headers = HTTPHeaders()
         headers.add(name: "Host", value: "\(url.host ?? ""):\(url.port ?? 443)")
         headers.add(name: "Content-Type", value: "text/plain; charset=utf-8")
         headers.add(name: "Content-Length", value: "\(0)")
         headers.add(contentsOf: extraHeaders)
 
-        let uri = url.path + (url.query.map { "?\($0)"} ?? "")
+        let uri = url.path + (url.query.map { "?\($0)" } ?? "")
 
         let requestHead = HTTPRequestHead(version: .http1_1,
                                           method: .GET,
@@ -129,39 +159,27 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-
         let clientResponse = self.unwrapInboundIn(data)
 
-        print("Upgrade failed")
+        Self.logger.error("WebSocket upgrade failed")
 
         switch clientResponse {
         case .head(let responseHead):
-            print("Received status: \(responseHead.status)")
+            Self.logger.error("Received HTTP status: \(responseHead.status)")
         case .body(let byteBuffer):
             let string = String(buffer: byteBuffer)
-            print("Received: '\(string)' back from the server.")
+            Self.logger.debug("Received body from server: \(string)")
         case .end:
-            print("Closing channel.")
+            Self.logger.debug("Closing channel after failed upgrade")
             context.close(promise: nil)
         }
     }
 
-    func handlerRemoved(context: ChannelHandlerContext) {
-//        print("HTTP handler removed.")
-    }
-
     func errorCaught(context: ChannelHandlerContext, error: Error) {
-        print("error: ", error)
-
-        // As we are not really interested getting notified on success or failure
-        // we just pass nil as promise to reduce allocations.
+        Self.logger.error("HTTP handler error: \(error)")
         context.close(promise: nil)
     }
 }
-
-// The web socket handler to be used once the upgrade has occurred.
-// One added, it sends a ping-pong round trip with "Hello World" data.
-// It also listens for any text frames from the server and prints them.
 
 private final class WebSocketHandler: ChannelInboundHandler {
     typealias InboundIn = WebSocketFrame
@@ -171,19 +189,18 @@ private final class WebSocketHandler: ChannelInboundHandler {
     private let onClose: () -> Void
     private let onMessage: (String) -> Void
     private let onOpen: () -> Void
+    private static let logger = Logger(label: "com.google.firebase.database.websocket.handler")
 
     init(onOpen: @escaping () -> Void,
-                onMessage: @escaping (String) -> Void,
-                onClose: @escaping () -> Void) {
+         onMessage: @escaping (String) -> Void,
+         onClose: @escaping () -> Void) {
         self.onOpen = onOpen
         self.onClose = onClose
         self.onMessage = onMessage
     }
 
-    // This is being hit, channel active won't be called as it is already added.
     func handlerAdded(context: ChannelHandlerContext) {
         self.context = context
-//        print("WebSocket handler added.")
         onOpen()
     }
 
@@ -193,12 +210,10 @@ private final class WebSocketHandler: ChannelInboundHandler {
     }
 
     func send(string: Substring) {
-//        print("SENDING", string)
         self.send(stringData: string, x: { $0.channel.allocator.buffer(substring: $1) })
     }
 
     func send(string: String) {
-//        print("SENDING", string)
         self.send(stringData: string, x: { $0.channel.allocator.buffer(string: $1) })
     }
 
@@ -224,17 +239,13 @@ private final class WebSocketHandler: ChannelInboundHandler {
         case .text:
             var byteBuffer = frame.unmaskedData
             let string = byteBuffer.readString(length: byteBuffer.readableBytes) ?? ""
-
-//            print("Websocket: Received \(string)")
             onMessage(string)
 
         case .connectionClose:
             self.receivedClose(context: context, frame: frame)
         case .binary, .continuation, .ping, .pong:
-            // We ignore these frames.
             break
         default:
-            // Unknown frames are errors.
             self.closeOnError(context: context)
         }
     }
@@ -244,15 +255,12 @@ private final class WebSocketHandler: ChannelInboundHandler {
     }
 
     private func receivedClose(context: ChannelHandlerContext, frame: WebSocketFrame) {
-        // Handle a received close frame. We're just going to close.
-        print("Received Close instruction from server")
+        Self.logger.debug("Received close frame from server")
         context.close(promise: nil)
         onClose()
     }
 
     private func closeOnError(context: ChannelHandlerContext) {
-        // We have hit an error, we want to close. We do that by sending a close frame and then
-        // shutting down the write side of the connection. The server will respond with a close of its own.
         var data = context.channel.allocator.buffer(capacity: 2)
         data.write(webSocketErrorCode: .protocolError)
         let frame = WebSocketFrame(fin: true, opcode: .connectionClose, data: data)

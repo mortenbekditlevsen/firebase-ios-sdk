@@ -15,8 +15,6 @@
 #if !os(macOS)
   import Foundation
 
-  // TODO: Eliminate objc public after Sample app port.
-
   /** @class AuthAPNSToken
       @brief A data structure for an APNs token.
    */

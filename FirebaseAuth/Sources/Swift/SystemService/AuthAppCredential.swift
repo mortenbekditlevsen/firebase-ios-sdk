@@ -14,8 +14,6 @@
 
 import Foundation
 
-// TODO: Remove objc public after Sample app is replaced.
-
 /** @class FIRAuthAppCredential
     @brief A class represents a credential that proves the identity of the app.
  */

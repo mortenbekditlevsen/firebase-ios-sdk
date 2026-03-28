@@ -133,7 +133,11 @@ class FLevelDBStorageEngine: FStorageEngine {
     }
 
     func runLegacyMigration(_ info: FRepoInfo) {
-        fatalError("Not yet supported")
+        // Legacy migration from the Objective-C Firebase Database SDK is not supported
+        // in this Swift port. Any pre-existing data at the legacy path will be ignored.
+        FFWarn("I-RDB076002",
+               "Legacy database found at \(info.host)/\(info.namespace), but legacy " +
+               "migration is not supported in this Swift port. Legacy data will not be migrated.")
         /*
          - (void)runLegacyMigration:(FRepoInfo *)info {
              NSArray *dirPaths = NSSearchPathForDirectoriesInDomains(
@@ -235,7 +239,7 @@ class FLevelDBStorageEngine: FStorageEngine {
             FFWarn("I-RDB076009", "Deleting database at path \(path)")
             try FileManager.default.removeItem(at: path)
         } catch {
-            fatalError("Failed to delete database files: \(error)")
+            FFWarn("I-RDB076037", "Failed to delete database files at \(path): \(error)")
         }
     }
 
@@ -338,7 +342,10 @@ class FLevelDBStorageEngine: FStorageEngine {
                     let node = FSnapshotUtilities.nodeFrom(overwrite)
                     writeRecord = FWriteRecord(path: path, overwrite: node, writeId: writeId, visible: true)
                 } else {
-                    fatalError("Persisted write did not contain merge or overwrite!")
+                    FFWarn("I-RDB076038",
+                           "Persisted write at key '\(key)' contained neither merge nor overwrite; skipping.")
+                    _ = self.writesDB.removeKey(key)
+                    return
                 }
                 writes.append(writeRecord)
             } catch {
@@ -348,7 +355,9 @@ class FLevelDBStorageEngine: FStorageEngine {
                     FFWarn("I-RDB076013", "Removing failed write with key \(key)")
                     _ = self.writesDB.removeKey(key)
                 } else {
-                    fatalError("Failed to deserialize write: \(error)")
+                    FFWarn("I-RDB076039",
+                           "Failed to deserialize write at key '\(key)': \(error). Skipping.")
+                    _ = self.writesDB.removeKey(key)
                 }
             }
         }
@@ -418,11 +427,12 @@ class FLevelDBStorageEngine: FStorageEngine {
         }
     }
 
-    private func serializePrimitive(_ value: Any) -> Data {
+    private func serializePrimitive(_ value: Any) -> Data? {
         do {
             return try JSONSerialization.data(withJSONObject: value, options: .fragmentsAllowed)
         } catch {
-            fatalError("Failed to serialize primitive: \(error)")
+            FFWarn("I-RDB076041", "Failed to serialize primitive \(value): \(error)")
+            return nil
         }
     }
 
@@ -509,6 +519,8 @@ class FLevelDBStorageEngine: FStorageEngine {
             fatalError("Failed to create persistence directory. Error: \(error) Path: \(path.path)")
         }
         guard markAsDoNotBackup else { return }
+#if os(iOS) || os(tvOS) || os(watchOS) || os(macOS)
+        // Exclude from iCloud/device backup — only applicable on Apple platforms.
         do {
             var values = URLResourceValues()
             values.isExcludedFromBackup = true
@@ -517,8 +529,8 @@ class FLevelDBStorageEngine: FStorageEngine {
             FFWarn(
                 "I-RDB076035",
                 "Failed to mark firebase database folder as do not backup: \(error)")
-            fatalError("Failed to mark folder \(path.path) as do not backup")
         }
+#endif
     }
 
     func serverCache(forKeys keys: Set<String>, atPath path: FPath) -> FNode {
@@ -606,9 +618,10 @@ class FLevelDBStorageEngine: FStorageEngine {
                 internalSetNestedData(obj, forKey: childPath, withBatch: batch, counter: &counter)
             }
         } else {
-            let data = serializePrimitive(value)
-            batch.setData(data, forKey: key)
-            counter += 1
+            if let data = serializePrimitive(value) {
+                batch.setData(data, forKey: key)
+                counter += 1
+            }
         }
     }
 
@@ -696,7 +709,9 @@ class FLevelDBStorageEngine: FStorageEngine {
                            "Removing failed tracked query with key \(key)")
                     _ = self.serverCacheDB.removeKey(key)
                 } else {
-                    fatalError("Failed to deserialize tracked query: \(error)")
+                    FFWarn("I-RDB076040",
+                           "Failed to deserialize tracked query at key '\(key)': \(error). Skipping.")
+                    _ = self.serverCacheDB.removeKey(key)
                 }
 
             }

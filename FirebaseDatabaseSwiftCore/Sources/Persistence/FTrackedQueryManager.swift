@@ -278,7 +278,7 @@ class FTrackedQueryManager {
         trackedQueries.sort { $0.queryId < $1.queryId }
         let sortedStoredTrackedQueries = storedTrackedQueries.sorted { $0.queryId < $1.queryId }
         if trackedQueries != sortedStoredTrackedQueries {
-            fatalError("Tracked queries and queries stored on disk don't match")
+            assertionFailure("Tracked queries and queries stored on disk don't match")
         }
     }
 }

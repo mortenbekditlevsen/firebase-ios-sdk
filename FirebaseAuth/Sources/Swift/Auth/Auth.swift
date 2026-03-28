@@ -163,14 +163,10 @@ extension Auth: AuthInterop {
    @return The `Auth` instance associated with the given app.
    */
   public class func auth(app: FirebaseApp) -> Auth {
-      // XXX TODO
-//      fatalError()
-//    let provider = ComponentType<AuthProvider>.instance(for: AuthProvider.self,
-//                                                        in: app.container)
-//    return provider.auth()
+      // The ObjC component provider pattern has been replaced by direct initialization
+      // in this Swift port, since the component system is ObjC-only.
       let auth = Auth(app: app, keychainStorageProvider: AuthUserDefaults.self)
       app.auth = auth
-
       return auth
   }
 

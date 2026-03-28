@@ -142,7 +142,7 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-crypto.git", "4.1.0" ..< "4.1.0"),
+    .package(url: "https://github.com/apple/swift-crypto.git", "4.1.0" ..< "5.0.0"),
     .package(
       url: "https://github.com/apple/swift-atomics.git",
       .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
@@ -167,10 +167,11 @@ let package = Package(
       url: "https://github.com/mortenbekditlevsen/leveldb.git",
       branch: "1.22.2-mine"
     ),
+    // Custom fork of swift-collections — provides SortedCollections needed for
+    // Firebase key ordering semantics (numeric keys before lexicographic).
     .package(
       url: "https://github.com/mortenbekditlevsen/swift-collections.git",
       .branch("main")
-//      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
     ),
     .package(
       url: "https://github.com/google/promises.git",
