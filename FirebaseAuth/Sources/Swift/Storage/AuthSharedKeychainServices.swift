@@ -15,7 +15,7 @@
 import Foundation
 
 // TODO(ncooke3): Reshape API to conform to `AuthStorage`.
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class AuthSharedKeychainServices {
   // MARK: - Private methods for shared keychain operations
 

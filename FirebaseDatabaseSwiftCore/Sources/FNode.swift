@@ -269,7 +269,7 @@ struct FNode: Equatable, Hashable {
     }
 
     /*mutating*/ func dataHash() -> String {
-        if let lazyHash = lazyHash {
+        if let lazyHash {
             return lazyHash
         }
         let calculatedHash: String

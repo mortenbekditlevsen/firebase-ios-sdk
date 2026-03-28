@@ -14,26 +14,40 @@
 
 import Foundation
 
-typealias FIRAuthSerialTaskCompletionBlock = () -> Void
-typealias FIRAuthSerialTask = (_ complete: @escaping FIRAuthSerialTaskCompletionBlock)
-  -> Void
+//typealias FIRAuthSerialTaskCompletionBlock = () -> Void
+//typealias FIRAuthSerialTask = (_ complete: @escaping FIRAuthSerialTaskCompletionBlock)
+//  -> Void
+//
+//class AuthSerialTaskQueue {
+//  private let dispatchQueue: DispatchQueue
+//
+//   public init() {
+//    dispatchQueue = DispatchQueue(
+//      label: "com.google.firebase.auth.serialTaskQueue",
+//      target: kAuthGlobalWorkQueue
+//    )
+//  }
+//
+//  func enqueueTask(_ task: @escaping FIRAuthSerialTask) {
+//    dispatchQueue.async {
+//      self.dispatchQueue.suspend()
+//      task {
+//        self.dispatchQueue.resume()
+//      }
+//    }
+//  }
+//}
 
-class AuthSerialTaskQueue {
-  private let dispatchQueue: DispatchQueue
-
-   public init() {
-    dispatchQueue = DispatchQueue(
-      label: "com.google.firebase.auth.serialTaskQueue",
-      target: kAuthGlobalWorkQueue
-    )
-  }
-
-  func enqueueTask(_ task: @escaping FIRAuthSerialTask) {
-    dispatchQueue.async {
-      self.dispatchQueue.suspend()
-      task {
-        self.dispatchQueue.resume()
-      }
+actor AuthSerialTaskQueue<T: Sendable> {
+    private var previousTask: Task<T, Error>?
+    
+    func enqueue(block: @Sendable @escaping () async throws -> T) async throws -> T {
+        let task = Task { [previousTask] in
+            let _ = await previousTask?.result
+            return try await block()
+        }
+        previousTask = task
+        return try await task.value
     }
-  }
 }
+

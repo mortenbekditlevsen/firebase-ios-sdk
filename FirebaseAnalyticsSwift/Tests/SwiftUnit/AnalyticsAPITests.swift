@@ -55,7 +55,7 @@ final class AnalyticsAPITests {
 
     Analytics.sessionID { sessionID, error in }
     #if compiler(>=5.5.2) && canImport(_Concurrency)
-      if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
+      if #available(iOS 13.0, macOS 15.0, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
         Task {
           let _: Int64? = try? await Analytics.sessionID()
         }
@@ -66,7 +66,7 @@ final class AnalyticsAPITests {
 
     Analytics.handleEvents(forBackgroundURLSession: "session_id", completionHandler: {})
     #if compiler(>=5.5.2) && canImport(_Concurrency)
-      if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
+      if #available(iOS 13.0, macOS 15.0, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
         Task {
           await Analytics.handleEvents(forBackgroundURLSession: "session_id")
         }

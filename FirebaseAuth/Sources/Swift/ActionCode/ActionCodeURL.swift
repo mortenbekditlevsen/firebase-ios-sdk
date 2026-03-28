@@ -17,7 +17,7 @@ import Foundation
 /** @class FIRActionCodeURL
     @brief This class will allow developers to easily extract information about out of band links.
  */
- public class ActionCodeURL {
+ public struct ActionCodeURL {
   /** @property APIKey
       @brief Returns the API key from the link. nil, if not provided.
    */
@@ -73,7 +73,7 @@ import Foundation
 
   // TODO: internal below here.
 
-  public class func parseURL(_ urlString: String) -> [String: String] {
+  public static func parseURL(_ urlString: String) -> [String: String] {
     guard let linkURL = URLComponents(string: urlString)?.query else {
       return [:]
     }

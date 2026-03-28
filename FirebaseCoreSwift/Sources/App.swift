@@ -8,13 +8,13 @@
 import Foundation
 
 // Dummy protocol since I don't have heartbeatlogger working yet
-public protocol FIRHeartbeatLoggerProtocol {
+public protocol FIRHeartbeatLoggerProtocol: Sendable {
 
 }
 
 // Dummy protocol since I don't have AppCheck working yet
-public protocol AppCheckInterop {
-    func getToken(forcingRefresh: Bool, callback: (Result<String, Error>) -> Void)
+public protocol AppCheckInterop: Sendable {
+    func getToken(forcingRefresh: Bool) async throws -> String
 
 }
 
@@ -53,9 +53,8 @@ public class FirebaseApp: Equatable {
     public static private(set) var defaultApp: FirebaseApp?
 }
 
+@MainActor
 public protocol AuthInterop: AnyObject {
-    func getToken(forcingRefresh forceRefresh: Bool,
-                         completion callback: @escaping (String?, Error?) -> Void)
-
+    func getToken(forcingRefresh forceRefresh: Bool) async throws -> String?
     func getUserID() -> String?
 }

@@ -114,9 +114,11 @@ private let kTenantIDKey = "tenantId"
     @brief Represents the parameters for the setAccountInfo endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/setAccountInfo
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class SetAccountInfoRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct SetAccountInfoRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = SetAccountInfoResponse
+
   /** @property accessToken
       @brief The STS Access Token of the authenticated user.
    */
@@ -198,11 +200,16 @@ private let kTenantIDKey = "tenantId"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = SetAccountInfoResponse()
+
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kSetAccountInfoEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
+     
 
   public init(requestConfiguration: AuthRequestConfiguration) {
     returnSecureToken = true
-    super.init(endpoint: kSetAccountInfoEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

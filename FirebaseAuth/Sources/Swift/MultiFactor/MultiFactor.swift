@@ -21,7 +21,7 @@ import Foundation
        user.
        This class is available on iOS only.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
    public class MultiFactor: Codable {
     public var enrolledFactors: [MultiFactorInfo]?
 
@@ -43,7 +43,7 @@ import Foundation
      @param completion A block with the session identifier for a second factor enrollment operation.
      This is used to identify the current user trying to enroll a second factor.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     public func session() async throws -> MultiFactorSession {
       return try await withCheckedThrowingContinuation { continuation in
         self.getSessionWithCompletion { session, error in
@@ -113,7 +113,7 @@ import Foundation
      @param displayName An optional display name associated with the multi factor to enroll.
      @param completion The block invoked when the request is complete, or fails.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     public func enroll(with assertion: MultiFactorAssertion, displayName: String?) async throws {
       return try await withCheckedThrowingContinuation { continuation in
         self.enroll(with: assertion, displayName: displayName) { error in
@@ -142,7 +142,7 @@ import Foundation
      @param completion The block invoked when the request to send the verification email is complete,
      or fails.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     public func unenroll(with factorInfo: MultiFactorInfo) async throws {
       try await unenroll(withFactorUID: factorInfo.uid)
     }
@@ -182,7 +182,7 @@ import Foundation
       }
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     public func unenroll(withFactorUID factorUID: String) async throws {
       return try await withCheckedThrowingContinuation { continuation in
         self.unenroll(withFactorUID: factorUID) { error in

@@ -14,8 +14,8 @@
 
 import Foundation
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class OAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct OAuthCredential: AuthCredential, Codable {
   /** @property IDToken
       @brief The ID Token associated with this credential.
    */
@@ -40,6 +40,8 @@ import Foundation
   let fullName: PersonNameComponents?
   // private
   let rawNonce: String?
+     
+     public var provider: String
 
   // TODO: Remove public objc
   public init(withProviderID providerID: String,
@@ -57,7 +59,7 @@ import Foundation
     self.fullName = fullName
     OAuthResponseURLString = nil
     sessionID = nil
-    super.init(provider: providerID)
+      self.provider = providerID
   }
 
   public init(withProviderID providerID: String,
@@ -71,10 +73,10 @@ import Foundation
     idToken = nil
     rawNonce = nil
     fullName = nil
-    super.init(provider: providerID)
+      self.provider = providerID
   }
 
-  public convenience init?(withVerifyAssertionResponse response: VerifyAssertionResponse) {
+  public init?(withVerifyAssertionResponse response: VerifyAssertionResponse) {
     guard Self.nonEmptyString(response.oauthIDToken) ||
       Self.nonEmptyString(response.oauthAccessToken) ||
       Self.nonEmptyString(response.oauthSecretToken) else {
@@ -88,7 +90,7 @@ import Foundation
               pendingToken: response.pendingToken)
   }
 
-  override public func prepare(_ request: VerifyAssertionRequest) {
+     public func prepare(_ request: inout VerifyAssertionRequest) {
     request.providerIDToken = idToken
     request.providerRawNonce = rawNonce
     request.providerAccessToken = accessToken
@@ -120,7 +122,7 @@ import Foundation
          try container.encodeIfPresent(self.fullName, forKey: .fullName)
      }
 
-     public required init(from decoder: Decoder) throws {
+     public init(from decoder: Decoder) throws {
          let container = try decoder.container(keyedBy: CodingKeys.self)
 
          idToken = try container.decodeIfPresent(String.self, forKey: .idToken)
@@ -131,7 +133,7 @@ import Foundation
          fullName = try container.decodeIfPresent(PersonNameComponents.self, forKey: .fullName)
          OAuthResponseURLString = nil
          sessionID = nil
-         super.init(provider: OAuthProvider.id)
+         self.provider = OAuthProvider.id
      }
 
   private static func nonEmptyString(_ string: String?) -> Bool {

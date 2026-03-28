@@ -24,7 +24,7 @@ private let kAccountPrefix = "firebase_auth_1_"
 /** @class FIRAuthKeychain
     @brief The utility class to manipulate data in iOS Keychain.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 final class AuthKeychainServices: AuthStorage {
   /** @var _service
       @brief The name of the keychain service.

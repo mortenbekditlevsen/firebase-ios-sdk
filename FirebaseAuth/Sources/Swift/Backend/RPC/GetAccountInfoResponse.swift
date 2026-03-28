@@ -24,7 +24,7 @@ private let kErrorKey = "error"
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/getAccountInfo
  */
 
-public class GetAccountInfoResponseProviderUserInfo {
+public struct GetAccountInfoResponseProviderUserInfo: Decodable, Sendable {
   /** @property providerID
    @brief The ID of the identity provider.
    */
@@ -55,30 +55,21 @@ public class GetAccountInfoResponseProviderUserInfo {
    */
   public let phoneNumber: String?
 
-  /** @fn initWithAPIKey:
-   @brief Designated initializer.
-   @param dictionary The provider user info data from endpoint.
-   */
-  public init(dictionary: [String: Any]) {
-    providerID = dictionary["providerId"] as? String
-    displayName = dictionary["displayName"] as? String
-    if let photoURL = dictionary["photoUrl"] as? String {
-      self.photoURL = URL(string: photoURL)
-    } else {
-      photoURL = nil
+    enum CodingKeys: String, CodingKey {
+        case providerID = "providerId"
+        case displayName
+        case photoURL = "photoUrl"
+        case federatedID = "federatedId"
+        case email
+        case phoneNumber
     }
-    federatedID =
-      dictionary["federatedId"] as? String
-    email = dictionary["email"] as? String
-    phoneNumber = dictionary["phoneNumber"] as? String
-  }
 }
 
 /** @class FIRGetAccountInfoResponseUser
     @brief Represents the firebase user info part of the response from the getAccountInfo endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/getAccountInfo
  */
- public class GetAccountInfoResponseUser {
+public struct GetAccountInfoResponseUser: Decodable, Sendable {
   /** @property localID
    @brief The ID of the user.
    */
@@ -137,67 +128,68 @@ public class GetAccountInfoResponseProviderUserInfo {
    @brief Designated initializer.
    @param dictionary The provider user info data from endpoint.
    */
-  init(dictionary: [String: Any]) {
-    if let providerUserInfoData = dictionary["providerUserInfo"] as? [[String: Any]] {
-      providerUserInfo = providerUserInfoData.map {
-        GetAccountInfoResponseProviderUserInfo(dictionary: $0)
-      }
-    } else {
-      providerUserInfo = nil
+    enum CodingKeys: String, CodingKey {
+        case localID = "localId"
+        case email
+        case emailVerified
+        case displayName
+        case photoURL
+        case creationDate = "createdAt"
+        case lastLoginDate = "lastLoginAt"
+        case providerUserInfo
+        case passwordHash
+        case phoneNumber
+        case mfaEnrollments = "mfaInfo"
     }
-    localID = dictionary["localId"] as? String
-    displayName = dictionary["displayName"] as? String
-    email = dictionary["email"] as? String
-    if let photoURL = dictionary["photoUrl"] as? String {
-      self.photoURL = URL(string: photoURL)
-    } else {
-      photoURL = nil
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.emailVerified = try container.decode(Bool.self, forKey: .emailVerified)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        self.photoURL = try container.decodeIfPresent(URL.self, forKey: .photoURL)
+        if let creationDateString = try container.decodeIfPresent(String.self, forKey: .creationDate) {
+            self.creationDate = Date(timeIntervalSince1970: (Double(creationDateString) ?? 0) / 1000)
+        } else {
+            self.creationDate = nil
+        }
+        if let lastLoginDateString = try container.decodeIfPresent(String.self, forKey: .lastLoginDate) {
+            self.lastLoginDate = Date(timeIntervalSince1970: (Double(lastLoginDateString) ?? 0) / 1000)
+        } else {
+            self.lastLoginDate = nil
+        }
+        self.providerUserInfo = try container.decodeIfPresent([GetAccountInfoResponseProviderUserInfo].self, forKey: .providerUserInfo)
+        self.passwordHash = try container.decodeIfPresent(String.self, forKey: .passwordHash)
+        self.phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
+        self.mfaEnrollments = try container.decodeIfPresent([AuthProtoMFAEnrollment].self, forKey: .mfaEnrollments)
     }
-    if let createdAt = dictionary["createdAt"] as? String,
-       let timeInterval = Double(createdAt) {
-      // Divide by 1000 in order to convert milliseconds to seconds.
-      creationDate = Date(timeIntervalSince1970: timeInterval / 1000)
-    } else {
-      creationDate = nil
-    }
-    if let lastLoginAt = dictionary["lastLoginAt"] as? String,
-       let timeInterval = Double(lastLoginAt) {
-      // Divide by 1000 in order to convert milliseconds to seconds.
-      lastLoginDate = Date(timeIntervalSince1970: timeInterval / 1000)
-    } else {
-      lastLoginDate = nil
-    }
-
-    emailVerified = dictionary["emailVerified"] as? Bool ?? false
-    passwordHash = dictionary["passwordHash"] as? String
-    phoneNumber = dictionary["phoneNumber"] as? String
-    if let mfaEnrollmentData = dictionary["mfaInfo"] as? [[String: Any]] {
-      mfaEnrollments = mfaEnrollmentData.map { AuthProtoMFAEnrollment(dictionary: $0)
-      }
-    } else {
-      mfaEnrollments = nil
-    }
-  }
 }
 
 /** @class FIRGetAccountInfoResponse
     @brief Represents the response from the setAccountInfo endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/getAccountInfo
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class GetAccountInfoResponse: AuthRPCResponse {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct GetAccountInfoResponse: AuthRPCResponse {
   /** @property providerUserInfo
    @brief The requested users' profiles.
    */
-  public var users: [GetAccountInfoResponseUser]?
-  public func setFields(dictionary: [String: Any]) throws {
-    guard let usersData = dictionary["users"] as? [[String: Any]] else {
-      throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
-    }
-    guard usersData.count == 1 else {
-      throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
-    }
-      print("USERSDATA", usersData[0])
-    users = [GetAccountInfoResponseUser(dictionary: usersData[0])]
-  }
+  public var user: GetAccountInfoResponseUser
+     
+     enum CodingKeys: CodingKey {
+         case users
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         let users = try container.decode([GetAccountInfoResponseUser].self, forKey: .users)
+         guard users.count == 1 else {
+             // XXX TODO: Not actually deserialized. That is harder with Decoding. Is it necessary though?
+             throw AuthErrorUtils.unexpectedResponse(deserializedResponse: users)
+         }
+         print("USERSDATA", users[0])
+         self.user = users[0]
+
+     }
 }

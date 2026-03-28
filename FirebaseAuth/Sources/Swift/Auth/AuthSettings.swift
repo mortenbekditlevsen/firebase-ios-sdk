@@ -17,7 +17,7 @@ import Foundation
 /** @class AuthSettings
     @brief Determines settings related to an auth object.
  */
- public class AuthSettings: NSCopying {
+ public struct AuthSettings {
   /** @property appVerificationDisabledForTesting
       @brief Flag to determine whether app verification should be disabled for testing or not.
    */
@@ -31,11 +31,5 @@ import Foundation
          appVerificationDisabledForTesting = false
      }
 
-  // MARK: NSCopying
 
-  public func copy(with zone: NSZone? = nil) -> Any {
-    let settings = AuthSettings()
-    settings.appVerificationDisabledForTesting = appVerificationDisabledForTesting
-    return settings
-  }
 }

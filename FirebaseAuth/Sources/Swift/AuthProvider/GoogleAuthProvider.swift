@@ -17,8 +17,8 @@ import Foundation
 /**
  @brief Utility class for constructing Google Sign In credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class GoogleAuthProvider {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public enum GoogleAuthProvider {
   public static let id = "google.com"
 
   /**
@@ -28,29 +28,26 @@ import Foundation
       @param accessToken The Access Token from Google.
       @return An AuthCredential containing the Google credentials.
    */
-  public class func credential(withIDToken IDToken: String,
+  public static func credential(withIDToken IDToken: String,
                                      accessToken: String) -> AuthCredential {
     return GoogleAuthCredential(withIDToken: IDToken, accessToken: accessToken)
   }
 
-  @available(*, unavailable)
-   public init() {
-    fatalError("This class is not meant to be initialized.")
-  }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- class GoogleAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ struct GoogleAuthCredential: AuthCredential, Codable {
   let idToken: String
   let accessToken: String
 
+     var provider: String { GoogleAuthProvider.id }
+     
   init(withIDToken idToken: String, accessToken: String) {
     self.idToken = idToken
     self.accessToken = accessToken
-    super.init(provider: GoogleAuthProvider.id)
   }
 
-  override func prepare(_ request: VerifyAssertionRequest) {
+     func prepare(_ request: inout VerifyAssertionRequest) {
     request.providerIDToken = idToken
     request.providerAccessToken = accessToken
   }
@@ -66,12 +63,9 @@ import Foundation
          try container.encode(self.accessToken, forKey: .accessToken)
      }
 
-     required public init(from decoder: Decoder) throws {
+      public init(from decoder: Decoder) throws {
          let container = try decoder.container(keyedBy: CodingKeys.self)
          self.idToken = try container.decode(String.self, forKey: .idToken)
          self.accessToken = try container.decode(String.self, forKey: .accessToken)
-
-         super.init(provider: GoogleAuthProvider.id)
-
      }
 }

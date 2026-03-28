@@ -17,14 +17,14 @@ import Foundation
 /** @protocol FIRAuthRPCResponse
     @brief The generic interface for an RPC response needed by @c FIRAuthBackend.
  */
- public protocol AuthRPCResponse {
+public protocol AuthRPCResponse: Decodable, Sendable {
   /** @fn setFieldsWithDictionary:error:
       @brief Sets the response instance from the decoded JSON response.
       @param dictionary The dictionary decoded from HTTP JSON response.
       @param error An out field for an error which occurred constructing the request.
       @return Whether the operation was successful or not.
    */
-   func setFields(dictionary: [String: Any]) throws
+//   func setFields(dictionary: [String: Any]) throws
 
   /** @fn clientErrorWithshortErrorMessage:detailErrorMessage
       @brief This optional method allows response classes to create client errors given a short error
@@ -44,9 +44,3 @@ public extension AuthRPCResponse {
         nil
     }
 }
-
-// extension AuthRPCResponse {
-//    func clientError(shortErrorMessage: String, detailErrorMessage: String?) -> Error? {
-//        nil
-//    }
-// }

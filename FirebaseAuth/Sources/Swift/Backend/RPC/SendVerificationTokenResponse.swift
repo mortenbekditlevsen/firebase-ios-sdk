@@ -14,11 +14,18 @@
 
 import Foundation
 
-public class SendVerificationCodeResponse:
+public struct SendVerificationCodeResponse:
   AuthRPCResponse {
   public var verificationID: String?
 
+    enum CodingKeys: String, CodingKey {
+        case verificationID = "sessionInfo"
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.verificationID = try container.decodeIfPresent(String.self, forKey: .verificationID)
+    }
   public func setFields(dictionary: [String: Any]) throws {
-    verificationID = dictionary["sessionInfo"] as? String
   }
 }

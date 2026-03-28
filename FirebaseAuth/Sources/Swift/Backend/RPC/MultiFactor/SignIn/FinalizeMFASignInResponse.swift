@@ -14,13 +14,7 @@
 
 import Foundation
 
-public class FinalizeMFASignInResponse:
-  AuthRPCResponse {
-  public var IDToken: String?
+public struct FinalizeMFASignInResponse: AuthRPCResponse, Decodable {
+  public var idToken: String?
   public var refreshToken: String?
-
-  public func setFields(dictionary: [String: Any]) throws {
-    IDToken = dictionary["idToken"] as? String
-    refreshToken = dictionary["refreshToken"] as? String
-  }
 }

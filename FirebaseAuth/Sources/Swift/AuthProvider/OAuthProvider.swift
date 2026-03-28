@@ -17,9 +17,11 @@ import Crypto
 /**
  @brief Utility class for constructing OAuth Sign In credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class OAuthProvider: FederatedAuthProvider {
-  public static let id = "OAuth"
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+@MainActor
+ public struct OAuthProvider: FederatedAuthProvider {
+     nonisolated
+     public static let id = "OAuth"
 
   /** @property scopes
       @brief Array used to configure the OAuth scopes.
@@ -42,7 +44,7 @@ import Crypto
           configured.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-   public class func provider(providerID: String) -> OAuthProvider {
+   public static func provider(providerID: String) -> OAuthProvider {
     return OAuthProvider(providerID: providerID, auth: Auth.auth())
   }
 
@@ -52,7 +54,7 @@ import Crypto
       @param auth The auth instance to be associated with the `OAuthProvider` instance.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-   public class func provider(providerID: String,
+   public static func provider(providerID: String,
                                                                  auth: Auth) -> OAuthProvider {
     return OAuthProvider(providerID: providerID, auth: auth)
   }
@@ -62,7 +64,7 @@ import Crypto
           configured.
       @return An instance of `OAuthProvider` corresponding to the specified provider ID.
    */
-   public convenience init(providerID: String) {
+   public init(providerID: String) {
     self.init(providerID: providerID, auth: Auth.auth())
   }
 
@@ -255,7 +257,7 @@ import Crypto
         @param UIDelegate An optional UI delegate used to present the mobile web flow.
         @return An `AuthCredential`.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, watchOS 8, *)
     public func credential(with UIDelegate: AuthUIDelegate?) async throws -> AuthCredential {
       return try await withCheckedThrowingContinuation { continuation in
         getCredentialWith(UIDelegate) { credential, error in
@@ -332,33 +334,26 @@ import Crypto
           has been encountered.
    */
   private func getHeadfulLiteUrl(eventID: String,
-                                 sessionID: String,
-                                 completion: @escaping ((URL?, Error?) -> Void)) {
-    weak var weakSelf = self
-    AuthWebUtils
-      .fetchAuthDomain(withRequestConfiguration: auth.requestConfiguration) { authDomain, error in
-        if let error = error {
-          completion(nil, error)
-          return
-        }
-        let strongSelf = weakSelf
-        let bundleID = Bundle.main.bundleIdentifier
-        let clientID = strongSelf?.auth.app?.options.clientID
-        let appID = strongSelf?.auth.app?.options.googleAppID
-        let apiKey = strongSelf?.auth.requestConfiguration.apiKey
-        let tenantID = strongSelf?.auth.tenantID
-        let appCheck = strongSelf?.auth.requestConfiguration.appCheck
+                                 sessionID: String) async throws -> URL? {
+      let authDomain = try await AuthWebUtils
+          .fetchAuthDomain(withRequestConfiguration: auth.requestConfiguration)
+      let bundleID = Bundle.main.bundleIdentifier
+      let clientID = auth.app?.options.clientID
+      let appID = auth.app?.options.googleAppID
+      let apiKey = auth.requestConfiguration.apiKey
+      let tenantID = auth.tenantID
+//      let appCheck = auth.requestConfiguration.appCheck
 
         // TODO: Should we fail if these strings are empty? Only ibi was explicit in ObjC.
-        var urlArguments = ["apiKey": apiKey ?? "",
+        var urlArguments = ["apiKey": apiKey,
                             "authType": "signInWithRedirect",
                             "ibi": bundleID ?? "",
-                            "sessionId": strongSelf?.hash(forString: sessionID) ?? "",
+                            "sessionId": hash(forString: sessionID),
                             "v": AuthBackend.authUserAgent(),
                             "eventId": eventID,
-                            "providerId": strongSelf?.providerID ?? ""]
+                            "providerId": providerID]
 
-        if let usingClientIDScheme = strongSelf?.usingClientIDScheme, usingClientIDScheme {
+        if usingClientIDScheme {
           urlArguments["clientId"] = clientID
         } else {
           urlArguments["appId"] = appID
@@ -366,29 +361,28 @@ import Crypto
         if let tenantID {
           urlArguments["tid"] = tenantID
         }
-        if let scopes = strongSelf?.scopes, scopes.count > 0 {
+        if scopes.count > 0 {
           urlArguments["scopes"] = scopes.joined(separator: ",")
         }
-        if let customParameters = strongSelf?.customParameters, customParameters.count > 0 {
+        if customParameters.count > 0 {
           do {
             let customParametersJSONData = try JSONSerialization
               .data(withJSONObject: customParameters)
             let rawJson = String(decoding: customParametersJSONData, as: UTF8.self)
             urlArguments["customParameters"] = rawJson
           } catch {
-            completion(nil, AuthErrorUtils.JSONSerializationError(underlyingError: error))
+              throw AuthErrorUtils.JSONSerializationError(underlyingError: error)
           }
         }
-        if let languageCode = strongSelf?.auth.requestConfiguration.languageCode {
+        if let languageCode = auth.requestConfiguration.languageCode {
           urlArguments["hl"] = languageCode
         }
-        let argumentsString = strongSelf?
-          .httpArgumentsString(forArgsDictionary: urlArguments) ?? ""
+        let argumentsString = httpArgumentsString(forArgsDictionary: urlArguments)
         var urlString: String
-        if (strongSelf?.auth.requestConfiguration.emulatorHostAndPort) != nil {
-          urlString = "http://\(authDomain ?? "")/emulator/auth/handler?\(argumentsString)"
+        if auth.requestConfiguration.emulatorHostAndPort != nil {
+          urlString = "http://\(authDomain)/emulator/auth/handler?\(argumentsString)"
         } else {
-          urlString = "https://\(authDomain ?? "")/__/auth/handler?\(argumentsString)"
+          urlString = "https://\(authDomain)/__/auth/handler?\(argumentsString)"
         }
         guard let percentEncoded = urlString.addingPercentEncoding(
           withAllowedCharacters: CharacterSet.urlFragmentAllowed
@@ -396,24 +390,19 @@ import Crypto
           fatalError("Internal Auth Error: failed to percent encode a string")
         }
         var components = URLComponents(string: percentEncoded)
-        if let appCheck {
-          appCheck.getToken(forcingRefresh: false) { tokenResult in
-              switch tokenResult {
-              case .failure(let error):
-                  AuthLog.logWarning(code: "I-AUT000018",
-                                     message: "Error getting App Check token; using placeholder " +
-                                       "token instead. Error: \(error)")
-              case .success(let token):
-                  let appCheckTokenFragment = "fac=\(token)"
-                  components?.fragment = appCheckTokenFragment
-                  completion(components?.url, nil)
-
-              }
-         }
-        } else {
-          completion(components?.url, nil)
-        }
-      }
+//        if let appCheck {
+//            do {
+//                let token = try await  appCheck.getToken(forcingRefresh: false)
+//                let appCheckTokenFragment = "fac=\(token)"
+//                components?.fragment = appCheckTokenFragment
+//                return components?.url
+//            } catch {
+//                AuthLog.logWarning(code: "I-AUT000018",
+//                                   message: "Error getting App Check token; using placeholder " +
+//                                   "token instead. Error: \(error)")
+//            }
+//        }
+      return components?.url
   }
 
   /** @fn hashforString:

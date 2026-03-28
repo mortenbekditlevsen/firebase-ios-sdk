@@ -17,36 +17,31 @@ import Foundation
 /**
  @brief Utility class for constructing Facebook Sign In credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class FacebookAuthProvider {
-  public static let id = "facebook.com"
-
-  /**
-      @brief Creates an `AuthCredential` for a Facebook sign in.
-
-      @param accessToken The Access Token from Facebook.
-      @return An AuthCredential containing the Facebook credentials.
-   */
-  public class func credential(withAccessToken accessToken: String) -> AuthCredential {
-    return FacebookAuthCredential(withAccessToken: accessToken)
-  }
-
-  @available(*, unavailable)
-   public init() {
-    fatalError("This class is not meant to be initialized.")
-  }
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public enum FacebookAuthProvider {
+    public static let id = "facebook.com"
+    
+    /**
+     @brief Creates an `AuthCredential` for a Facebook sign in.
+     
+     @param accessToken The Access Token from Facebook.
+     @return An AuthCredential containing the Facebook credentials.
+     */
+    public static func credential(withAccessToken accessToken: String) -> AuthCredential {
+        return FacebookAuthCredential(withAccessToken: accessToken)
+    }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class FacebookAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct FacebookAuthCredential: AuthCredential, Codable {
   let accessToken: String
-
+    var provider: String { FacebookAuthProvider.id }
+    
   init(withAccessToken accessToken: String) {
     self.accessToken = accessToken
-    super.init(provider: FacebookAuthProvider.id)
   }
 
-  override func prepare(_ request: VerifyAssertionRequest) {
+    func prepare(_ request: inout VerifyAssertionRequest) {
     request.providerAccessToken = accessToken
   }
 
@@ -59,10 +54,9 @@ class FacebookAuthCredential: AuthCredential, Codable {
         try container.encode(self.accessToken, forKey: .accessToken)
     }
 
-    required init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.accessToken = try container.decode(String.self, forKey: .accessToken)
-        super.init(provider: FacebookAuthProvider.id)
 
     }
 }

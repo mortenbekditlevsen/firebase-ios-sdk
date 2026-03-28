@@ -15,7 +15,7 @@
 import Foundation
 import Logging
 //import FirebaseCoreExtension
-var logger = Logger(label: "[FirebaseAuth]")
+let logger = Logger(label: "[FirebaseAuth]")
 
 struct FirebaseLogger {
     static func log(level: FirebaseLoggerLevel, service: String, code: String, message: String) {

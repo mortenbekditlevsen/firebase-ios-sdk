@@ -18,7 +18,7 @@ import Foundation
 // This is added since a throwing function returning Optional values in Swift cannot be
 // exposed to Objective-C due to convention and meaning of nil values in Objective-C.
 // This wrapper allows us to always return a value, thus allowing us to expose Objective-C api.
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public class UserWrapper {
   public let user: User?
   public init(user: User?) {
@@ -26,7 +26,7 @@ import Foundation
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public class AuthStoredUserManager {
   /// Key of user access group stored in user defaults. Used for retrieve the
   /// user access group at launch.

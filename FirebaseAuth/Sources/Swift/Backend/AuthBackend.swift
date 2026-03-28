@@ -27,8 +27,15 @@ import FoundationNetworking
 //  import GTMSessionFetcherCore
 //#endif
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-public protocol AuthBackendRPCIssuer {
+// XXX TODO: Just to silence warnings for now
+extension AuthRPCRequest {
+    public func encode(to encoder: any Encoder) throws {
+    }
+}
+
+
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public protocol AuthBackendRPCIssuer: Sendable {
   /** @fn
       @brief Asynchronously sends a POST request.
       @param requestConfiguration The request to be made.
@@ -38,14 +45,14 @@ public protocol AuthBackendRPCIssuer {
       @param handler provided that handles POST response. Invoked asynchronously on the auth global
           work queue in the future.
    */
-  func asyncPostToURL(withRequest request: AuthRPCRequest,
+    func asyncPostToURL<T: AuthRPCRequest>(withRequest request: T,
                       body: Data?,
-                      contentType: String,
-                      completionHandler: @escaping ((Data?, Error?) -> Void))
+                      contentType: String) async throws -> Data
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+@MainActor
+public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
   let fetcherService: URLSession
 
     init() {
@@ -63,38 +70,28 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
         // XXX TODO: LOOK AT REUSE ISSUE
   }
 
-  public func asyncPostToURL(withRequest request: AuthRPCRequest,
+    public func asyncPostToURL<T: AuthRPCRequest>(withRequest request: T,
                              body: Data?,
-                             contentType: String,
-                             completionHandler: @escaping ((Data?, Error?) -> Void)) {
-    let requestConfiguration = request.requestConfiguration()
-    AuthBackend.request(withURL: request.requestURL(),
+                             contentType: String) async throws -> Data {
+    let requestConfiguration = request.requestConfiguration
+    var request = try await AuthBackend.request(withURL: request.requestURL(),
                         contentType: contentType,
-                        requestConfiguration: requestConfiguration) { request in
-        var request = request
-        //      let fetcher = self.fetcherService.fetcher(with: request)
-        //        let urlRequest = URLR
-        //        // XXX TODO: Look at emulator stuff
-        ////      if let _ = requestConfiguration.emulatorHostAndPort {
-        ////        fetcher.allowLocalhostRequest = true
-        ////        fetcher.allowedInsecureSchemes = ["http"]
-        ////      }
-        //      fetcher.bodyData = body
-        request.httpBody = body
-        request.httpMethod = "POST"
-
-        let task = self.fetcherService.dataTask(with: request) { data, response, error in
-            print("RESPONSE", data, error)
-            completionHandler(data, error)
-        }
-
-        task.resume()
-//      fetcher.beginFetch(completionHandler: completionHandler)
+                        requestConfiguration: requestConfiguration)
+      // XXX TODO: Look at emulator stuff
+      //      if let _ = requestConfiguration.emulatorHostAndPort {
+      //        fetcher.allowLocalhostRequest = true
+      //        fetcher.allowedInsecureSchemes = ["http"]
+      //      }
+      request.httpBody = body
+      request.httpMethod = "POST"
+      
+      let (data, _) = try await self.fetcherService.data(for: request)
+      return data
     }
-  }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+@MainActor
  public class AuthBackend {
   static func authUserAgent() -> String {
       // XXX TODO:
@@ -135,16 +132,15 @@ public class AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
       @param request The request.
       @param callback The callback for both success and failure.
    */
-  public class func post(withRequest request: AuthRPCRequest,
-                               callback: @escaping ((AuthRPCResponse?, Error?) -> Void)) {
-    implementation().post(withRequest: request, callback: callback)
+     public class func post<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response {
+    try await implementation().post(withRequest: request)
   }
 
   // TODO: Why does this need to be public to be visible by unit tests?
   public class func request(withURL url: URL,
                             contentType: String,
-                            requestConfiguration: AuthRequestConfiguration,
-                            completion: @escaping (URLRequest) -> Void) {
+                            requestConfiguration: AuthRequestConfiguration) async throws -> URLRequest
+     {
     var request = URLRequest(url: url)
     request.setValue(contentType, forHTTPHeaderField: "Content-Type")
     let additionalFrameworkMarker = requestConfiguration
@@ -171,35 +167,38 @@ let firebaseVersion = "xxyy" // XXX TODO
        languageCode.count > 0 {
       request.setValue(languageCode, forHTTPHeaderField: "X-Firebase-Locale")
     }
-    if let appCheck = requestConfiguration.appCheck {
-      appCheck.getToken(forcingRefresh: false) { tokenResult in
-          switch tokenResult {
-          case .failure(let error):
-              AuthLog.logWarning(code: "I-AUT000018",
-                                 message: "Error getting App Check token; using placeholder " +
-                                   "token instead. Error: \(error)")
-
-          case .success(let token):
-              request.setValue(token, forHTTPHeaderField: "X-Firebase-AppCheck")
-              completion(request)
-          }
-      }
-    } else {
-      completion(request)
-    }
+         // XXX TODO: Check if app check can be injected by other means than through the requestConfiguration
+         return request
+//    if let appCheck = requestConfiguration.appCheck {
+//        do {
+//            let token = try await appCheck.getToken(forcingRefresh: false)
+//            request.setValue(token, forHTTPHeaderField: "X-Firebase-AppCheck")
+//            return request
+//        } catch {
+//            AuthLog.logWarning(code: "I-AUT000018",
+//                               message: "Error getting App Check token; using placeholder " +
+//                               "token instead. Error: \(error)")
+//            throw error
+//        }
+//    } else {
+//      return request
+//    }
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-protocol AuthBackendImplementation {
-  func post(withRequest request: AuthRPCRequest,
-            callback: @escaping ((AuthRPCResponse?, Error?) -> Void))
-  func post(withRequest request: AuthRPCRequest,
-            response: AuthRPCResponse,
-            callback: @escaping ((Error?) -> Void))
+struct ErrorMessageResponse: Decodable {
+    let errorMessage: String
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+protocol AuthBackendImplementation: Sendable {
+    func post<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response
+//  func post(withRequest request: AuthRPCRequest,
+//            response: AuthRPCResponse) async throws
+}
+
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+@MainActor
 private class AuthBackendRPCImplementation: AuthBackendImplementation {
   var rpcIssuer: AuthBackendRPCIssuer
    init() {
@@ -219,25 +218,19 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
       @param response The empty response to be filled.
       @param callback The callback for both success and failure.
    */
-  fileprivate func post(withRequest request: AuthRPCRequest,
-                        callback: @escaping ((AuthRPCResponse?, Error?) -> Void)) {
-    let response = request.response
-    post(withRequest: request, response: response) { error in
-        print("POST RESPONSE", error)
-      if let error = error {
-        callback(nil, error)
-      } else if let auth = request.requestConfiguration().auth,
-                let mfaError = AuthBackendRPCImplementation
-                .generateMFAError(response: response, auth: auth) {
-        callback(nil, mfaError)
-      } else if let error = AuthBackendRPCImplementation.phoneCredentialInUse(response: response) {
-        callback(nil, error)
-      } else {
-        callback(response, nil)
-      }
+    fileprivate func post<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response {
+        let response = try await post3(withRequest: request)
+        
+//        if let auth = request.requestConfiguration.auth,
+          if let mfaError = AuthBackendRPCImplementation
+            .generateMFAError(response: response, auth: /* auth */ nil) {
+            throw mfaError
+        } else if let error = AuthBackendRPCImplementation.phoneCredentialInUse(response: response) {
+            throw error
+        }
+        return response
     }
-  }
-
+    
   #if os(iOS)
     private class func generateMFAError(response: AuthRPCResponse, auth: Auth) -> Error? {
       if let mfaResponse = response as? EmailLinkSignInResponse,
@@ -300,157 +293,195 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
       @param response The empty response to be filled.
       @param callback The callback for both success and failure.
    */
-  fileprivate func post(withRequest request: AuthRPCRequest,
-                        response: AuthRPCResponse,
-                        callback: @escaping ((Error?) -> Void)) {
-    var bodyData: Data?
-    if request.containsPostBody() {
-      do {
-        // TODO: Can unencodedHTTPRequestBody ever throw?
-        // They don't today, but there are a few fatalErrors that might better be implemented as
-        // thrown errors.. Although perhaps the case of 'containsPostBody' returning false could
-        // perhaps be modeled differently so that the failing unencodedHTTPRequestBody could only
-        // be called when a body exists...
-        let postBody = try request.unencodedHTTPRequestBody()
-        var JSONWritingOptions: JSONSerialization.WritingOptions = .init(rawValue: 0)
-        #if DEBUG
-          JSONWritingOptions = JSONSerialization.WritingOptions.prettyPrinted
-        #endif
-
-        guard JSONSerialization.isValidJSONObject(postBody) else {
-          callback(AuthErrorUtils.JSONSerializationErrorForUnencodableType())
-          return
-        }
-        bodyData = try? JSONSerialization.data(
-          withJSONObject: postBody,
-          options: JSONWritingOptions
-        )
-        if bodyData == nil {
-          // This is an untested case. This happens exclusively when there is an error in the
-          // framework implementation of dataWithJSONObject:options:error:. This shouldn't normally
-          // occur as isValidJSONObject: should return NO in any case we should encounter an error.
-          callback(AuthErrorUtils.JSONSerializationErrorForUnencodableType())
-          return
-        }
-      } catch {
-        callback(AuthErrorUtils.RPCRequestEncodingError(underlyingError: error))
-        return
-      }
-    }
-    rpcIssuer
-      .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json") {
-        data, error in
-        // If there is an error with no body data at all, then this must be a
-        // network error.
-        guard let data = data else {
-          if let error = error {
-            callback(AuthErrorUtils.networkError(underlyingError: error))
-            return
-          } else {
-            // TODO: this was ignored before
-            fatalError("Internal error")
-          }
-        }
-        // Try to decode the HTTP response data which may contain either a
-        // successful response or error message.
-        var dictionary: [String: Any]
-        do {
-          let rawDecode = try JSONSerialization.jsonObject(with: data,
-                                                           options: JSONSerialization.ReadingOptions
-                                                             .mutableLeaves)
-          guard let decodedDictionary = rawDecode as? [String: Any] else {
-            if error != nil {
-              callback(AuthErrorUtils.unexpectedErrorResponse(deserializedResponse: rawDecode,
-                                                              underlyingError: error))
-            } else {
-              callback(AuthErrorUtils.unexpectedResponse(deserializedResponse: rawDecode))
+//    fileprivate func post(withRequest request: AuthRPCRequest,
+//                          response: AuthRPCResponse) async throws {
+//        var bodyData: Data?
+//        if request.containsPostBody() {
+//            do {
+//                // TODO: Can unencodedHTTPRequestBody ever throw?
+//                // They don't today, but there are a few fatalErrors that might better be implemented as
+//                // thrown errors.. Although perhaps the case of 'containsPostBody' returning false could
+//                // perhaps be modeled differently so that the failing unencodedHTTPRequestBody could only
+//                // be called when a body exists...
+//                let postBody = try request.unencodedHTTPRequestBody()
+//                var JSONWritingOptions: JSONSerialization.WritingOptions = .init(rawValue: 0)
+//#if DEBUG
+//                JSONWritingOptions = JSONSerialization.WritingOptions.prettyPrinted
+//#endif
+//                
+//                guard JSONSerialization.isValidJSONObject(postBody) else {
+//                    throw AuthErrorUtils.JSONSerializationErrorForUnencodableType()
+//                }
+//                bodyData = try? JSONSerialization.data(
+//                    withJSONObject: postBody,
+//                    options: JSONWritingOptions
+//                )
+//                if bodyData == nil {
+//                    // This is an untested case. This happens exclusively when there is an error in the
+//                    // framework implementation of dataWithJSONObject:options:error:. This shouldn't normally
+//                    // occur as isValidJSONObject: should return NO in any case we should encounter an error.
+//                    throw AuthErrorUtils.JSONSerializationErrorForUnencodableType()
+//                }
+//            } catch {
+//                throw AuthErrorUtils.RPCRequestEncodingError(underlyingError: error)
+//            }
+//        }
+//        let data: Data
+//        do {
+//            data = try await rpcIssuer
+//                .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json")
+//        } catch {
+//            throw AuthErrorUtils.networkError(underlyingError: error)
+//        }
+//        
+//        // Try to decode the HTTP response data which may contain either a
+//        // successful response or error message.
+//        let dictionary: [String: Any]
+//        do {
+//            let rawDecode = try JSONSerialization.jsonObject(
+//                with: data,
+//                options: .mutableLeaves
+//            )
+//            guard let decodedDictionary = rawDecode as? [String: Any] else {
+//                throw AuthErrorUtils.unexpectedResponse(deserializedResponse: rawDecode)
+//            }
+//            dictionary = decodedDictionary
+//        } catch {
+//            print("JSON ERR", error)
+//            // This is supposed to be a "successful" response, but we couldn't
+//            // deserialize the body.
+//            throw AuthErrorUtils.unexpectedResponse(data: data, underlyingError: error)
+//        }
+//        
+//        do {
+//            try response.setFields(dictionary: dictionary)
+//        } catch {
+//            print("CAN't SET FIELDS")
+//            throw AuthErrorUtils
+//                .RPCResponseDecodingError(deserializedResponse: dictionary, underlyingError: error)
+//        }
+//        
+//        // In case returnIDPCredential of a verifyAssertion request is set to
+//        // @YES, the server may return a 200 with a response that may contain a
+//        // server error.
+//        if let verifyAssertionRequest = request as? VerifyAssertionRequest,
+//           verifyAssertionRequest.returnIDPCredential,
+//           let errorMessage = dictionary["errorMessage"] as? String,
+//           let clientError = AuthBackendRPCImplementation.clientError(
+//            withServerErrorMessage: errorMessage,
+//            errorDictionary: dictionary,
+//            response: response,
+//            error: nil
+//           ) {
+//            throw clientError
+//        }
+//        
+//        // At this point we either have an error with successfully decoded
+//        // details in the body, or we have a response which must pass further
+//        // validation before we know it's truly successful. We deal with the
+//        // case where we have an error with successfully decoded error details
+//        // first:
+////        if error != nil {
+////            if let errorDictionary = dictionary["error"] as? [String: Any] {
+////                if let errorMessage = errorDictionary["message"] as? String {
+////                    if let clientError = AuthBackendRPCImplementation.clientError(
+////                        withServerErrorMessage: errorMessage,
+////                        errorDictionary: errorDictionary,
+////                        response: response,
+////                        error: error
+////                    ) {
+////                        callback(clientError)
+////                        return
+////                    }
+////                }
+////                // Not a message we know, return the message directly.
+////                callback(AuthErrorUtils.unexpectedErrorResponse(
+////                    deserializedResponse: errorDictionary,
+////                    underlyingError: error
+////                ))
+////                return
+////            }
+////            // No error message at all, return the decoded response.
+////            callback(AuthErrorUtils
+////                .unexpectedErrorResponse(deserializedResponse: dictionary, underlyingError: error))
+////            return
+////        }
+//        
+//        // Finally, we try to populate the response object with the JSON
+//        // values.
+//
+//            
+//  }
+    
+    
+    fileprivate func post3<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response {
+        let bodyData: Data?
+        if request.containsPostBody() {
+            do {
+                let encoder = JSONEncoder()
+                bodyData = try encoder.encode(request)
+            } catch {
+                throw AuthErrorUtils.RPCRequestEncodingError(underlyingError: error)
             }
-            return
-          }
-          dictionary = decodedDictionary
-        } catch let jsonError {
-            print("JSON ERR", jsonError, error)
-          if error != nil {
-            // We have an error, but we couldn't decode the body, so we have no
-            // additional information other than the raw response and the
-            // original NSError (the jsonError is inferred by the error code
-            // (AuthErrorCodeUnexpectedHTTPResponse, and is irrelevant.)
-            callback(AuthErrorUtils.unexpectedErrorResponse(data: data, underlyingError: error))
-            return
-          } else {
-            // This is supposed to be a "successful" response, but we couldn't
-            // deserialize the body.
-            callback(AuthErrorUtils.unexpectedResponse(data: data, underlyingError: jsonError))
-            return
-          }
+        } else {
+            bodyData = nil
         }
-
-        // At this point we either have an error with successfully decoded
-        // details in the body, or we have a response which must pass further
-        // validation before we know it's truly successful. We deal with the
-        // case where we have an error with successfully decoded error details
-        // first:
-        if error != nil {
-          if let errorDictionary = dictionary["error"] as? [String: Any] {
-            if let errorMessage = errorDictionary["message"] as? String {
-              if let clientError = AuthBackendRPCImplementation.clientError(
-                withServerErrorMessage: errorMessage,
-                errorDictionary: errorDictionary,
-                response: response,
-                error: error
-              ) {
-                callback(clientError)
-                return
-              }
-            }
-            // Not a message we know, return the message directly.
-            callback(AuthErrorUtils.unexpectedErrorResponse(
-              deserializedResponse: errorDictionary,
-              underlyingError: error
-            ))
-            return
-          }
-          // No error message at all, return the decoded response.
-          callback(AuthErrorUtils
-            .unexpectedErrorResponse(deserializedResponse: dictionary, underlyingError: error))
-          return
-        }
-
-        // Finally, we try to populate the response object with the JSON
-        // values.
+        let data: Data
         do {
-          try response.setFields(dictionary: dictionary)
+            data = try await rpcIssuer
+                .asyncPostToURL(withRequest: request, body: bodyData, contentType: "application/json")
         } catch {
-            print("CAN't SET FIELDS")
-          callback(AuthErrorUtils
-            .RPCResponseDecodingError(deserializedResponse: dictionary, underlyingError: error))
-          return
+            throw AuthErrorUtils.networkError(underlyingError: error)
         }
-        // In case returnIDPCredential of a verifyAssertion request is set to
-        // @YES, the server may return a 200 with a response that may contain a
-        // server error.
-        if let verifyAssertionRequest = request as? VerifyAssertionRequest {
-          if verifyAssertionRequest.returnIDPCredential {
-            if let errorMessage = dictionary["errorMessage"] as? String {
-              let clientError = AuthBackendRPCImplementation.clientError(
-                withServerErrorMessage: errorMessage,
-                errorDictionary: dictionary,
-                response: response,
-                error: error
-              )
-              callback(clientError)
-              return
-            }
-          }
-        }
-        callback(nil)
-      }
-  }
+        
+        let decoder = JSONDecoder()
+        do {
+            // Try to decode the HTTP response data which may contain either a
+            // successful response or error message.
+            let response = try decoder.decode(T.Response.self, from: data)
+            return response
+        } catch {
+                        
+            // In case returnIDPCredential of a verifyAssertion request is set to
+            // @YES, the server may return a 200 with a response that may contain a
+            // server error.
 
-  private class func clientError(withServerErrorMessage serverErrorMessage: String,
-                                 errorDictionary: [String: Any],
-                                 response: AuthRPCResponse,
-                                 error: Error?) -> Error? {
+            if let verifyAssertionRequest = request as? VerifyAssertionRequest,
+               verifyAssertionRequest.returnIDPCredential,
+               let response = try? decoder.decode(ErrorMessageResponse.self, from: data),
+               let clientError = AuthBackendRPCImplementation.clientError(
+                withServerErrorMessage: response.errorMessage,
+                errorDictionary: [:],
+                responseType: T.Response.self,
+                error: nil
+               ) {
+                throw clientError
+            }
+            throw error
+        }
+        
+        // XXX TODO
+//        if let verifyAssertionRequest = request as? VerifyAssertionRequest,
+//           verifyAssertionRequest.returnIDPCredential,
+//           let errorMessage = dictionary["errorMessage"] as? String,
+//           let clientError = AuthBackendRPCImplementation.clientError(
+//            withServerErrorMessage: errorMessage,
+//            errorDictionary: dictionary,
+//            response: response,
+//            error: nil
+//           ) {
+//            throw clientError
+//        }
+        
+//        return response
+        
+    }
+
+
+    private class func clientError<T: AuthRPCResponse>(withServerErrorMessage serverErrorMessage: String,
+                                                       errorDictionary: [String: Any],
+                                                       responseType: T.Type,
+                                                       error: Error?) -> Error? {
     let split = serverErrorMessage.split(separator: ":")
     let shortErrorMessage = split.first?.trimmingCharacters(in: .whitespacesAndNewlines)
     let serverDetailErrorMessage = String(split.count > 1 ? split[1] : "")
@@ -573,16 +604,19 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
     case "UNVERIFIED_EMAIL": return AuthErrorUtils
       .error(code: AuthErrorCode.unverifiedEmail, message: serverDetailErrorMessage)
     case "FEDERATED_USER_ID_ALREADY_LINKED":
-      guard let verifyAssertion = response as? VerifyAssertionResponse else {
         return AuthErrorUtils.credentialAlreadyInUseError(
-          message: serverDetailErrorMessage, credential: nil, email: nil
+            message: serverDetailErrorMessage, credential: nil, email: nil
         )
-      }
-      let credential = OAuthCredential(withVerifyAssertionResponse: verifyAssertion)
-      let email = verifyAssertion.email
-      return AuthErrorUtils.credentialAlreadyInUseError(
-        message: serverDetailErrorMessage, credential: credential, email: email
-      )
+//      guard let verifyAssertion = responseType == as? VerifyAssertionResponse else {
+//        return AuthErrorUtils.credentialAlreadyInUseError(
+//          message: serverDetailErrorMessage, credential: nil, email: nil
+//        )
+//      }
+//      let credential = OAuthCredential(withVerifyAssertionResponse: verifyAssertion)
+//      let email = verifyAssertion.email
+//      return AuthErrorUtils.credentialAlreadyInUseError(
+//        message: serverDetailErrorMessage, credential: credential, email: email
+//      )
 
     default:
       if let underlyingErrors = errorDictionary["errors"] as? [[String: String]] {

@@ -19,14 +19,14 @@ import Foundation
  @brief A concrete implementation of `AuthProvider` for phone auth providers.
      This class is available on iOS only.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class PhoneAuthProvider {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct PhoneAuthProvider {
   public static let id = "phone"
   #if os(iOS)
     /**
      @brief Returns an instance of `PhoneAuthProvider` for the default `Auth` object.
      */
-     public class func provider() -> PhoneAuthProvider {
+     public static func provider() -> PhoneAuthProvider {
       return PhoneAuthProvider(auth: Auth.auth())
     }
 
@@ -35,7 +35,7 @@ import Foundation
      @param auth The auth object to associate with the phone auth provider instance.
      */
     
-    public class func provider(auth: Auth) -> PhoneAuthProvider {
+    public static func provider(auth: Auth) -> PhoneAuthProvider {
       return PhoneAuthProvider(auth: auth)
     }
 
@@ -133,7 +133,7 @@ import Foundation
       }
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, watchOS 8, *)
     public func verifyPhoneNumber(_ phoneNumber: String,
                                   uiDelegate: AuthUIDelegate?,
                                   multiFactorSession: MultiFactorSession? = nil) async throws
@@ -173,7 +173,7 @@ import Foundation
                         completion: completion)
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, watchOS 8, *)
     public func verifyPhoneNumber(with multiFactorInfo: PhoneMultiFactorInfo,
                                   uiDelegate: AuthUIDelegate?,
                                   multiFactorSession: MultiFactorSession?) async throws -> String {

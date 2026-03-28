@@ -123,7 +123,7 @@ class CustomDelegate: NSObject, MessagingDelegate {
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {}
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 func apiAsync() async throws {
   let messaging = Messaging.messaging()
   let topic = "cat_video"

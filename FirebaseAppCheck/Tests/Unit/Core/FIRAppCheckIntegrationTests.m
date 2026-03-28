@@ -85,7 +85,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)tearDown {
   [FIRApp resetApps];
 
-  if (@available(iOS 11.0, macOS 10.15, macCatalyst 13.0, tvOS 11.0, watchOS 9.0, *)) {
+  if (@available(iOS 11.0, macOS 15.0, macCatalyst 13.0, tvOS 11.0, watchOS 9.0, *)) {
     // Recover default provider factory.
     [FIRAppCheck setAppCheckProviderFactory:[[FIRDeviceCheckProviderFactory alloc] init]];
   }

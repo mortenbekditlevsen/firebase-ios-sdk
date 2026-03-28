@@ -20,7 +20,7 @@ import Foundation
        second factor.
        This class is available on iOS only.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   
   public class MultiFactorResolver {
     /**
@@ -91,7 +91,7 @@ import Foundation
         challenge.
          @param completion The block invoked when the request is complete, or fails.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     public func resolveSignIn(with assertion: MultiFactorAssertion) async throws -> AuthDataResult {
       return try await withCheckedThrowingContinuation { continuation in
         self.resolveSignIn(with: assertion) { result, error in

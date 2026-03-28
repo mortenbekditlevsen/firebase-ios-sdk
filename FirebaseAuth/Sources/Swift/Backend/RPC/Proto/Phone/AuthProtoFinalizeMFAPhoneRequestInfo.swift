@@ -15,11 +15,8 @@
 import Foundation
 
 
-public class AuthProtoFinalizeMFAPhoneRequestInfo:
-  AuthProto {
-  public required init(dictionary: [String: Any]) {
-    fatalError()
-  }
+public struct AuthProtoFinalizeMFAPhoneRequestInfo:
+  Decodable, Sendable /* AuthProto */ {
 
   var sessionInfo: String?
   var code: String?
@@ -27,15 +24,19 @@ public class AuthProtoFinalizeMFAPhoneRequestInfo:
     self.sessionInfo = sessionInfo
     code = verificationCode
   }
+    
+    enum CodingKeys: CodingKey {
+        case sessionInfo
+        case code
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.sessionInfo = try container.decodeIfPresent(String.self, forKey: .sessionInfo)
+        self.code = try container.decodeIfPresent(String.self, forKey: .code)
+    }
 
   public var dictionary: [String: Any] {
-    var dict: [String: Any] = [:]
-    if let sessionInfo = sessionInfo {
-      dict["sessionInfo"] = sessionInfo
-    }
-    if let code = code {
-      dict["code"] = code
-    }
-    return dict
+      [:]
   }
 }

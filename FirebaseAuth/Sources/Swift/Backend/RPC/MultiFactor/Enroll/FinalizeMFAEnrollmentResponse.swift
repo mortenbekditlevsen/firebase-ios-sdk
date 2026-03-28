@@ -14,12 +14,7 @@
 
 import Foundation
 
-class FinalizeMFAEnrollmentResponse: AuthRPCResponse {
-  var idToken: String?
-  var refreshToken: String?
-
-  func setFields(dictionary: [String: Any]) throws {
-    idToken = dictionary["idToken"] as? String
-    refreshToken = dictionary["refreshToken"] as? String
-  }
+struct FinalizeMFAEnrollmentResponse: AuthRPCResponse {
+    var idToken: String?
+    var refreshToken: String?
 }

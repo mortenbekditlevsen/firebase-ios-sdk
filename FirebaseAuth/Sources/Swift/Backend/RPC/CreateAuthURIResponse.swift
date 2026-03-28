@@ -19,7 +19,7 @@ import Foundation
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/createAuthUri
  */
 
- public class CreateAuthURIResponse: AuthRPCResponse {
+ public struct CreateAuthURIResponse: AuthRPCResponse {
   /** @property authUri
       @brief The URI used by the IDP to authenticate the user.
    */
@@ -48,14 +48,23 @@ import Foundation
   /** @property signinMethods
       @brief A list of sign-in methods available for the passed @c identifier.
    */
-  public var signinMethods: [String]?
+  public var signinMethods: [String]
 
-  public func setFields(dictionary: [String: Any]) throws {
-    providerID = dictionary["providerId"] as? String
-    authURI = dictionary["authUri"] as? String
-    registered = dictionary["registered"] as? Bool ?? false
-    forExistingProvider = dictionary["forExistingProvider"] as? Bool ?? false
-    allProviders = dictionary["allProviders"] as? [String]
-    signinMethods = dictionary["signinMethods"] as? [String]
-  }
+     enum CodingKeys: String, CodingKey {
+         case authURI = "authUri"
+         case registered
+         case providerID = "provierId"
+         case forExistingProvider
+         case allProviders
+         case signinMethods
+     }
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.authURI = try container.decodeIfPresent(String.self, forKey: .authURI)
+         self.registered = try container.decodeIfPresent(Bool.self, forKey: .registered) ?? false
+         self.providerID = try container.decodeIfPresent(String.self, forKey: .providerID)
+         self.forExistingProvider = try container.decodeIfPresent(Bool.self, forKey: .forExistingProvider) ?? false
+         self.allProviders = try container.decodeIfPresent([String].self, forKey: .allProviders)
+         self.signinMethods = try container.decodeIfPresent([String].self, forKey: .signinMethods) ?? []
+     }
 }

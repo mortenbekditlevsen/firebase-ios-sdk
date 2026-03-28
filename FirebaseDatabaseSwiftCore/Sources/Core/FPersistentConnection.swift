@@ -477,10 +477,11 @@ class FPersistentConnection: FConnectionDelegate {
             self.connectionState = .gettingToken
             self.currentFetchTokenAttempt += 1
             let thisFetchTokenAttempt = self.currentFetchTokenAttempt
-            self.contextProvider.fetchContextForcingRefresh(forceRefresh) { result in
-                if thisFetchTokenAttempt == self.currentFetchTokenAttempt {
-                    do {
-                        let context = try result.get()
+            Task {
+                
+                do {
+                    let context = try await self.contextProvider.fetchContextForcingRefresh(forceRefresh)
+                    if thisFetchTokenAttempt == self.currentFetchTokenAttempt {
                         // Someone could have interrupted us while
                         // fetching the token, marking the
                         // connection as Disconnected
@@ -492,17 +493,19 @@ class FPersistentConnection: FConnectionDelegate {
                             assert(self.connectionState == .disconnected, "Expected connection state disconnected, but got \(self.connectionState)")
                             FFLog("I-RDB034012", "Not opening connection after token refresh, because  connection was set to disconnected.")
                         }
-                    } catch {
-                        self.connectionState = .disconnected
-                        FFLog("I-RDB034010",
-                              "Error fetching token: \(error)")
-                        self.tryScheduleReconnect()
+                    } else {
+                        FFLog("I-RDB034013",
+                              "Ignoring fetch token result, because this was not the latest attempt.")
                     }
-                } else {
-                    FFLog("I-RDB034013",
-                          "Ignoring fetch token result, because this was not the latest attempt.")
+                } catch {
+                    self.connectionState = .disconnected
+                    FFLog("I-RDB034010",
+                          "Error fetching token: \(error)")
+                    self.tryScheduleReconnect()
                 }
+                   
             }
+
         }
     }
 

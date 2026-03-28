@@ -14,33 +14,33 @@
 
 import Foundation
 @testable import FirebaseAuth
-import FirebaseAppCheckInterop
-
-class FakeAppCheck: AppCheckInterop {
-  let fakeAppCheckToken = "fakeAppCheckToken"
-
-  func getToken(forcingRefresh: Bool, completion: @escaping AppCheckTokenHandlerInterop) {
-    completion(FakeAppCheckResult(token: "fakeAppCheckToken"))
-  }
-
-  func tokenDidChangeNotificationName() -> String {
-    fatalError("implement me")
-  }
-
-  func notificationTokenKey() -> String {
-    fatalError("implement me")
-  }
-
-  func notificationAppNameKey() -> String {
-    fatalError("implement me")
-  }
-}
-
-class FakeAppCheckResult: FIRAppCheckTokenResultInterop {
-  var token: String
-  var error: Error?
-
-  init(token: String) {
-    self.token = token
-  }
-}
+//import FirebaseAppCheckInterop
+//
+//class FakeAppCheck: AppCheckInterop {
+//  let fakeAppCheckToken = "fakeAppCheckToken"
+//
+//  func getToken(forcingRefresh: Bool, completion: @escaping AppCheckTokenHandlerInterop) {
+//    completion(FakeAppCheckResult(token: "fakeAppCheckToken"))
+//  }
+//
+//  func tokenDidChangeNotificationName() -> String {
+//    fatalError("implement me")
+//  }
+//
+//  func notificationTokenKey() -> String {
+//    fatalError("implement me")
+//  }
+//
+//  func notificationAppNameKey() -> String {
+//    fatalError("implement me")
+//  }
+//}
+//
+//class FakeAppCheckResult: FIRAppCheckTokenResultInterop {
+//  var token: String
+//  var error: Error?
+//
+//  init(token: String) {
+//    self.token = token
+//  }
+//}

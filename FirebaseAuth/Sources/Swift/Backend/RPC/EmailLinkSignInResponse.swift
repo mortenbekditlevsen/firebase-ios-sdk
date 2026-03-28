@@ -17,11 +17,11 @@ import Foundation
 /** @class FIRVerifyAssertionResponse
     @brief Represents the response from the emailLinkSignin endpoint.
  */
- public class EmailLinkSignInResponse: AuthRPCResponse {
+ public struct EmailLinkSignInResponse: AuthRPCResponse {
   /** @property IDToken
    @brief The ID token in the email link sign-in response.
    */
-   public var idToken: String?
+   public var idToken: String
 
   /** @property email
    @brief The email returned by the IdP.
@@ -31,7 +31,7 @@ import Foundation
   /** @property refreshToken
    @brief The refreshToken returned by the server.
    */
-  public var refreshToken: String?
+  public var refreshToken: String
 
   /** @property approximateExpirationDate
    @brief The approximate expiration date of the access token.
@@ -54,24 +54,25 @@ import Foundation
    */
   public var MFAInfo: [AuthProtoMFAEnrollment]?
 
-  public func setFields(dictionary: [String: Any]) throws {
-    email = dictionary["email"] as? String
-    idToken = dictionary["idToken"] as? String
-    isNewUser = dictionary["isNewUser"] as? Bool ?? false
-    refreshToken = dictionary["refreshToken"] as? String
+     enum CodingKeys: String, CodingKey {
+         case idToken
+         case email
+         case refreshToken
+         case expiresIn
+         case isNewUser
+         case MFAPendingCredential = "mfaPendingCredential"
+         case MFAInfo = "mfaInfo"
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.idToken = try container.decode(String.self, forKey: .idToken)
+         self.email = try container.decodeIfPresent(String.self, forKey: .email)
+         self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+         self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
 
-    approximateExpirationDate = (dictionary["expiresIn"] as? String)
-      .flatMap { Date(timeIntervalSinceNow: ($0 as NSString).doubleValue)
-      }
-
-    if let mfaInfoArray = dictionary["mfaInfo"] as? [[String: Any]] {
-      var mfaInfo: [AuthProtoMFAEnrollment] = []
-      for entry in mfaInfoArray {
-        let enrollment = AuthProtoMFAEnrollment(dictionary: entry)
-        mfaInfo.append(enrollment)
-      }
-      MFAInfo = mfaInfo
-    }
-    MFAPendingCredential = dictionary["mfaPendingCredential"] as? String
-  }
+         self.isNewUser = try container.decodeIfPresent(Bool.self, forKey: .isNewUser) ?? false
+         self.MFAPendingCredential = try container.decodeIfPresent(String.self, forKey: .MFAPendingCredential)
+         self.MFAInfo = try container.decodeIfPresent([AuthProtoMFAEnrollment].self, forKey: .MFAInfo)
+     }
 }

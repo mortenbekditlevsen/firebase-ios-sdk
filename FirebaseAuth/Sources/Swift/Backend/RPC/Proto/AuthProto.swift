@@ -14,11 +14,6 @@
 
 import Foundation
 
- public protocol AuthProto {
-  init(dictionary: [String: Any])
-     var dictionary: [String: Any] { get }
-}
+//public protocol AuthProto: Decodable {
+//}
 
-public extension AuthProto {
-    var dictionary: [String: Any] { [:] }
-}

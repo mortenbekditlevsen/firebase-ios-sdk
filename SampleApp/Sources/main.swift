@@ -114,6 +114,7 @@ import FirebaseAuth
 #if canImport(Observation)
 // TODO: Override decoder, override db
 
+@available(macOS 14.0, *)
 class RTDBLive<Model: Decodable>: Live<Model> {
     var handle: DatabaseHandle? = nil
     var path: String? = nil
@@ -152,10 +153,12 @@ extension Path where Element == DbPath.Root {
 
 extension Database {
     #if canImport(Observation)
+    @available(macOS 14.0, *)
     func liveValue<T: Decodable>(at path: Path<T>) -> Live<T> {
         RTDBLive(path: path.rendered, database: self)
     }
 
+    @available(macOS 14.0, *)
     func liveValue<T: Decodable>(at path: CollectionPath<T>) -> Live<[String: T]> {
         RTDBLive(path: path.rendered, database: self)
     }
@@ -180,38 +183,46 @@ extension Database {
     }
 }
 
-var live: Live<[String: ChatRoom]>?
+//var live: Live<[String: ChatRoom]>?
 
-func main() async {
-    FirebaseApp.configure(options: FirebaseApp.Options(databaseURL: "https://firestoretests-44fc8.firebaseio.com",  projectID: "firestoretests-44fc8", googleAppID: "1:649012064016:ios:b4dcc2e22b3b90ea", apiKey: "AIzaSyC9NV44W_Takzurg41lo7nxXpUr3vugI88", clientID: "649012064016-pdglutubaeg3rik5feojtq29lk5trf2a.apps.googleusercontent.com"))
-
-    // With the current hackish setup, we need to initialize Auth
-    // before Database. :-)
-    Database.setLoggingEnabled(true)
-    let auth = Auth.auth()
-    if let currentUser = auth.currentUser {
-        print("Current user UID: \(currentUser.uid)")
-    } else {
-        if let result = try? await auth.signIn(withEmail: "bek@termestrup.dk", password: "hamster") {
-            print("UID: \(result.user.uid)")
+@MainActor
+ func main() async {
+        FirebaseApp.configure(options: FirebaseApp.Options(databaseURL: "https://firestoretests-44fc8.firebaseio.com",  projectID: "firestoretests-44fc8", googleAppID: "1:649012064016:ios:b4dcc2e22b3b90ea", apiKey: "AIzaSyC9NV44W_Takzurg41lo7nxXpUr3vugI88", clientID: "649012064016-pdglutubaeg3rik5feojtq29lk5trf2a.apps.googleusercontent.com"))
+        
+        // With the current hackish setup, we need to initialize Auth
+        // before Database. :-)
+        Database.setLoggingEnabled(true)
+        let auth = Auth.auth()
+     try? auth.signOut()
+        if let currentUser = auth.currentUser {
+            print("Current user UID: \(currentUser.uid)")
+        } else {
+            do {
+                let result = try await auth.signIn(
+                    withEmail: "bek@termestrup.dk",
+                    password: "hamster"
+                )
+                print("UID: \(result.user.uid)")
+            } catch {
+                print("ERROR", error)
+            }
         }
+        //    Path().chatroomIndex.child("a")
+        //    try? auth.signOut()
+        //    auth.currentUser?.uid
+        let database = Database.database()
+        database.isPersistenceEnabled = false
+        
+        //live = database.liveValue(at: Path().chatroomIndex)
+        
+            database.reference().child("chatroom_index/a").observeSingleEventOfType(.value) { snapshot in
+                print(snapshot.value)
+            }
+        //    database.reference().child("chatroom_index/a").observeEventType(.value) { snap in
+        //        print(snap.value)
+        //
+        //    }
     }
-//    Path().chatroomIndex.child("a")
-//    try? auth.signOut()
-//    auth.currentUser?.uid
-    let database = Database.database()
-    database.isPersistenceEnabled = false
-
-    live = database.liveValue(at: Path().chatroomIndex)
-
-//    database.reference().child("chatroom_index/a").observeSingleEventOfType(.value) { snapshot in
-//        print(snapshot.value)
-//    }
-//    database.reference().child("chatroom_index/a").observeEventType(.value) { snap in
-//        print(snap.value)
-//
-//    }
-}
 
 public struct ChatRoom: Codable {
     public var name: String

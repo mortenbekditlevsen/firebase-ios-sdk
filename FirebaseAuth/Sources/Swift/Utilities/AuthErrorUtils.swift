@@ -36,8 +36,8 @@ private let kURLResponseErrorCodeInternalError = "auth/internal-error"
 private let kFIRAuthErrorMessageMalformedJWT =
   "Failed to parse JWT. Check the userInfo dictionary for the full token."
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class AuthErrorUtils {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct AuthErrorUtils {
   static let errorDomain = "FIRAuthErrorDomain"
   static let internalErrorDomain = "FIRAuthInternalErrorDomain"
   static let userInfoDeserializedResponseKey = "FIRAuthErrorUserInfoDeserializedResponseKey"

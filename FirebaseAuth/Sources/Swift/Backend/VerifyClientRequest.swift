@@ -14,9 +14,11 @@
 
 import Foundation
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 
-public class VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest {
+public struct VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest, Encodable {
+    public typealias Response = VerifyClientResponse
+
   /// The endpoint for the verifyClient request.
   private static let verifyClientEndpoint = "verifyClient"
 
@@ -29,29 +31,46 @@ public class VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest {
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = VerifyClientResponse()
 
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody = [String: Any]()
-    if let appToken = appToken {
-      postBody[Self.appTokenKey] = appToken
+    public func unencodedHTTPRequestBody() throws -> [String: Any] {
+        var postBody = [String: Any]()
+        if let appToken = appToken {
+            postBody[Self.appTokenKey] = appToken
+        }
+        postBody[Self.isSandboxKey] = isSandbox
+        return postBody
     }
-    postBody[Self.isSandboxKey] = isSandbox
-    return postBody
-  }
+  
+    enum CodingKeys: CodingKey {
+        case appToken
+        case isSandbox
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(self.appToken, forKey: .appToken)
+        try container.encode(self.isSandbox, forKey: .isSandbox)
+    }
 
   /// The APNS device token.
   public private(set) var appToken: String?
 
   /// The flag that denotes if the appToken  pertains to Sandbox or Production.
   public private(set) var isSandbox: Bool
+    
+    public var requestConfiguration: AuthRequestConfiguration
+    
+    var endpoint: String {
+        Self.verifyClientEndpoint
+    }
+    var useStaging: Bool { false }
+    var useIdentityPlatform: Bool { false }
 
   public init(withAppToken: String?,
                     isSandbox: Bool,
                     requestConfiguration: AuthRequestConfiguration) {
     appToken = withAppToken
     self.isSandbox = isSandbox
-    self.isSandbox = isSandbox
-    super.init(endpoint: Self.verifyClientEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 }

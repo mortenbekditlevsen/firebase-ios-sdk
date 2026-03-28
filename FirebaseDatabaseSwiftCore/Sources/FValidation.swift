@@ -7,33 +7,35 @@
 
 import Foundation
 
-class FValidation {
+/*
+class FValidationOld {
     static func validatePriorityValue(_ value: Any) -> Bool {
-        FValidationSwift.validatePriorityValue(value)
+        FValidation.validatePriorityValue(value)
     }
     static func validateFrom(_ fn: String, validRootPathString pathString: String) {
-        FValidationSwift.validateFrom(fn, validRootPathString: pathString)
+        FValidation.validateFrom(fn, validRootPathString: pathString)
     }
     static func validateFrom(_ fn: String, validURL parsedUrl: FParsedUrl) {
-        FValidationSwift.validateFrom(fn, validURL: parsedUrl)
+        FValidation.validateFrom(fn, validURL: parsedUrl)
     }
 
     static func validateFrom(_ fn: String, validKey key: String) {
-        FValidationSwift.validateFrom(fn, validKey: key)
+        FValidation.validateFrom(fn, validKey: key)
     }
 
     static func validateFrom(_ fn: String, validPathString pathString: String) {
-        FValidationSwift.validateFrom(fn, validPathString: pathString)
+        FValidation.validateFrom(fn, validPathString: pathString)
     }
     static func validateFrom(_ fn: String, writablePath path: FPath) {
-        FValidationSwift.validateFrom(fn, writablePath: path)
+        FValidation.validateFrom(fn, writablePath: path)
     }
     static func validateFrom(_ fn: String, knownEventType event: DataEventType) {
-        FValidationSwift.validateFrom(fn, knownEventType: event)
+        FValidation.validateFrom(fn, knownEventType: event)
     }
 }
+ */
 
-public enum FValidationSwift {
+public enum FValidation {
 
     // NOTE: This error can only happen when bridging from Objective-C.
     // In Swift we can't construct the invalid case.

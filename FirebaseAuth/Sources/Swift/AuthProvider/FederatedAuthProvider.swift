@@ -17,7 +17,7 @@ import Foundation
 /**
     Utility type for constructing federated auth provider credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public protocol FederatedAuthProvider {
   #if os(iOS)
     /** @fn getCredentialWithUIDelegate:completion:
@@ -36,7 +36,7 @@ import Foundation
             This method is available on iOS only.
         @param UIDelegate An optional UI delegate used to present the mobile web flow.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, watchOS 8, *)
     func credential(with UIDelegate: AuthUIDelegate?) async throws -> AuthCredential
   #endif
 }

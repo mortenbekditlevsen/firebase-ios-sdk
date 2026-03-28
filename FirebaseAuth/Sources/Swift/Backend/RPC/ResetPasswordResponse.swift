@@ -24,11 +24,11 @@ import Foundation
        - FIRAuthErrorCodeInvalidActionCode
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/resetPassword
  */
- public class ResetPasswordResponse: AuthRPCResponse {
+ public struct ResetPasswordResponse: AuthRPCResponse, Decodable {
   /** @property email
    @brief The email address corresponding to the reset password request.
    */
-  public var email: String?
+  public var email: String
 
   /** @property verifiedEmail
    @brief The verified email returned from the backend.
@@ -40,9 +40,16 @@ import Foundation
    */
   public var requestType: String?
 
-  public func setFields(dictionary: [String: Any]) throws {
-    email = dictionary["email"] as? String
-    requestType = dictionary["requestType"] as? String
-    verifiedEmail = dictionary["newEmail"] as? String
-  }
+     enum CodingKeys: String, CodingKey {
+         case email
+         case verifiedEmail = "newEmail"
+         case requestType
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.email = try container.decode(String.self, forKey: .email)
+         self.verifiedEmail = try container.decodeIfPresent(String.self, forKey: .verifiedEmail)
+         self.requestType = try container.decodeIfPresent(String.self, forKey: .requestType)
+     }
 }

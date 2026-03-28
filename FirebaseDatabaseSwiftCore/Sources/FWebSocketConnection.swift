@@ -53,7 +53,7 @@ class FWebSocketConnection {
         do {
             try client?.open()
         } catch {
-            print("ERROR connecting: \(error)")
+            // print("ERROR connecting: \(error)")
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + kWebsocketConnectTimeout) { [weak self] in
             self?.closeIfNeverConnected()

@@ -14,10 +14,6 @@
 
 import Foundation
 
-public class AuthProtoFinalizeMFAPhoneResponseInfo: AuthProto {
+public class AuthProtoFinalizeMFAPhoneResponseInfo: Decodable /* AuthProto */ {
   var phoneNumber: String?
-
-  public required init(dictionary: [String: Any]) {
-    phoneNumber = dictionary["phoneNumber"] as? String
-  }
 }

@@ -14,7 +14,7 @@
 
 import Foundation
 
-public class GetProjectConfigResponse:
+public struct GetProjectConfigResponse:
   AuthRPCResponse {
   /** @property projectID
       @brief The unique ID pertaining to the current project.
@@ -26,18 +26,28 @@ public class GetProjectConfigResponse:
    */
   public var authorizedDomains: [String]?
 
-  public func setFields(dictionary: [String: Any]) throws {
-    projectID = dictionary["projectId"] as? String
-    if let authorizedDomains = dictionary["authorizedDomains"] as? String,
-       let data = authorizedDomains.data(using: .utf8) {
-      if let decoded = try? JSONSerialization.jsonObject(
-        with: data,
-        options: [.mutableLeaves]
-      ), let array = decoded as? [String] {
-        self.authorizedDomains = array
-      }
-    } else if let authorizedDomains = dictionary["authorizedDomains"] as? [String] {
-      self.authorizedDomains = authorizedDomains
+    enum CodingKeys: String, CodingKey {
+        case projectID = "projectId"
+        case authorizedDomains
     }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.projectID = try container.decodeIfPresent(String.self, forKey: .projectID)
+        do {
+            self.authorizedDomains = try container.decodeIfPresent([String].self, forKey: .authorizedDomains)
+        } catch {
+            if let authorizedDomainsString = try container.decodeIfPresent(String.self, forKey: .authorizedDomains) {
+                let data = Data(authorizedDomainsString.utf8)
+                if let decoded = try? JSONSerialization.jsonObject(
+                    with: data,
+                    options: [.mutableLeaves]
+                ), let array = decoded as? [String] {
+                    self.authorizedDomains = array
+                }
+            }
+        }
+    }
+  public func setFields(dictionary: [String: Any]) throws {
   }
 }

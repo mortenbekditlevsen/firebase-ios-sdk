@@ -17,7 +17,7 @@ import XCTest
 
 @testable import FirebaseAuth
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class AdditionalUserInfoTests: XCTestCase {
   let kFakeProfile = ["email": "user@mail.com", "given_name": "User", "family_name": "Doe"]
   let kUserName = "User Doe"
@@ -43,11 +43,14 @@ class AdditionalUserInfoTests: XCTestCase {
           @c userInfoWithVerifyAssertionResponse call.
    */
   func testAdditionalUserInfoCreationWithStaticInitializer() {
-    let response = VerifyAssertionResponse()
-    response.providerID = kProviderID
-    response.profile = kFakeProfile
-    response.username = kUserName
-    response.isNewUser = false
+      let response = VerifyAssertionResponse(
+        providerID: kProviderID,
+        idToken: "",
+        refreshToken: "",
+        isNewUser: false,
+        profile: kFakeProfile,
+        username: kUserName
+      )
     let userInfo = AdditionalUserInfo.userInfo(verifyAssertionResponse: response)
     XCTAssertEqual(userInfo.providerID, kProviderID)
     XCTAssertEqual(userInfo.profile as? [String: String], kFakeProfile)

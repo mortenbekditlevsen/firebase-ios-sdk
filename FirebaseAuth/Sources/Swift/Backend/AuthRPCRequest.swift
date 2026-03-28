@@ -21,8 +21,9 @@ import Foundation
 /** @protocol FIRAuthRPCRequest
     @brief The generic interface for an RPC request needed by @c FIRAuthBackend.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public protocol AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public protocol AuthRPCRequest: Encodable, Sendable {
+    associatedtype Response: Decodable, AuthRPCResponse
   /** @fn requestURL
       @brief Gets the request's full URL.
    */
@@ -41,22 +42,22 @@ import Foundation
       @param error An out field for an error which occurred constructing the request.
       @return The HTTP body data representing the request before any encoding, or nil for error.
    */
-  
+      
   func unencodedHTTPRequestBody() throws -> [String: Any]
 
   /** @fn requestConfiguration
       @brief Obtains the request configurations if available.
       @return Returns the request configurations.
    */
-  func requestConfiguration() -> AuthRequestConfiguration
+     var requestConfiguration: AuthRequestConfiguration { get }
 
   /** @var response
       @brief The corresponding response for this request
    */
-  var response: AuthRPCResponse { get }
+//  var response: AuthRPCResponse { get }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 public extension AuthRPCRequest {
     func containsPostBody() -> Bool {
         false

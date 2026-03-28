@@ -17,8 +17,8 @@ import Foundation
 /**
  @brief A concrete implementation of `AuthProvider` for Email & Password Sign In.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class EmailAuthProvider {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public enum EmailAuthProvider {
   public static let id = "password"
 
   /**
@@ -28,7 +28,7 @@ import Foundation
       @param password The user's password.
       @return An `AuthCredential` containing the email & password credential.
    */
-  public class func credential(withEmail email: String, password: String) -> AuthCredential {
+  public static func credential(withEmail email: String, password: String) -> AuthCredential {
     return EmailAuthCredential(withEmail: email, password: password)
   }
 
@@ -39,13 +39,13 @@ import Foundation
       @param link The email sign-in link.
       @return An `AuthCredential` containing the email & link credential.
    */
-  public class func credential(withEmail email: String, link: String) -> AuthCredential {
+  public static func credential(withEmail email: String, link: String) -> AuthCredential {
     return EmailAuthCredential(withEmail: email, link: link)
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class EmailAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct EmailAuthCredential: AuthCredential, Codable {
   let email: String
 
   enum EmailType {
@@ -54,17 +54,16 @@ class EmailAuthCredential: AuthCredential, Codable {
   }
 
   let emailType: EmailType
+    var provider: String { EmailAuthProvider.id }
 
   init(withEmail email: String, password: String) {
     self.email = email
     emailType = .password(password)
-    super.init(provider: EmailAuthProvider.id)
   }
 
   init(withEmail email: String, link: String) {
     self.email = email
     emailType = .link(link)
-    super.init(provider: EmailAuthProvider.id)
   }
 
     enum CodingKeys: String, CodingKey {
@@ -84,7 +83,7 @@ class EmailAuthCredential: AuthCredential, Codable {
         }
     }
 
-    required init(from decoder: Decoder) throws {
+     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.email = try container.decode(String.self, forKey: .email)
         if let link = try container.decodeIfPresent(String.self, forKey: .link) {
@@ -93,8 +92,6 @@ class EmailAuthCredential: AuthCredential, Codable {
             let password = try container.decode(String.self, forKey: .password)
             self.emailType = .password(password)
         }
-            super.init(provider: EmailAuthProvider.id)
-
     }
 
 }

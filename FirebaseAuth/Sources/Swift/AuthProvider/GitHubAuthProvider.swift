@@ -17,8 +17,8 @@ import Foundation
 /**
  @brief Utility class for constructing GitHub Sign In credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class GitHubAuthProvider {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public enum GitHubAuthProvider {
   public static let id = "github.com"
 
   /**
@@ -27,26 +27,20 @@ import Foundation
       @param token The GitHub OAuth access token.
       @return An AuthCredential containing the GitHub credentials.
    */
-  public class func credential(withToken token: String) -> AuthCredential {
+  public static func credential(withToken token: String) -> AuthCredential {
     return GitHubAuthCredential(withToken: token)
-  }
-
-  @available(*, unavailable)
-   public init() {
-    fatalError("This class is not meant to be initialized.")
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class GitHubAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct GitHubAuthCredential: AuthCredential, Codable {
   let token: String
-
+    var provider: String { GitHubAuthProvider.id }
   init(withToken token: String) {
     self.token = token
-    super.init(provider: GitHubAuthProvider.id)
   }
 
-  override func prepare(_ request: VerifyAssertionRequest) {
+    func prepare(_ request: inout VerifyAssertionRequest) {
     request.providerAccessToken = token
   }
 
@@ -60,11 +54,8 @@ class GitHubAuthCredential: AuthCredential, Codable {
     }
 
 
-    required public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.token = try container.decode(String.self, forKey: .token)
-
-        super.init(provider: GitHubAuthProvider.id)
-
     }
 }

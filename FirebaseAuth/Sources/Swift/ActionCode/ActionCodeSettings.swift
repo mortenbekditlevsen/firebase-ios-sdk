@@ -17,7 +17,7 @@ import Foundation
 /** @class FIRActionCodeSettings
     @brief Used to set and retrieve settings related to handling action codes.
  */
- public class ActionCodeSettings {
+ public struct ActionCodeSettings {
   /** @property URL
       @brief This URL represents the state/Continue URL in the form of a universal link.
       @remarks This URL can should be constructed as a universal link that would either directly open
@@ -76,7 +76,7 @@ import Foundation
       @remarks If installIfNotAvailable is set to YES and the link is opened on an android device, it
           will try to install the app if not already available. Otherwise the web URL is used.
    */
-  public func setAndroidPackageName(_ androidPackageName: String,
+  public mutating func setAndroidPackageName(_ androidPackageName: String,
                                           installIfNotAvailable: Bool,
                                           minimumVersion: String?) {
     self.androidPackageName = androidPackageName
@@ -84,7 +84,7 @@ import Foundation
     androidMinimumVersion = minimumVersion
   }
 
-  public func setIOSBundleID(_ bundleID: String) {
+  public mutating func setIOSBundleID(_ bundleID: String) {
     iOSBundleID = bundleID
   }
 }

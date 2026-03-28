@@ -18,7 +18,7 @@
   import FirebaseAuth
 
   @available(swift 5.0)
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 6.0, *)
+  @available(iOS 13.0, macOS 15.0, macCatalyst 13.0, tvOS 13.0, watchOS 6.0, *)
   public extension User {
     /// Associates a user account from a third-party identity provider with this user and
     /// returns additional identity provider data.

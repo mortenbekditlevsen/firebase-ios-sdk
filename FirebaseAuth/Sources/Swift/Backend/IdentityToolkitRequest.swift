@@ -31,42 +31,52 @@ private let kIdentityPlatformStagingAPIHost =
 /** @class FIRIdentityToolkitRequest
  @brief Represents a request to an identity toolkit endpoint.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class IdentityToolkitRequest {
-  /** @property endpoint
-   @brief Gets the RPC's endpoint.
-   */
-  public let endpoint: String
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+protocol IdentityToolkitRequest: AuthRPCRequest {
+    /** @property endpoint
+     @brief Gets the RPC's endpoint.
+     */
+    var endpoint: String { get }
+    
+    /** @property APIKey
+     @brief Gets the client's API key used for the request.
+     */
+    var apiKey: String { get }
+    
+    /** @property tenantID
+     @brief The tenant ID of the request. nil if none is available.
+     */
+    var tenantID: String? { get }
+    
+    var requestConfiguration: AuthRequestConfiguration { get }
+    
+    var useIdentityPlatform: Bool { get }
+    
+    var  useStaging: Bool { get }
+    
+    //     public init(
+    //        endpoint: String,
+    //        requestConfiguration: AuthRequestConfiguration,
+    //        useIdentityPlatform: Bool = false,
+    //        useStaging: Bool = false
+    //     ) {
+    //    self.endpoint = endpoint
+    //    apiKey = requestConfiguration.apiKey
+    //    _requestConfiguration = requestConfiguration
+    //    _useIdentityPlatform = useIdentityPlatform
+    //    _useStaging = useStaging
+    //    tenantID = requestConfiguration.auth?.tenantID
+    //  }
+}
 
-  /** @property APIKey
-   @brief Gets the client's API key used for the request.
-   */
-   public var apiKey: String
-
-  /** @property tenantID
-   @brief The tenant ID of the request. nil if none is available.
-   */
-  public let tenantID: String?
-
-  let _requestConfiguration: AuthRequestConfiguration
-
-  let _useIdentityPlatform: Bool
-
-  let _useStaging: Bool
-
-  public init(endpoint: String, requestConfiguration: AuthRequestConfiguration,
-                    useIdentityPlatform: Bool = false, useStaging: Bool = false) {
-    self.endpoint = endpoint
-    apiKey = requestConfiguration.apiKey
-    _requestConfiguration = requestConfiguration
-    _useIdentityPlatform = useIdentityPlatform
-    _useStaging = useStaging
-    tenantID = requestConfiguration.auth?.tenantID
-  }
-
-  public func containsPostBody() -> Bool {
-    true
-  }
+extension IdentityToolkitRequest {
+    
+    public var tenantID: String? { requestConfiguration.tenantId }
+    public var apiKey: String { requestConfiguration.apiKey }
+    
+    public func containsPostBody() -> Bool {
+        true
+    }
 
   /** @fn requestURL
    @brief Gets the request's full URL.
@@ -75,12 +85,12 @@ private let kIdentityPlatformStagingAPIHost =
     let apiProtocol: String
     let apiHostAndPathPrefix: String
     let urlString: String
-    let emulatorHostAndPort = _requestConfiguration.emulatorHostAndPort
-    if _useIdentityPlatform {
+    let emulatorHostAndPort = requestConfiguration.emulatorHostAndPort
+    if useIdentityPlatform {
       if let emulatorHostAndPort = emulatorHostAndPort {
         apiProtocol = kHttpProtocol
         apiHostAndPathPrefix = "\(emulatorHostAndPort)/\(kIdentityPlatformAPIHost)"
-      } else if _useStaging {
+      } else if useStaging {
         apiHostAndPathPrefix = kIdentityPlatformStagingAPIHost
         apiProtocol = kHttpsProtocol
       } else {
@@ -93,7 +103,7 @@ private let kIdentityPlatformStagingAPIHost =
       if let emulatorHostAndPort = emulatorHostAndPort {
         apiProtocol = kHttpProtocol
         apiHostAndPathPrefix = "\(emulatorHostAndPort)/\(kFirebaseAuthAPIHost)"
-      } else if _useStaging {
+      } else if useStaging {
         apiProtocol = kHttpsProtocol
         apiHostAndPathPrefix = kFirebaseAuthStagingAPIHost
       } else {
@@ -104,12 +114,5 @@ private let kIdentityPlatformStagingAPIHost =
         "\(apiProtocol)//\(apiHostAndPathPrefix)/identitytoolkit/v3/relyingparty/\(endpoint)?key=\(apiKey)"
     }
     return URL(string: urlString)!
-  }
-
-  /** @fn requestConfiguration
-   @brief Gets the request's configuration.
-   */
-  public func requestConfiguration() -> AuthRequestConfiguration {
-    _requestConfiguration
   }
 }

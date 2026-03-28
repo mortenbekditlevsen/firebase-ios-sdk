@@ -17,15 +17,24 @@ import Foundation
 /**
     @brief Public representation of a credential.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class AuthCredential {
-  public let provider: String
-  init(provider: String) {
-    self.provider = provider
-  }
-
-  // TODO: remove public after FIRUser port
-   public func prepare(_ request: VerifyAssertionRequest) {
-    fatalError("This method must be overridden by a subclass.")
-  }
+public protocol AuthCredential {
+    var provider: String { get }
+    func prepare(_ request: inout VerifyAssertionRequest)
 }
+extension AuthCredential {
+    public func prepare(_ request: inout VerifyAssertionRequest) {
+        fatalError("This method must be overridden by a subclass.")
+    }
+}
+//@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+// open class AuthCredential {
+//  public let provider: String
+//  init(provider: String) {
+//    self.provider = provider
+//  }
+//
+//  // TODO: remove public after FIRUser port
+//   public func prepare(_ request: VerifyAssertionRequest) {
+//    fatalError("This method must be overridden by a subclass.")
+//  }
+//}

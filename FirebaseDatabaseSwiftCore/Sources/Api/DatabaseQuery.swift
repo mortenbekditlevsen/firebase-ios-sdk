@@ -42,7 +42,7 @@ public class DatabaseQuery {
      */
     public func observeEventType(_ eventType: DataEventType,
                                        withBlock block: @escaping (DataSnapshot) -> Void) -> DatabaseHandle {
-        FValidationSwift.validateFrom("observeEventType:withBlock:", knownEventType: eventType)
+        FValidation.validateFrom("observeEventType:withBlock:", knownEventType: eventType)
         return observeEventType(eventType, withBlock: block, withCancelBlock: nil)
     }
     /**
@@ -63,7 +63,7 @@ public class DatabaseQuery {
      */
     public func observeEventType(_ eventType: DataEventType,
                                        andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void) -> DatabaseHandle {
-        FValidationSwift.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:", knownEventType: eventType)
+        FValidation.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:", knownEventType: eventType)
         return observeEventType(eventType, andPreviousSiblingKeyWithBlock: block, withCancelBlock: nil)
     }
 
@@ -89,7 +89,7 @@ public class DatabaseQuery {
     public func observeEventType(_ eventType: DataEventType,
                                        withBlock block: @escaping (_ snapshot: DataSnapshot) -> Void,
                                        withCancelBlock cancelBlock: ((Error) -> Void)?) -> DatabaseHandle {
-        FValidationSwift.validateFrom("observeEventType:withBlock:withCancelBlock:",
+        FValidation.validateFrom("observeEventType:withBlock:withCancelBlock:",
                                       knownEventType: eventType)
         if eventType == .value {
             // Handle FIRDataEventTypeValue specially because they shouldn't have
@@ -132,7 +132,7 @@ public class DatabaseQuery {
      */
     public func observeEventType(_ eventType: DataEventType,
                                        andPreviousSiblingKeyWithBlock block: @escaping (_ snapshot: DataSnapshot, _ prevKey: String?) -> Void, withCancelBlock cancelBlock: ((Error) -> Void)?) -> DatabaseHandle {
-        FValidationSwift.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:withCancelBlock:", knownEventType: eventType)
+        FValidation.validateFrom("observeEventType:andPreviousSiblingKeyWithBlock:withCancelBlock:", knownEventType: eventType)
         if eventType == .value {
             // TODO: This gets hit by observeSingleEventOfType.  Need to fix.
             /*
@@ -412,7 +412,7 @@ public class DatabaseQuery {
             fatalError("(queryOrderedByChild:) \(indexPathString) is invalid. Use queryOrderedByValue: instead.")
         }
         validateNoPreviousOrderByCalled()
-        FValidationSwift.validateFrom("queryOrderedByChild:", validPathString: indexPathString)
+        FValidation.validateFrom("queryOrderedByChild:", validPathString: indexPathString)
         let indexPath = FPath(with: indexPathString)
         if indexPathString.isEmpty {
             fatalError("(queryOrderedByChild:) with an empty path is invalid. Use queryOrderedByValue: instead.")
@@ -520,7 +520,7 @@ public class DatabaseQuery {
         }
         let methodName = "queryStartingAtValue:childKey:"
         if let childKey = childKey {
-            FValidationSwift.validateFrom(methodName, validKey: childKey)
+            FValidation.validateFrom(methodName, validKey: childKey)
         }
 
         return queryStartingAtInternal(startValue, childKey: childKey, from: methodName, priorityMethod: false)
@@ -571,7 +571,7 @@ public class DatabaseQuery {
         }
         let methodName = "queryStartingAfterValue:childKey:"
         if let childKey = childKey, childKey != FUtilities.maxName {
-            FValidationSwift.validateFrom(methodName, validKey: childKey)
+            FValidation.validateFrom(methodName, validKey: childKey)
         }
         return queryStartingAtInternal(startAfterValue, childKey: childKey, from: methodName, priorityMethod: false)
     }
@@ -623,7 +623,7 @@ public class DatabaseQuery {
         }
         let methodName = "queryEndingAtValue:childKey:"
         if let childKey = childKey {
-            FValidationSwift.validateFrom(methodName, validKey: childKey)
+            FValidation.validateFrom(methodName, validKey: childKey)
         }
         return queryEndingAtInternal(endValue, childKey: childKey, from: methodName, priorityMethod: false)
     }
@@ -675,7 +675,7 @@ public class DatabaseQuery {
         }
         let methodName = "queryEndingBeforeValue:childKey:"
         if let childKey = childKey, childKey != FUtilities.minName {
-            FValidationSwift.validateFrom(methodName, validKey: childKey)
+            FValidation.validateFrom(methodName, validKey: childKey)
         }
         return queryEndingAtInternal(endValue, childKey: childKey, from: methodName, priorityMethod: false)
     }
@@ -728,7 +728,7 @@ public class DatabaseQuery {
     private func queryEqualToInternal(_ value: AnyHashable?, childKey: String?, from methodName: String, priorityMethod: Bool) -> DatabaseQuery {
         validateIndexValueType(value, fromMethod: methodName)
         if let childKey = childKey {
-            FValidationSwift.validateFrom(methodName, validKey: childKey)
+            FValidation.validateFrom(methodName, validKey: childKey)
         }
         if queryParams.hasEnd || queryParams.hasStart {
             fatalError("Can't call \(methodName) after queryStartingAtValue, queryStartingAfterValue, queryEndingAtValue, queryEndingBeforeValue or queryEqualToValue was previously called")
@@ -815,8 +815,8 @@ public class DatabaseQuery {
                 }
             }
         } else if params.index == .priority {
-            if (params.hasStart && !FValidationSwift.validatePriorityValue(params.indexStartValue.val())) ||
-                (params.hasEnd && !FValidationSwift.validatePriorityValue(params.indexEndValue.val())) {
+            if (params.hasStart && !FValidation.validatePriorityValue(params.indexStartValue.val())) ||
+                (params.hasEnd && !FValidation.validatePriorityValue(params.indexEndValue.val())) {
                 fatalError("When using queryOrderedByPriority, values provided to queryStartingAtValue:, queryStartingAfterValue:, queryEndingAtValue:, queryEndingBeforeValue:, or queryEqualToValue: must be valid priorities.")
             }
         }

@@ -17,7 +17,7 @@ import Foundation
 /** @class ActionCodeInfo
     @brief Manages information regarding action codes.
  */
- public class ActionCodeInfo {
+ public struct ActionCodeInfo {
   /**
       @brief The operation being performed.
    */
@@ -54,7 +54,7 @@ import Foundation
       @return The corresponding ActionCodeOperation for the supplied request type.
    */
   public
-  class func actionCodeOperation(forRequestType requestType: String?) -> ActionCodeOperation {
+  static func actionCodeOperation(forRequestType requestType: String?) -> ActionCodeOperation {
     switch requestType {
     case "PASSWORD_RESET": return .passwordReset
     case "VERIFY_EMAIL": return .verifyEmail

@@ -18,26 +18,23 @@ import Foundation
     @brief Implementation of FIRAuthCredential for Phone Auth credentials.
         This class is available on iOS only.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class PhoneAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct PhoneAuthCredential: AuthCredential, Codable {
   enum CredentialKind {
     case phoneNumber(_ phoneNumber: String, _ temporaryProof: String)
     case verification(_ id: String, _ code: String)
   }
 
   let credentialKind: CredentialKind
-
-  init(withTemporaryProof temporaryProof: String, phoneNumber: String,
-       providerID: String) {
+     public var provider: String { PhoneAuthProvider.id }
+  init(withTemporaryProof temporaryProof: String, phoneNumber: String) {
     credentialKind = .phoneNumber(phoneNumber, temporaryProof)
-    super.init(provider: providerID)
   }
 
-  init(withProviderID providerID: String, verificationID: String, verificationCode: String) {
-    credentialKind = .verification(verificationID, verificationCode)
-    super.init(provider: providerID)
+  init(verificationID: String, verificationCode: String) {
+      credentialKind = .verification(verificationID, verificationCode)
   }
-
+     
      enum CodingKeys: CodingKey {
          case phoneNumber, temporaryProof, verificationID, verificationCode
      }
@@ -54,7 +51,7 @@ import Foundation
          }
      }
 
-     required public init(from decoder: Decoder) throws {
+     public init(from decoder: Decoder) throws {
          let container = try decoder.container(keyedBy: CodingKeys.self)
          if let phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber), let temporaryProof = try container.decodeIfPresent(String.self, forKey: .temporaryProof) {
              self.credentialKind = .phoneNumber(phoneNumber, temporaryProof)
@@ -64,7 +61,6 @@ import Foundation
              // XXX TODO
              throw DecodingError.typeMismatch(String.self, .init(codingPath: [], debugDescription: "xxx"))
          }
-         super.init(provider: PhoneAuthProvider.id)
 
   }
 }

@@ -14,10 +14,6 @@
 
 import Foundation
 
-class AuthProtoStartMFAPhoneResponseInfo: AuthProto {
+struct AuthProtoStartMFAPhoneResponseInfo: Decodable /* AuthProto */ {
   var sessionInfo: String?
-
-  required init(dictionary: [String: Any]) {
-    sessionInfo = dictionary["sessionInfo"] as? String
-  }
 }

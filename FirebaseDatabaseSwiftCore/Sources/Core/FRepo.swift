@@ -49,7 +49,7 @@ class FRepo: FPersistentConnectionDelegate {
 
 
     init(repoInfo info: FRepoInfo, config: DatabaseConfig, database: Database) {
-        print("FREPO INIT", config, info, database)
+        // print("FREPO INIT", config, info, database)
         self.config = config
         self.repoInfo = info
         self.database = database

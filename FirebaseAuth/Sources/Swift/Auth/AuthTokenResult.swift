@@ -54,7 +54,7 @@ private let kClaimsKey = "claims"
     @brief A data class containing the ID token JWT string and other properties associated with the
     token including the decoded payload claims.
  */
- public class AuthTokenResult {
+ public struct AuthTokenResult {
   /** @property token
       @brief Stores the JWT string of the ID token.
    */
@@ -99,7 +99,7 @@ private let kClaimsKey = "claims"
        @param token The token string to parse.
        @return A structured token result.
    */
-  public class func tokenResult(token: String) -> AuthTokenResult? {
+  public static func tokenResult(token: String) -> AuthTokenResult? {
     let tokenStringArray = token.components(separatedBy: ".")
 
     // The JWT should have three parts, though we only use the second in this method.

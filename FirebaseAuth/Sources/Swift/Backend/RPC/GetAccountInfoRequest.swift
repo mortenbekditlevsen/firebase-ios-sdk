@@ -19,40 +19,51 @@ import Foundation
  */
 private let kGetAccountInfoEndpoint = "getAccountInfo"
 
-/** @var kIDTokenKey
-    @brief The key for the "idToken" value in the request. This is actually the STS Access Token,
-        despite it's confusing (backwards compatiable) parameter name.
- */
-private let kIDTokenKey = "idToken"
 
 /** @class FIRGetAccountInfoRequest
     @brief Represents the parameters for the getAccountInfo endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/getAccountInfo
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class GetAccountInfoRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct GetAccountInfoRequest: IdentityToolkitRequest,
+  AuthRPCRequest, Encodable {
+     public typealias Response = GetAccountInfoResponse
+
   /** @property accessToken
       @brief The STS Access Token for the authenticated user.
    */
   public let accessToken: String
 
+     
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = GetAccountInfoResponse()
 
   /** @fn initWithAccessToken:requestConfiguration
       @brief Designated initializer.
       @param accessToken The Access Token of the authenticated user.
       @param requestConfiguration An object containing configurations to be added to the request.
    */
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kGetAccountInfoEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
+
   public init(accessToken: String, requestConfiguration: AuthRequestConfiguration) {
     self.accessToken = accessToken
-    super.init(endpoint: kGetAccountInfoEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
+     
+     enum CodingKeys: String, CodingKey {
+         case IDToken = "idToken"
+     }
 
+     public func encode(to encoder: any Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encode(accessToken, forKey: .IDToken)
+     }
+     
   public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    return [kIDTokenKey: accessToken]
+    return [:]
   }
 }

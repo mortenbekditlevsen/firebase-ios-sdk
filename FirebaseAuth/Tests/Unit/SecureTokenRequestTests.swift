@@ -20,7 +20,7 @@ import XCTest
 /** @class SecureTokenRequestTests
     @brief Tests for @c SecureTokenRequest
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class SecureTokenRequestTests: XCTestCase {
   let kAPIKey = "APIKey"
   let kEmulatorHostAndPort = "emulatorhost:12345"

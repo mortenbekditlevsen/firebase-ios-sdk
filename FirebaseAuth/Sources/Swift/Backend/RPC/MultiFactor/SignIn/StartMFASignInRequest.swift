@@ -16,14 +16,10 @@ import Foundation
 
 private let kStartMFASignInEndPoint = "accounts/mfaSignIn:start"
 
-/** @var kTenantIDKey
-    @brief The key for the tenant id value in the request.
- */
-private let kTenantIDKey = "tenantId"
-
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class StartMFASignInRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct StartMFASignInRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = StartMFASignInResponse
   var MFAPendingCredential: String?
   var MFAEnrollmentID: String?
   var signInInfo: AuthProtoStartMFAPhoneRequestInfo?
@@ -31,36 +27,38 @@ private let kTenantIDKey = "tenantId"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = StartMFASignInResponse()
+
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { true }
+     public var endpoint: String { kStartMFASignInEndPoint }
+     public var requestConfiguration: AuthRequestConfiguration
 
   init(MFAPendingCredential: String?, MFAEnrollmentID: String?,
        signInInfo: AuthProtoStartMFAPhoneRequestInfo?,
        requestConfiguration: AuthRequestConfiguration) {
-    self.MFAPendingCredential = MFAPendingCredential
-    self.MFAEnrollmentID = MFAEnrollmentID
-    self.signInInfo = signInInfo
-    super.init(
-      endpoint: kStartMFASignInEndPoint,
-      requestConfiguration: requestConfiguration,
-      useIdentityPlatform: true,
-      useStaging: false
-    )
+      self.MFAPendingCredential = MFAPendingCredential
+      self.MFAEnrollmentID = MFAEnrollmentID
+      self.signInInfo = signInInfo
+      self.requestConfiguration = requestConfiguration
   }
+     
+     enum CodingKeys: String, CodingKey {
+         case mfaPendingCredential
+         case mfaEnrollmentId
+         case phoneSignInInfo
+         case tenantId
+     }
+     
+     public func encode(to encoder: any Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encodeIfPresent(MFAPendingCredential, forKey: .mfaPendingCredential)
+         try container.encodeIfPresent(MFAEnrollmentID, forKey: .mfaEnrollmentId)
+         try container.encodeIfPresent(signInInfo, forKey: .phoneSignInInfo)
+         try container.encodeIfPresent(tenantID, forKey: .tenantId)
+
+     }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var body: [String: Any] = [:]
-    if let MFAPendingCredential = MFAPendingCredential {
-      body["mfaPendingCredential"] = MFAPendingCredential
-    }
-    if let MFAEnrollmentID = MFAEnrollmentID {
-      body["mfaEnrollmentId"] = MFAEnrollmentID
-    }
-    if let signInInfo = signInInfo {
-      body["phoneSignInInfo"] = signInInfo.dictionary
-    }
-    if let tenantID = tenantID {
-      body[kTenantIDKey] = tenantID
-    }
-    return body
+      [:]
   }
 }

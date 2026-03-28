@@ -17,8 +17,8 @@ import Foundation
 /**
  @brief Utility class for constructing Twitter Sign In credentials.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- open class TwitterAuthProvider {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public enum TwitterAuthProvider {
   public static let id = "twitter.com"
 
   /**
@@ -28,31 +28,26 @@ import Foundation
       @param secret The Twitter OAuth secret.
       @return An AuthCredential containing the Twitter credentials.
    */
-  public class func credential(withToken token: String, secret: String) -> AuthCredential {
+  public static func credential(withToken token: String, secret: String) -> AuthCredential {
     return TwitterAuthCredential(withToken: token, secret: secret)
-  }
-
-  @available(*, unavailable)
-   public init() {
-    fatalError("This class is not meant to be initialized.")
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class TwitterAuthCredential: AuthCredential, Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct TwitterAuthCredential: AuthCredential, Codable {
   let token: String
   let secret: String
+    var provider: String { TwitterAuthProvider.id }
 
   init(withToken token: String, secret: String) {
     self.token = token
     self.secret = secret
-    super.init(provider: TwitterAuthProvider.id)
   }
 
-  override func prepare(_ request: VerifyAssertionRequest) {
-    request.providerAccessToken = token
-    request.providerOAuthTokenSecret = secret
-  }
+    func prepare(_ request: inout VerifyAssertionRequest) {
+        request.providerAccessToken = token
+        request.providerOAuthTokenSecret = secret
+    }
 
     enum CodingKeys: CodingKey {
         case token
@@ -65,10 +60,9 @@ class TwitterAuthCredential: AuthCredential, Codable {
         try container.encode(self.secret, forKey: .secret)
     }
 
-    required init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.token = try container.decode(String.self, forKey: .token)
         self.secret = try container.decode(String.self, forKey: .secret)
-        super.init(provider: TwitterAuthProvider.id)
     }
 }

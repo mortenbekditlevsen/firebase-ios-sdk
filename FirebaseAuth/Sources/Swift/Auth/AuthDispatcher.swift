@@ -17,6 +17,7 @@ import Foundation
 /** @class AuthDispatcher
     @brief A utility class used to facilitate scheduling tasks to be executed in the future.
  */
+@MainActor
 class AuthDispatcher {
   static let shared = AuthDispatcher()
 

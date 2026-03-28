@@ -17,12 +17,12 @@ import Foundation
 ////import FirebaseCore
 ////import FirebaseCoreExtension
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public protocol AuthProvider {
   func auth() -> Auth
 }
 
-//@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+//@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 // class AuthComponent: Library, AuthProvider {
 //  // MARK: - Private Variables
 //

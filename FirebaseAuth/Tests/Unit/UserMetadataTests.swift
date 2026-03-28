@@ -20,7 +20,7 @@ import XCTest
 /** @class FIRUserMetadataTests
     @brief Tests for @c FIRUserMetadata.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class UserMetadataTests: XCTestCase {
   let kCreationDateTimeIntervalInSeconds: TimeInterval = 1_505_858_500
   let kLastSignInDateTimeIntervalInSeconds: TimeInterval = 1_505_858_583

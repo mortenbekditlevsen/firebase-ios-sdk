@@ -18,13 +18,12 @@ import Foundation
     @brief Helper object that contains the result of a successful sign-in, link and reauthenticate
         action. It contains references to a `User` instance and a `AdditionalUserInfo` instance.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class AuthDataResult: Codable {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct AuthDataResult: Codable {
   /** @property user
       @brief The signed in user.
    */
-  public let user: User
-
+     public let user: User
   /** @property additionalUserInfo
       @brief If available contains the additional IdP specific information about signed in user.
    */
@@ -50,7 +49,7 @@ import Foundation
    @param credential The updated OAuth credential if available.
    */
   public init(withUser user: User,
-                    additionalUserInfo: AdditionalUserInfo?,
+              additionalUserInfo: AdditionalUserInfo?,
                     credential: OAuthCredential? = nil) {
     self.user = user
     self.additionalUserInfo = additionalUserInfo
@@ -75,7 +74,7 @@ import Foundation
          try container.encodeIfPresent(credential, forKey: .credential)
      }
 
-     public required init(from decoder: Decoder) throws {
+     public init(from decoder: Decoder) throws {
          let container = try decoder.container(keyedBy: CodingKeys.self)
          self.additionalUserInfo = try container.decodeIfPresent(AdditionalUserInfo.self, forKey: .additionalUserInfo)
          self.credential =  try container.decodeIfPresent(OAuthCredential.self, forKey: .credential)

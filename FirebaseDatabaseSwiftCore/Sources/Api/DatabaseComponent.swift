@@ -18,12 +18,13 @@ protocol DatabaseProvider {
 
 /// A concrete implementation for FIRDatabaseProvider to create Database
 /// instances.
+
 class DatabaseComponent: DatabaseProvider {
     var lock: NSLock = NSLock()
     internal init(app: FirebaseApp) {
         self.app = app
     }
-    
+
     func databaseForApp(_ app: FirebaseApp, URL url: String) -> Database {
         guard let databaseUrl = URL(string: url) else {
             fatalError("The Database URL '\(url)' cannot be parsed. Specify a valid DatabaseURL within FIRApp or from your databaseForApp:URL: call.")

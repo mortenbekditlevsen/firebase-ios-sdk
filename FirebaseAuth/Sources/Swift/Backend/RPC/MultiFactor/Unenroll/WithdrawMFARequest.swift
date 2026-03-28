@@ -21,22 +21,28 @@ private let kWithdrawMFAEndPoint = "accounts/mfaEnrollment:withdraw"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class WithdrawMFARequest: IdentityToolkitRequest, AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct WithdrawMFARequest: IdentityToolkitRequest, AuthRPCRequest {
+    public typealias Response = WithdrawMFAResponse
+
   public var idToken: String?
   public var mfaEnrollmentID: String?
 
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = WithdrawMFAResponse()
+
+    public var useStaging: Bool { false }
+    public var useIdentityPlatform: Bool { false }
+    public var endpoint: String { kWithdrawMFAEndPoint }
+    public var requestConfiguration: AuthRequestConfiguration
 
   public init(idToken: String?,
                     mfaEnrollmentID: String?,
                     requestConfiguration: AuthRequestConfiguration) {
     self.idToken = idToken
     self.mfaEnrollmentID = mfaEnrollmentID
-    super.init(endpoint: kWithdrawMFAEndPoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

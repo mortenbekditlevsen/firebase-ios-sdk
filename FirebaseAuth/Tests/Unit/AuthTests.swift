@@ -20,7 +20,7 @@ import FirebaseAuthInterop
 
 //import FirebaseCore
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class AuthTests: RPCBaseTests {
   static let kAccessToken = "TEST_ACCESS_TOKEN"
   static let kNewAccessToken = "NEW_ACCESS_TOKEN"
@@ -768,7 +768,7 @@ class AuthTests: RPCBaseTests {
 
   #if os(iOS)
     class FakeProvider: FederatedAuthProvider {
-      @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
+      @available(iOS 13, tvOS 13, macOS 15.0, watchOS 8, *)
       func credential(with UIDelegate: FirebaseAuth.AuthUIDelegate?) async throws ->
         FirebaseAuth.AuthCredential {
         fatalError("Should not use this async method yet")

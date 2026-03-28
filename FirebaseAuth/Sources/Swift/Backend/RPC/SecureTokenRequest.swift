@@ -73,13 +73,16 @@ private let kCodeKey = "code"
 /** @var gAPIHost
  @brief Host for server API calls.
  */
-private var gAPIHost = "securetoken.googleapis.com"
+private let gAPIHost = "securetoken.googleapis.com"
 
 /** @class FIRSecureTokenRequest
     @brief Represents the parameters for the token endpoint.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class SecureTokenRequest: AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public struct SecureTokenRequest: AuthRPCRequest {
+    
+     public typealias Response = SecureTokenResponse
+
   /** @property grantType
       @brief The type of grant requested.
       @see FIRSecureTokenRequestGrantType
@@ -109,12 +112,8 @@ private var gAPIHost = "securetoken.googleapis.com"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = SecureTokenResponse()
 
-  let _requestConfiguration: AuthRequestConfiguration
-  public func requestConfiguration() -> AuthRequestConfiguration {
-    _requestConfiguration
-  }
+  public let requestConfiguration: AuthRequestConfiguration
 
   public static func authCodeRequest(code: String,
                                            requestConfiguration: AuthRequestConfiguration)
@@ -147,12 +146,12 @@ private var gAPIHost = "securetoken.googleapis.com"
     self.refreshToken = refreshToken
     self.code = code
     apiKey = requestConfiguration.apiKey
-    _requestConfiguration = requestConfiguration
+      self.requestConfiguration = requestConfiguration
   }
 
   public func requestURL() -> URL {
     let urlString: String
-    if let emulatorHostAndPort = _requestConfiguration.emulatorHostAndPort {
+    if let emulatorHostAndPort = requestConfiguration.emulatorHostAndPort {
       urlString = "http://\(emulatorHostAndPort)/\(gAPIHost)/v1/token?key=\(apiKey)"
     } else {
       urlString = "https://\(gAPIHost)/v1/token?key=\(apiKey)"
@@ -181,7 +180,7 @@ private var gAPIHost = "securetoken.googleapis.com"
   // MARK: Internal API for development
 
   static var host: String { gAPIHost }
-  static func setHost(_ host: String) {
-    gAPIHost = host
-  }
+//  static func setHost(_ host: String) {
+//    gAPIHost = host
+//  }
 }

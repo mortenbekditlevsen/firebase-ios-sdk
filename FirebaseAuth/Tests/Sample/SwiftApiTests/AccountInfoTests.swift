@@ -75,7 +75,7 @@ class AccountInfoTests: TestsBase {
     waitForExpectations(timeout: TestsBase.kExpectationsTimeout)
   }
 
-  @available(iOS 13, tvOS 13, macOS 10.15, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, watchOS 7, *)
   func testUpdatingUsersEmailAsync() async throws {
     let auth = Auth.auth()
     do {

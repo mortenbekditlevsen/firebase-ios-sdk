@@ -18,7 +18,7 @@
   import FirebaseFunctions
 
   @available(swift 5.0)
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, *)
+  @available(iOS 13.0, macOS 15.0, macCatalyst 13.0, tvOS 13.0, *)
   public extension HTTPSCallable {
     // MARK: - HTTPS Callable Functions
 

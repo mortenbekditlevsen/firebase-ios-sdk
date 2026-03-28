@@ -15,7 +15,7 @@
 import Foundation
 
 #if compiler(>=5.5.2) && canImport(_Concurrency)
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   public extension StorageReference {
     /// Asynchronously downloads the object at the StorageReference to a Data object in memory.
     /// A Data object of the provided max size will be allocated, so ensure that the device has

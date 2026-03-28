@@ -21,25 +21,28 @@ private let kFinalizeMFASignInEndPoint = "accounts/mfaSignIn:finalize"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class FinalizeMFASignInRequest: IdentityToolkitRequest, AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct FinalizeMFASignInRequest: IdentityToolkitRequest, AuthRPCRequest {
+    public typealias Response = FinalizeMFASignInResponse
+    
   var mfaPendingCredential: String?
   var verificationInfo: AuthProtoFinalizeMFAPhoneRequestInfo?
 
   /** @var response
       @brief The corresponding response for this request
    */
-  var response: AuthRPCResponse = FinalizeMFAEnrollmentResponse()
+
+    public var useStaging: Bool { false }
+    public var useIdentityPlatform: Bool { true }
+    public var endpoint: String { kFinalizeMFASignInEndPoint }
+    public var requestConfiguration: AuthRequestConfiguration
 
   init(mfaPendingCredential: String?,
        verificationInfo: AuthProtoFinalizeMFAPhoneRequestInfo?,
        requestConfiguration: AuthRequestConfiguration) {
     self.mfaPendingCredential = mfaPendingCredential
     self.verificationInfo = verificationInfo
-    super.init(endpoint: kFinalizeMFASignInEndPoint,
-               requestConfiguration: requestConfiguration,
-               useIdentityPlatform: true,
-               useStaging: false)
+      self.requestConfiguration = requestConfiguration
   }
 
   func unencodedHTTPRequestBody() throws -> [String: Any] {

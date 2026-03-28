@@ -42,7 +42,7 @@ internal class FunctionsContextProvider: NSObject {
   }
 
   // TODO: Implement async await version
-//  @available(macOS 10.15.0, *)
+//  @available(macOS 15.0.0, *)
 //  internal func getContext() async throws -> FunctionsContext {
 //    return FunctionsContext(authToken: nil, fcmToken: nil, appCheckToken: nil)
 //

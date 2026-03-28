@@ -14,12 +14,7 @@
 
 import Foundation
 
-class WithdrawMFAResponse: AuthRPCResponse {
-  var idToken: String?
-  var refreshToken: String?
-
-  public func setFields(dictionary: [String: Any]) throws {
-    idToken = dictionary["idToken"] as? String
-    refreshToken = dictionary["refreshToken"] as? String
-  }
+struct WithdrawMFAResponse: AuthRPCResponse {
+  let idToken: String?
+  let refreshToken: String?
 }

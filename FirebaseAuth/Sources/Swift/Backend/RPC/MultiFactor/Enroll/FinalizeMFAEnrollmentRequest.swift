@@ -21,8 +21,10 @@ private let kFinalizeMFAEnrollmentEndPoint = "accounts/mfaEnrollment:finalize"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-class FinalizeMFAEnrollmentRequest: IdentityToolkitRequest, AuthRPCRequest {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+struct FinalizeMFAEnrollmentRequest: IdentityToolkitRequest, AuthRPCRequest {
+    public typealias Response = FinalizeMFAEnrollmentResponse
+
   var idToken: String?
 
   var displayName: String?
@@ -34,18 +36,18 @@ class FinalizeMFAEnrollmentRequest: IdentityToolkitRequest, AuthRPCRequest {
    */
   var response: AuthRPCResponse = FinalizeMFAEnrollmentResponse()
 
+    var endpoint: String { kFinalizeMFAEnrollmentEndPoint }
+    var requestConfiguration: AuthRequestConfiguration
+    var useStaging: Bool { false }
+    var useIdentityPlatform: Bool { true }
+    
   init(idToken: String?, displayName: String?,
        verificationInfo: AuthProtoFinalizeMFAPhoneRequestInfo?,
        requestConfiguration: AuthRequestConfiguration) {
     self.idToken = idToken
     self.displayName = displayName
     self.verificationInfo = verificationInfo
-    super.init(
-      endpoint: kFinalizeMFAEnrollmentEndPoint,
-      requestConfiguration: requestConfiguration,
-      useIdentityPlatform: true,
-      useStaging: false
-    )
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {
@@ -60,7 +62,7 @@ class FinalizeMFAEnrollmentRequest: IdentityToolkitRequest, AuthRPCRequest {
       }
     }
 
-    if let tenantID = tenantID {
+    if let tenantID {
       body[kTenantIDKey] = tenantID
     }
     return body

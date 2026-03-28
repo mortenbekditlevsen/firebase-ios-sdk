@@ -121,9 +121,10 @@ private let kLastNameKey = "lastName"
     @brief Represents the parameters for the verifyAssertion endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/verifyAssertion
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class VerifyAssertionRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct VerifyAssertionRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = VerifyAssertionResponse
   /** @property requestURI
       @brief The URI to which the IDP redirects the user back. It may contain federated login result
           params added by the IDP.
@@ -201,15 +202,18 @@ private let kLastNameKey = "lastName"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = VerifyAssertionResponse()
+
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kVerifyAssertionEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
 
   public init(providerID: String, requestConfiguration: AuthRequestConfiguration) {
     self.providerID = providerID
     returnSecureToken = true
     autoCreate = true
     returnIDPCredential = true
-
-    super.init(endpoint: kVerifyAssertionEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

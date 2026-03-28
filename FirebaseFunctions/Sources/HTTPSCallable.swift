@@ -149,7 +149,7 @@ open class HTTPSCallable: NSObject {
      * - Throws: An error if the Cloud Functions invocation failed.
      * - Returns: The result of the call.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     open func call(_ data: Any? = nil) async throws -> HTTPSCallableResult {
       return try await withCheckedThrowingContinuation { continuation in
         // TODO(bonus): Use task to handle and cancellation.

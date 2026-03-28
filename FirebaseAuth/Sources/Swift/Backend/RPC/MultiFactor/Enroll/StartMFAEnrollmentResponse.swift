@@ -14,19 +14,16 @@
 
 import Foundation
 
-public class StartMFAEnrollmentResponse:
-  AuthRPCResponse {
-  public func setFields(dictionary: [String: Any]) throws {
-    if let data = dictionary["phoneSessionInfo"] as? [String: Any] {
-      enrollmentResponse = AuthProtoStartMFAPhoneResponseInfo(dictionary: data)
-    } else {
-      fatalError()
-      // XXX TODO: throw something. original code does not strictly follow
-      // obj-c error conventions. returning 'false' should be accompanied by an error, but
-      // in the code there was none. importing this into swift would throw a built-in 'error missing' error
-      // throw xxx
+public struct StartMFAEnrollmentResponse:
+    AuthRPCResponse, Decodable {
+    enum CodingKeys: CodingKey {
+        case enrollmentResponse
     }
-  }
-
-  var enrollmentResponse: AuthProtoStartMFAPhoneResponseInfo?
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.enrollmentResponse = try container.decodeIfPresent(AuthProtoStartMFAPhoneResponseInfo.self, forKey: .enrollmentResponse)
+    }
+    
+    var enrollmentResponse: AuthProtoStartMFAPhoneResponseInfo?
 }

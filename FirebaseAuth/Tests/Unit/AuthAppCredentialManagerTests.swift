@@ -18,7 +18,7 @@
 
   @testable import FirebaseAuth
 
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   class AuthAppCredentialManagerTests: XCTestCase {
     let kReceipt = "FAKE_RECEIPT"
     let kVerificationTimeout = 1.0

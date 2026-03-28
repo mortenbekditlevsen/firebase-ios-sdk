@@ -19,7 +19,7 @@ import XCTest
 @testable import FirebaseAuth
 
 #if os(iOS)
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   class OAuthProviderTests: RPCBaseTests {
     static let kFakeAuthorizedDomain = "test.firebaseapp.com"
     private let kFakeAccessToken = "fakeAccessToken"

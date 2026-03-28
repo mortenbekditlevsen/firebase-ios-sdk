@@ -19,7 +19,7 @@ import Foundation
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/setAccountInfo
  */
 
-public class SetAccountInfoResponseProviderUserInfo {
+public struct SetAccountInfoResponseProviderUserInfo: Decodable, Sendable {
   /** @property providerID
       @brief The ID of the identity provider.
    */
@@ -35,24 +35,18 @@ public class SetAccountInfoResponseProviderUserInfo {
    */
   public var photoURL: URL?
 
-  /** @fn initWithAPIKey:
-      @brief Designated initializer.
-      @param dictionary The provider user info data from endpoint.
-   */
-  public init(dictionary: [String: Any]) {
-    providerID = dictionary["providerId"] as? String
-    displayName = dictionary["displayName"] as? String
-    if let photoURL = dictionary["photoUrl"] as? String {
-      self.photoURL = URL(string: photoURL)
+    enum CodingKeys: String, CodingKey {
+        case providerID = "providerId"
+        case displayName
+        case photoURL = "photoUrl"
     }
-  }
 }
 
 /** @class FIRSetAccountInfoResponse
     @brief Represents the response from the setAccountInfo endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/setAccountInfo
  */
- public class SetAccountInfoResponse: AuthRPCResponse {
+ public struct SetAccountInfoResponse: AuthRPCResponse, Decodable {
   /** @property email
       @brief The email or the user.
    */
@@ -85,17 +79,24 @@ public class SetAccountInfoResponseProviderUserInfo {
    */
   public var refreshToken: String?
 
+     enum CodingKeys: String, CodingKey {
+         case email
+         case displayName
+         case providerUserInfo
+         case idToken
+         case expiresIn = "expiresIn"
+         case refreshToken
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.email = try container.decodeIfPresent(String.self, forKey: .email)
+         self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+         self.providerUserInfo = try container.decodeIfPresent([SetAccountInfoResponseProviderUserInfo].self, forKey: .providerUserInfo)
+         self.idToken = try container.decodeIfPresent(String.self, forKey: .idToken)
+         self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+         self.refreshToken = try container.decodeIfPresent(String.self, forKey: .refreshToken)
+     }
   public func setFields(dictionary: [String: Any]) throws {
-    email = dictionary["email"] as? String
-    displayName = dictionary["displayName"] as? String
-    idToken = dictionary["idToken"] as? String
-    if let expiresIn = dictionary["expiresIn"] as? String {
-      approximateExpirationDate = Date(timeIntervalSinceNow: (expiresIn as NSString)
-        .doubleValue)
-    }
-    refreshToken = dictionary["refreshToken"] as? String
-    if let providerUserInfoData = dictionary["providerUserInfo"] as? [[String: Any]] {
-      providerUserInfo = providerUserInfoData.map { .init(dictionary: $0) }
-    }
   }
 }

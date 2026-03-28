@@ -21,41 +21,46 @@ private let kStartMFAEnrollmentEndPoint = "accounts/mfaEnrollment:start"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class StartMFAEnrollmentRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ struct StartMFAEnrollmentRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = StartMFAEnrollmentResponse
+
   private(set) var idToken: String?
   private(set) var enrollmentInfo: AuthProtoStartMFAPhoneRequestInfo?
 
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = StartMFAEnrollmentResponse()
+     
+     var useIdentityPlatform: Bool { true }
+     var useStaging: Bool { false }
+     var endpoint: String { kStartMFAEnrollmentEndPoint }
+     var requestConfiguration: AuthRequestConfiguration
 
   init(idToken: String?,
        enrollmentInfo: AuthProtoStartMFAPhoneRequestInfo?,
        requestConfiguration: AuthRequestConfiguration) {
-    self.idToken = idToken
-    self.enrollmentInfo = enrollmentInfo
-    super.init(
-      endpoint: kStartMFAEnrollmentEndPoint,
-      requestConfiguration: requestConfiguration,
-      useIdentityPlatform: true,
-      useStaging: false
-    )
+      self.idToken = idToken
+      self.enrollmentInfo = enrollmentInfo
+      self.requestConfiguration = requestConfiguration
   }
+     
+     enum CodingKeys: CodingKey {
+         case idToken
+         case phoneEnrollmentInfo
+         case tenantId
+         
+     }
+     
+     func encode(to encoder: any Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encodeIfPresent(idToken.self, forKey: .idToken)
+         try container.encodeIfPresent(enrollmentInfo, forKey: .phoneEnrollmentInfo)
+         try container.encodeIfPresent(tenantID, forKey: .tenantId)
+     }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var body: [String: Any] = [:]
-    if let idToken = idToken {
-      body["idToken"] = idToken
-    }
-    if let enrollmentInfo = enrollmentInfo {
-      body["phoneEnrollmentInfo"] = enrollmentInfo.dictionary
-    }
-    if let tenantID = tenantID {
-      body[kTenantIDKey] = tenantID
-    }
-    return body
+      [:]
   }
 }

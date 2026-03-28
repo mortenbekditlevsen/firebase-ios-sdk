@@ -14,19 +14,19 @@
 
 import Foundation
 
-public class VerifyPhoneNumberResponse:
+public struct VerifyPhoneNumberResponse:
   AuthRPCResponse {
   /** @property IDToken
    @brief Either an authorization code suitable for performing an STS token exchange, or the
    access token from Secure Token Service, depending on whether @c returnSecureToken is set
    on the request.
    */
-   public var idToken: String?
+   public var idToken: String
 
   /** @property refreshToken
    @brief The refresh token from Secure Token Service.
    */
-  public var refreshToken: String?
+  public var refreshToken: String
 
   /** @property localID
    @brief The Firebase Auth user ID.
@@ -54,21 +54,25 @@ public class VerifyPhoneNumberResponse:
    */
   public var approximateExpirationDate: Date?
 
-  // XXX TODO: What might this be?
-  func expectedKind() -> String? {
-    nil
-  }
-
-  public func setFields(dictionary: [String: Any]) throws {
-    idToken = dictionary["idToken"] as? String
-    refreshToken = dictionary["refreshToken"] as? String
-    isNewUser = (dictionary["isNewUser"] as? Bool) ?? false
-    localID = dictionary["localId"] as? String
-    phoneNumber = dictionary["phoneNumber"] as? String
-    temporaryProof = dictionary["temporaryProof"] as? String
-    if let expiresIn = dictionary["expiresIn"] as? String {
-      approximateExpirationDate = Date(timeIntervalSinceNow: (expiresIn as NSString)
-        .doubleValue)
+    
+    enum CodingKeys: String, CodingKey {
+        case idToken
+        case refreshToken
+        case localID = "localId"
+        case phoneNumber
+        case temporaryProof
+        case isNewUser
+        case expiresIn
     }
-  }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.idToken = try container.decode(String.self, forKey: .idToken)
+        self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+        self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
+        self.phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
+        self.temporaryProof = try container.decodeIfPresent(String.self, forKey: .temporaryProof)
+        self.isNewUser = try container.decode(Bool.self, forKey: .isNewUser)
+        self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+    }
 }

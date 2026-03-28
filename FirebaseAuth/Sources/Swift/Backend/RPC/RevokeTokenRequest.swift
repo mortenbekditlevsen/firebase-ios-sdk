@@ -43,9 +43,11 @@ private let kIDTokenKey = "idToken"
     @brief Represents the parameters for the verifyPassword endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/verifyPassword
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class RevokeTokenRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct RevokeTokenRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = RevokeTokenResponse
+
   /** @property providerID
       @brief The provider that issued the token to revoke.
    */
@@ -66,12 +68,7 @@ private let kIDTokenKey = "idToken"
    */
   public var idToken: String
 
-  /** @var response
-      @brief The corresponding response for this request
-   */
-  public var response: AuthRPCResponse = RevokeTokenResponse()
-
-  public enum TokenType: Int {
+  public enum TokenType: Int, Sendable {
     case unspecified = 0, refreshToken = 1, accessToken = 2, authorizationCode = 3
   }
 
@@ -79,6 +76,12 @@ private let kIDTokenKey = "idToken"
   public init(withEndpoint endpoint: String, requestConfiguration: AuthRequestConfiguration) {
     fatalError("Use init(withToken: ... instead")
   }
+     
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { true }
+     public var endpoint: String { kRevokeTokenEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
+
 
   public init(withToken token: String,
                     idToken: String,
@@ -89,10 +92,7 @@ private let kIDTokenKey = "idToken"
     tokenType = .authorizationCode
     self.token = token
     self.idToken = idToken
-    super.init(endpoint: kRevokeTokenEndpoint,
-               requestConfiguration: requestConfiguration,
-               useIdentityPlatform: true,
-               useStaging: false)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

@@ -19,7 +19,7 @@ import Foundation
 /** @class FIRAuthAppCredential
     @brief A class represents a credential that proves the identity of the app.
  */
- public class AuthAppCredential: Codable {
+ public struct AuthAppCredential: Codable, Sendable {
   /** @property receipt
       @brief The server acknowledgement of receiving client's claim of identity.
    */

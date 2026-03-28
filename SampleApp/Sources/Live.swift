@@ -10,8 +10,9 @@ import Foundation
 #if canImport(Observation)
 import Observation
 
+@available(macOS 14.0, *)
 @Observable
-class Live<Model: Decodable> {
+class Live<Model: Decodable>: Observable {
     subscript<T>(dynamicMember keyPath: KeyPath<Model, T>) -> T? {
         model?[keyPath: keyPath]
     }

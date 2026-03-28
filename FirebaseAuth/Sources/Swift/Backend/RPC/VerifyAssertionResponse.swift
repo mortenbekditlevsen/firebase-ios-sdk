@@ -18,7 +18,83 @@ import Foundation
  @brief Represents the response from the verifyAssertion endpoint.
  @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/verifyAssertion
  */
- public class VerifyAssertionResponse: AuthRPCResponse {
+public struct VerifyAssertionResponse: AuthRPCResponse, Decodable {
+    internal init(
+        federatedID: String? = nil,
+        providerID: String? = nil,
+        localID: String? = nil,
+        email: String? = nil,
+        inputEmail: String? = nil,
+        originalEmail: String? = nil,
+        oauthRequestToken: String? = nil,
+        oauthScope: String? = nil,
+        firstName: String? = nil,
+        lastName: String? = nil,
+        fullName: String? = nil,
+        nickName: String? = nil,
+        displayName: String? = nil,
+        idToken: String,
+        approximateExpirationDate: Date? = nil,
+        refreshToken: String,
+        action: String? = nil,
+        language: String? = nil,
+        timeZone: String? = nil,
+        photoURL: URL? = nil,
+        dateOfBirth: String? = nil,
+        context: String? = nil,
+        verifiedProvider: [String]? = nil,
+        needConfirmation: Bool = false,
+        emailRecycled: Bool = false,
+        emailVerified: Bool = false,
+        isNewUser: Bool = false,
+        profile: [String : Sendable]? = nil,
+        username: String? = nil,
+        oauthIDToken: String? = nil,
+        oauthExpirationDate: Date? = nil,
+        oauthAccessToken: String? = nil,
+        oauthSecretToken: String? = nil,
+        pendingToken: String? = nil,
+        MFAPendingCredential: String? = nil,
+        MFAInfo: [AuthProtoMFAEnrollment]? = nil
+    ) {
+        self.federatedID = federatedID
+        self.providerID = providerID
+        self.localID = localID
+        self.email = email
+        self.inputEmail = inputEmail
+        self.originalEmail = originalEmail
+        self.oauthRequestToken = oauthRequestToken
+        self.oauthScope = oauthScope
+        self.firstName = firstName
+        self.lastName = lastName
+        self.fullName = fullName
+        self.nickName = nickName
+        self.displayName = displayName
+        self.idToken = idToken
+        self.approximateExpirationDate = approximateExpirationDate
+        self.refreshToken = refreshToken
+        self.action = action
+        self.language = language
+        self.timeZone = timeZone
+        self.photoURL = photoURL
+        self.dateOfBirth = dateOfBirth
+        self.context = context
+        self.verifiedProvider = verifiedProvider
+        self.needConfirmation = needConfirmation
+        self.emailRecycled = emailRecycled
+        self.emailVerified = emailVerified
+        self.isNewUser = isNewUser
+        self.profile = profile
+        self.username = username
+        self.oauthIDToken = oauthIDToken
+        self.oauthExpirationDate = oauthExpirationDate
+        self.oauthAccessToken = oauthAccessToken
+        self.oauthSecretToken = oauthSecretToken
+        self.pendingToken = pendingToken
+        self.MFAPendingCredential = MFAPendingCredential
+        self.MFAInfo = MFAInfo
+    }
+    
   /** @property federatedID
    @brief The unique ID identifies the IdP account.
    */
@@ -95,7 +171,7 @@ import Foundation
    access token from Secure Token Service, depending on whether @c returnSecureToken is set
    on the request.
    */
-   public var idToken: String?
+   public var idToken: String
 
   /** @property approximateExpirationDate
    @brief The approximate expiration date of the access token.
@@ -105,7 +181,7 @@ import Foundation
   /** @property refreshToken
    @brief The refresh token from Secure Token Service.
    */
-  public var refreshToken: String?
+  public var refreshToken: String
 
   /** @property action
    @brief The action code.
@@ -167,7 +243,7 @@ import Foundation
   /** @property profile
    @brief Dictionary containing the additional IdP specific information.
    */
-  public var profile: [String: Any]?
+     public var profile: [String: Sendable]?
 
   /** @property username
    @brief The name of the user.
@@ -203,72 +279,127 @@ import Foundation
 
   public var MFAInfo: [AuthProtoMFAEnrollment]?
 
+     enum CodingKeys: String, CodingKey {
+         case federatedID = "federatedId"
+         case providerID = "providerId"
+         case localID = "localId"
+         case email
+         case inputEmail
+         case originalEmail
+         case oauthRequestToken
+         case oauthScope
+         case firstName
+         case lastName
+         case fullName
+         case nickName
+         case displayName
+         case idToken
+         
+         
+         case expiresIn
+         case refreshToken
+         case action
+         case language
+         case timeZone
+         case photoURL = "photoUrl"
+         case dateOfBirth
+         case context
+         case verifiedProvider
+         case needConfirmation
+         case emailRecycled
+         case emailVerified
+         case isNewUser
+         case username
+         case oauthIDToken = "oauthIdToken"
+         case oauthExpireIn
+         case oauthAccessToken
+         case oauthSecretToken
+         case pendingToken
+         case MFAPendingCredential = "mfaPendingCredential"
+         case MFAInfo = "mfaInfo"
+         case rawUserInfo
+
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.federatedID = try container.decodeIfPresent(String.self, forKey: .federatedID)
+         self.providerID = try container.decodeIfPresent(String.self, forKey: .providerID)
+         self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
+         self.email = try container.decodeIfPresent(String.self, forKey: .email)
+         self.inputEmail = try container.decodeIfPresent(String.self, forKey: .inputEmail)
+         self.originalEmail = try container.decodeIfPresent(String.self, forKey: .originalEmail)
+         self.oauthRequestToken = try container.decodeIfPresent(String.self, forKey: .oauthRequestToken)
+         self.oauthScope = try container.decodeIfPresent(String.self, forKey: .oauthScope)
+         self.firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
+         self.lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
+         self.fullName = try container.decodeIfPresent(String.self, forKey: .fullName)
+         self.nickName = try container.decodeIfPresent(String.self, forKey: .nickName)
+         self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+         self.idToken = try container.decode(String.self, forKey: .idToken)
+         self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+         self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+         self.action = try container.decodeIfPresent(String.self, forKey: .action)
+         self.language = try container.decodeIfPresent(String.self, forKey: .language)
+         self.timeZone = try container.decodeIfPresent(String.self, forKey: .timeZone)
+         self.photoURL = try container.decodeIfPresent(URL.self, forKey: .photoURL)
+         self.dateOfBirth = try container.decodeIfPresent(String.self, forKey: .dateOfBirth)
+         self.context = try container.decodeIfPresent(String.self, forKey: .context)
+         self.verifiedProvider = try container.decodeIfPresent([String].self, forKey: .verifiedProvider)
+         self.needConfirmation = try container.decodeIfPresent(Bool.self, forKey: .needConfirmation) ?? false
+         self.emailRecycled = try container.decodeIfPresent(Bool.self, forKey: .emailRecycled) ?? false
+         self.emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified) ?? false
+         self.isNewUser = try container.decode(Bool.self, forKey: .isNewUser)
+         self.username = try container.decodeIfPresent(String.self, forKey: .username)
+         self.oauthIDToken = try container.decodeIfPresent(String.self, forKey: .oauthIDToken)
+         self.oauthExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .oauthExpireIn))?.date
+         self.oauthAccessToken = try container.decodeIfPresent(String.self, forKey: .oauthAccessToken)
+         self.oauthSecretToken = try container.decodeIfPresent(String.self, forKey: .oauthSecretToken)
+         self.pendingToken = try container.decodeIfPresent(String.self, forKey: .pendingToken)
+         self.MFAPendingCredential = try container.decodeIfPresent(String.self, forKey: .MFAPendingCredential)
+         self.MFAInfo = try container.decodeIfPresent([AuthProtoMFAEnrollment].self, forKey: .MFAInfo)
+         
+         if let rawUserInfo = try container.decodeIfPresent(String.self, forKey: .rawUserInfo) {
+             
+             //    if let rawUserInfo = dictionary["rawUserInfo"] as? String,
+             if let data = rawUserInfo.data(using: .utf8) {
+                 if let info = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves),
+                    let profile = info as? [String: Sendable] {
+                     self.profile = profile
+                 }
+             }
+             //    } else if let profile = dictionary["rawUserInfo"] as? [String: Any] {
+             //      self.profile = profile
+             //    }
+
+         }
+         
+         
+         if let verifiedProvider = try? container.decode([String].self, forKey: .verifiedProvider) {
+             self.verifiedProvider = verifiedProvider
+         } else if let verifiedProvider = try? container.decode(String.self, forKey: .verifiedProvider) {
+             if let data = verifiedProvider.data(using: .utf8) {
+                 if let decoded = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves),
+                    let provider = decoded as? [String] {
+                     self.verifiedProvider = provider
+                 }
+             }
+         }
+     }
+     
   public func setFields(dictionary: [String: Any]) throws {
-    federatedID = dictionary["federatedId"] as? String
-    providerID = dictionary["providerId"] as? String
-    localID = dictionary["localId"] as? String
-    emailRecycled = dictionary["emailRecycled"] as? Bool ?? false
-    emailVerified = dictionary["emailVerified"] as? Bool ?? false
-    email = dictionary["email"] as? String
-    inputEmail = dictionary["inputEmail"] as? String
-    originalEmail = dictionary["originalEmail"] as? String
-    oauthRequestToken = dictionary["oauthRequestToken"] as? String
-    oauthScope = dictionary["oauthScope"] as? String
-    firstName = dictionary["firstName"] as? String
-    lastName = dictionary["lastName"] as? String
-    fullName = dictionary["fullName"] as? String
-    nickName = dictionary["nickName"] as? String
-    displayName = dictionary["displayName"] as? String
-    idToken = dictionary["idToken"] as? String
-    if let expiresIn = dictionary["expiresIn"] as? String {
-      approximateExpirationDate = Date(timeIntervalSinceNow: (expiresIn as NSString)
-        .doubleValue)
-    }
-    refreshToken = dictionary["refreshToken"] as? String
-    isNewUser = dictionary["isNewUser"] as? Bool ?? false
-    if let rawUserInfo = dictionary["rawUserInfo"] as? String,
-       let data = rawUserInfo.data(using: .utf8) {
-      if let info = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves),
-         let profile = info as? [String: Any] {
-        self.profile = profile
-      }
-    } else if let profile = dictionary["rawUserInfo"] as? [String: Any] {
-      self.profile = profile
-    }
-    username = dictionary["username"] as? String
-    action = dictionary["action"] as? String
-    language = dictionary["language"] as? String
-    timeZone = dictionary["timeZone"] as? String
-    photoURL = URL(string: dictionary["photoUrl"] as? String ?? "")
-    dateOfBirth = dictionary["dateOfBirth"] as? String
-    context = dictionary["context"] as? String
-    needConfirmation = dictionary["needConfirmation"] as? Bool ?? false
-
-    if let verifiedProvider = dictionary["verifiedProvider"] as? String,
-       let data = verifiedProvider.data(using: .utf8) {
-      if let decoded = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves),
-         let provider = decoded as? [String] {
-        self.verifiedProvider = provider
-      }
-    } else if let verifiedProvider = dictionary["verifiedProvider"] as? [String] {
-      self.verifiedProvider = verifiedProvider
-    }
-
-    oauthIDToken = dictionary["oauthIdToken"] as? String
-    if let oauthExpirationDate = dictionary["oauthExpireIn"] as? String {
-      self
-        .oauthExpirationDate = Date(timeIntervalSinceNow: (oauthExpirationDate as NSString)
-          .doubleValue)
-    }
-    oauthAccessToken = dictionary["oauthAccessToken"] as? String
-    oauthSecretToken = dictionary["oauthTokenSecret"] as? String
-    pendingToken = dictionary["pendingToken"] as? String
-
-    if let mfaInfoDicts = dictionary["mfaInfo"] as? [[String: Any]] {
-      MFAInfo = mfaInfoDicts.map {
-        AuthProtoMFAEnrollment(dictionary: $0)
-      }
-    }
-    MFAPendingCredential = dictionary["mfaPendingCredential"] as? String
   }
+}
+
+struct RelativeDate: Decodable {
+    var date: Date
+    enum CodingKeys: CodingKey {
+        case date
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let relativeDate = try container.decode(String.self)
+        self.date = Date(timeIntervalSinceNow: Double(relativeDate) ?? 0)
+    }
 }

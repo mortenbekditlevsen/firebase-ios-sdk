@@ -63,9 +63,10 @@ private let kTenantIDKey = "tenantId"
     @brief Represents the parameters for the createAuthUri endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/createAuthUri
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class CreateAuthURIRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct CreateAuthURIRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = CreateAuthURIResponse
   /** @property identifier
       @brief The email or federated ID of the user.
    */
@@ -107,13 +108,17 @@ private let kTenantIDKey = "tenantId"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = CreateAuthURIResponse()
+
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kCreateAuthURIEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
 
   public init(identifier: String, continueURI: String,
                     requestConfiguration: AuthRequestConfiguration) {
     self.identifier = identifier
     self.continueURI = continueURI
-    super.init(endpoint: kCreateAuthURIEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

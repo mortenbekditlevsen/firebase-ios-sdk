@@ -77,9 +77,11 @@ extension AuthOperationType {
   }
 }
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class VerifyPhoneNumberRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct VerifyPhoneNumberRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = VerifyPhoneNumberResponse
+
   /** @property verificationID
        @brief The verification ID obtained from the response of @c sendVerificationCode.
    */
@@ -110,10 +112,14 @@ extension AuthOperationType {
    */
   public var operation: AuthOperationType
 
+     
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kVerifyPhoneNumberEndPoint }
+     public var requestConfiguration: AuthRequestConfiguration
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = VerifyPhoneNumberResponse()
 
   /** @fn initWithTemporaryProof:phoneNumberAPIKey
       @brief Designated initializer.
@@ -127,7 +133,7 @@ extension AuthOperationType {
     self.temporaryProof = temporaryProof
     self.phoneNumber = phoneNumber
     self.operation = operation
-    super.init(endpoint: kVerifyPhoneNumberEndPoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   /** @fn initWithVerificationID:verificationCode:requestConfiguration
@@ -137,6 +143,7 @@ extension AuthOperationType {
       @param operation Indicates what operation triggered the verify phone number request.
       @param requestConfiguration An object containing configurations to be added to the request.
    */
+     
   public init(verificationID: String,
                     verificationCode: String,
                     operation: AuthOperationType,
@@ -144,7 +151,7 @@ extension AuthOperationType {
     self.verificationID = verificationID
     self.verificationCode = verificationCode
     self.operation = operation
-    super.init(endpoint: kVerifyPhoneNumberEndPoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

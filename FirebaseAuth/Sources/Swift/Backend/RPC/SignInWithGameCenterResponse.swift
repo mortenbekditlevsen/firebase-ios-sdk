@@ -14,10 +14,10 @@
 
 import Foundation
 
-public class SignInWithGameCenterResponse:
-  AuthRPCResponse {
-   public var idToken: String?
-  public var refreshToken: String?
+public struct SignInWithGameCenterResponse:
+  AuthRPCResponse, Decodable {
+   public var idToken: String
+  public var refreshToken: String
   public var localID: String?
   public var playerID: String?
   public var teamPlayerID: String?
@@ -25,21 +25,32 @@ public class SignInWithGameCenterResponse:
   public var approximateExpirationDate: Date?
   public var isNewUser: Bool = false
   public var displayName: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case idToken
+        case refreshToken
+        case localID = "localId"
+        case playerID = "playerId"
+        case teamPlayerID = "teamPlayerId"
+        case gamePlayerID = "gamePlayerId"
+        case expiresIn
+        case isNewUser
+        case displayName
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.idToken = try container.decode(String.self, forKey: .idToken)
+        self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+        self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
+        self.playerID = try container.decodeIfPresent(String.self, forKey: .playerID)
+        self.teamPlayerID = try container.decodeIfPresent(String.self, forKey: .teamPlayerID)
+        self.gamePlayerID = try container.decodeIfPresent(String.self, forKey: .gamePlayerID)
+        self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+        self.isNewUser = try container.decodeIfPresent(Bool.self, forKey: .isNewUser) ?? false
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+    }
 
   public func setFields(dictionary: [String: Any]) throws {
-    idToken = dictionary["idToken"] as? String
-    refreshToken = dictionary["refreshToken"] as? String
-    localID = dictionary["localId"] as? String
-    if let approximateExpirationDate = dictionary["expiresIn"] as? String {
-      self
-        .approximateExpirationDate =
-        Date(timeIntervalSinceNow: (approximateExpirationDate as NSString).doubleValue)
-    }
-    refreshToken = dictionary["refreshToken"] as? String
-    playerID = dictionary["playerId"] as? String
-    teamPlayerID = dictionary["teamPlayerId"] as? String
-    gamePlayerID = dictionary["gamePlayerId"] as? String
-    isNewUser = dictionary["isNewUser"] as? Bool ?? false
-    displayName = dictionary["displayName"] as? String
   }
 }

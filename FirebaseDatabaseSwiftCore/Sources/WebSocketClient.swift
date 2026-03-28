@@ -91,7 +91,7 @@ final class WebSocketClient {
     }
 }
 
-private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
+private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableChannelHandler, Sendable {
     public typealias InboundIn = HTTPClientResponsePart
     public typealias OutboundOut = HTTPClientRequestPart
 
@@ -104,7 +104,7 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
     }
 
     func channelActive(context: ChannelHandlerContext) {
-        print("Client connected to \(context.remoteAddress!)")
+//        print("Client connected to \(context.remoteAddress!)")
 
         // We are connected. It's time to send the message to the server to initialize the upgrade dance.
         var headers = HTTPHeaders()
@@ -163,10 +163,11 @@ private final class HTTPInitialRequestHandler: ChannelInboundHandler, RemovableC
 // One added, it sends a ping-pong round trip with "Hello World" data.
 // It also listens for any text frames from the server and prints them.
 
-private final class WebSocketHandler: ChannelInboundHandler {
+private final class WebSocketHandler: ChannelInboundHandler, Sendable {
     typealias InboundIn = WebSocketFrame
     typealias OutboundOut = WebSocketFrame
 
+    // TODO: Protect state to ensure sendability?
     var context: ChannelHandlerContext?
     private let onClose: () -> Void
     private let onMessage: (String) -> Void
@@ -203,7 +204,7 @@ private final class WebSocketHandler: ChannelInboundHandler {
     }
 
     func send<T: StringProtocol>(stringData: T, x: @escaping (ChannelHandlerContext, T) -> ByteBuffer) {
-        guard let context = context else { return }
+        guard let context else { return }
         let send = {
             let buffer = x(context, stringData)
             let frame = WebSocketFrame(fin: true, opcode: .text, maskKey: .random(), data: buffer)

@@ -119,28 +119,28 @@ final fileprivate class DBIterator {
     var key: Data? {
         var length: Int = 0
         let bytes = leveldb_iter_key(db_pointer, &length)
-        guard length > 0 && bytes != nil else {
+        guard length > 0, let bytes else {
             return nil
         }
 
-        return Data(bytes: bytes!, count: length)
+        return Data(bytes: bytes, count: length)
     }
 
     var value: Data? {
         var length: Int = 0
         let bytes = leveldb_iter_value(db_pointer, &length)
-        guard length > 0 && bytes != nil else {
+        guard length > 0, let bytes else {
             return nil
         }
 
-        return Data(bytes: bytes!, count: length)
+        return Data(bytes: bytes, count: length)
     }
 
     var error: String? {
         var error: UnsafeMutablePointer<Int8>? = nil
         leveldb_iter_get_error(db_pointer, &error)
-        if error != nil {
-            return String(cString: error!)
+        if let error {
+            return String(cString: error)
         } else {
             return nil
         }

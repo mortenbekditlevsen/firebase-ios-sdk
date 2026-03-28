@@ -14,26 +14,33 @@
 
 import Foundation
 
- public class AuthProtoMFAEnrollment: AuthProto {
-  public var phoneInfo: String?
-
-  public var mfaEnrollmentID: String?
-
-  public var displayName: String?
-
-  public var enrolledAt: Date?
-
-  public var dictionary: [String: Any]
-
-  public required init(dictionary: [String: Any]) {
-    self.dictionary = dictionary
-    phoneInfo = dictionary["phoneInfo"] as? String
-    mfaEnrollmentID = dictionary["mfaEnrollmentId"] as? String
-    displayName = dictionary["displayName"] as? String
-    if let enrolledAt = dictionary["enrolledAt"] as? String {
-      let dateFormatter = DateFormatter()
-      dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-      self.enrolledAt = dateFormatter.date(from: enrolledAt)
+public struct AuthProtoMFAEnrollment: Decodable, Sendable {
+    public var phoneInfo: String?
+    
+    public var mfaEnrollmentID: String?
+    
+    public var displayName: String?
+    
+    public var enrolledAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case phoneInfo
+        case mfaEnrollmentID = "mfaEnrollmentId"
+        case displayName
+        case enrolledAt
     }
-  }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.phoneInfo = try container.decodeIfPresent(String.self, forKey: .phoneInfo)
+        self.mfaEnrollmentID = try container.decodeIfPresent(String.self, forKey: .mfaEnrollmentID)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        if let enrolledAtString = try container.decodeIfPresent(String.self, forKey: .enrolledAt) {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+            self.enrolledAt = dateFormatter.date(from: enrolledAtString)
+        } else {
+            self.enrolledAt = nil
+        }
+    }
 }

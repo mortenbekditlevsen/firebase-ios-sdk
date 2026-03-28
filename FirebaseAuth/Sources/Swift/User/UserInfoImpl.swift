@@ -14,14 +14,14 @@
 
 import Foundation
 
- public class UserInfoImpl: UserInfo, Codable {
+ public struct UserInfoImpl: UserInfo, Codable, Equatable, Sendable {
   /** @fn userInfoWithGetAccountInfoResponseProviderUserInfo:
       @brief A convenience factory method for constructing a @c FIRUserInfo instance from data
           returned by the getAccountInfo endpoint.
       @param providerUserInfo Data returned by the getAccountInfo endpoint.
       @return A new instance of @c FIRUserInfo using data from the getAccountInfo endpoint.
    */
-  public class func userInfo(withGetAccountInfoResponseProviderUserInfo providerUserInfo: GetAccountInfoResponseProviderUserInfo)
+  public static func userInfo(withGetAccountInfoResponseProviderUserInfo providerUserInfo: GetAccountInfoResponseProviderUserInfo)
     -> UserInfoImpl {
     guard let providerID = providerUserInfo.providerID,
           let uid = providerUserInfo.federatedID else {
@@ -93,7 +93,7 @@ import Foundation
     coder.encode(phoneNumber, forKey: UserInfoImpl.kPhoneNumberCodingKey)
   }
 
-  public required convenience init?(coder: NSCoder) {
+  public init?(coder: NSCoder) {
     guard let providerID = coder.decodeObject(of: [NSString.self],
                                               forKey: UserInfoImpl.kProviderIDCodingKey) as? String,
       let uid = coder.decodeObject(

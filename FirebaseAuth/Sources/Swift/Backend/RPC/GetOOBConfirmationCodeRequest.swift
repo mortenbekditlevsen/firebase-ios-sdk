@@ -134,10 +134,12 @@ private let kVerifyBeforeUpdateEmailRequestTypeValue = "VERIFY_AND_CHANGE_EMAIL"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 
-public class GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
+public struct GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+    public typealias Response = GetOOBConfirmationCodeResponse
+
   /** @property requestType
       @brief The types of OOB Confirmation Code to request.
    */
@@ -197,11 +199,6 @@ public class GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
    */
   public var dynamicLinkDomain: String?
 
-  /** @var response
-      @brief The corresponding response for this request
-   */
-  public var response: AuthRPCResponse = GetOOBConfirmationCodeResponse()
-
   /** @fn initWithRequestType:email:APIKey:
       @brief Designated initializer.
       @param requestType The types of OOB Confirmation Code to request.
@@ -212,7 +209,14 @@ public class GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
           settings to be applied to the OOB code request.
       @param requestConfiguration An object containing configurations to be added to the request.
    */
-  required init(requestType: GetOOBConfirmationCodeRequestType,
+    
+    
+    public var useStaging: Bool { false }
+    public var useIdentityPlatform: Bool { false }
+    public var endpoint: String { kGetOobConfirmationCodeEndpoint }
+    public var requestConfiguration: AuthRequestConfiguration
+
+    init(requestType: GetOOBConfirmationCodeRequestType,
                 email: String?,
                 newEmail: String?,
                 accessToken: String?,
@@ -229,11 +233,7 @@ public class GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
     androidInstallApp = actionCodeSettings?.androidInstallIfNotAvailable ?? false
     handleCodeInApp = actionCodeSettings?.handleCodeInApp ?? false
     dynamicLinkDomain = actionCodeSettings?.dynamicLinkDomain
-
-    super.init(
-      endpoint: kGetOobConfirmationCodeEndpoint,
-      requestConfiguration: requestConfiguration
-    )
+        self.requestConfiguration = requestConfiguration
   }
 
   public static func passwordResetRequest(email: String,

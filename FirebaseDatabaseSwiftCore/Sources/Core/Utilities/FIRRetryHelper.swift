@@ -46,7 +46,7 @@ class FIRRetryHelper {
 
     }
     func retry(_ block: @escaping () -> Void) {
-        if let scheduledRetry = scheduledRetry {
+        if let scheduledRetry {
             FFLog("I-RDB054001", "Canceling existing retry attempt")
             scheduledRetry.cancel()
             self.scheduledRetry = nil

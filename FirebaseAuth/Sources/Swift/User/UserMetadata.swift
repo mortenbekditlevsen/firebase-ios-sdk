@@ -18,7 +18,7 @@ import Foundation
     @brief A data class representing the metadata corresponding to a Firebase user.
  */
 
- public class UserMetadata: Codable {
+ public struct UserMetadata: Codable, Equatable, Sendable {
   /** @property lastSignInDate
       @brief Stores the last sign in date for the corresponding Firebase user.
    */
@@ -49,7 +49,7 @@ import Foundation
     coder.encode(lastSignInDate, forKey: UserMetadata.kLastSignInDateCodingKey)
   }
 
-  public required convenience init?(coder: NSCoder) {
+  public init?(coder: NSCoder) {
     let creationDate = coder.decodeObject(of: [NSDate.self],
                                           forKey: UserMetadata.kCreationDateCodingKey) as? Date
     let lastSignInDate = coder.decodeObject(of: [NSDate.self],

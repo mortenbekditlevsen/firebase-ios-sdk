@@ -17,13 +17,13 @@ import Foundation
 /** @class FIRVerifyCustomTokenResponse
     @brief Represents the response from the verifyCustomToken endpoint.
  */
-public class VerifyCustomTokenResponse: AuthRPCResponse {
+public struct VerifyCustomTokenResponse: AuthRPCResponse, Decodable {
   /** @property idToken
    @brief Either an authorization code suitable for performing an STS token exchange, or the
    access token from Secure Token Service, depending on whether @c returnSecureToken is set
    on the request.
    */
-   public var idToken: String?
+   public var idToken: String
 
   /** @property approximateExpirationDate
    @brief The approximate expiration date of the access token.
@@ -33,19 +33,28 @@ public class VerifyCustomTokenResponse: AuthRPCResponse {
   /** @property refreshToken
    @brief The refresh token from Secure Token Service.
    */
-  public var refreshToken: String?
+  public var refreshToken: String
 
   /** @property isNewUser
    @brief Flag indicating that the user signing in is a new user and not a returning user.
    */
   public var isNewUser: Bool = false
 
-  public func setFields(dictionary: [String: Any]) throws {
-    idToken = dictionary["idToken"] as? String
-    if let dateString = dictionary["expiresIn"] as? NSString {
-      approximateExpirationDate = Date(timeIntervalSinceNow: dateString.doubleValue)
+    enum CodingKeys: CodingKey {
+        case idToken
+        case expiresIn
+        case refreshToken
+        case isNewUser
     }
-    refreshToken = dictionary["refreshToken"] as? String
-    isNewUser = dictionary["isNewUser"] as? Bool ?? false
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.idToken = try container.decode(String.self, forKey: .idToken)
+        self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+        self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+        self.isNewUser = try container.decode(Bool.self, forKey: .isNewUser)
+    }
+    
+  public func setFields(dictionary: [String: Any]) throws {
   }
 }

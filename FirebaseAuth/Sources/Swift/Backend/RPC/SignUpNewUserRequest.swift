@@ -44,9 +44,11 @@ private let kReturnSecureTokenKey = "returnSecureToken"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class SignUpNewUserRequest: IdentityToolkitRequest,
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+ public struct SignUpNewUserRequest: IdentityToolkitRequest,
   AuthRPCRequest {
+     public typealias Response = SignUpNewUserResponse
+
   /** @property email
       @brief The email of the user.
    */
@@ -71,10 +73,14 @@ private let kTenantIDKey = "tenantId"
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = SignUpNewUserResponse()
+
+     public var useStaging: Bool { false }
+     public var useIdentityPlatform: Bool { false }
+     public var endpoint: String { kSignupNewUserEndpoint }
+     public var requestConfiguration: AuthRequestConfiguration
 
   public init(requestConfiguration: AuthRequestConfiguration) {
-    super.init(endpoint: kSignupNewUserEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   /** @fn initWithAPIKey:email:password:displayName:requestConfiguration
@@ -88,7 +94,7 @@ private let kTenantIDKey = "tenantId"
     self.email = email
     self.password = password
     self.displayName = displayName
-    super.init(endpoint: kSignupNewUserEndpoint, requestConfiguration: requestConfiguration)
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

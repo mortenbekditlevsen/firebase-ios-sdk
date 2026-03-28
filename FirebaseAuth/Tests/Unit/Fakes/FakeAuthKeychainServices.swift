@@ -16,7 +16,7 @@ import Foundation
 @testable import FirebaseAuth
 
 /// A fake storage instance that imitates the system keychain while storing data in-memory.
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 final class FakeAuthKeychainServices: AuthStorage {
   init(service: String) {}
 

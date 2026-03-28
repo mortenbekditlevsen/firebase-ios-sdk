@@ -22,7 +22,7 @@ class DatabaseConnectionContext {
 }
 
 protocol DatabaseConnectionContextProviderProtocol {
-    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (Result<DatabaseConnectionContext, Error>) -> Void)
+    func fetchContextForcingRefresh(_ forceRefresh: Bool) async throws -> DatabaseConnectionContext
 
     /// Adds a listener to the Auth token updates.
     /// @param listener A block that will be invoked each time the Auth token is
@@ -89,7 +89,7 @@ protocol DatabaseAppCheckTokenResultInterop {
 }
 
 protocol DatabaseAppCheckInterop {
-    func getTokenForcingRefresh(_ forceRefresh: Bool, completion: @escaping (DatabaseAppCheckTokenResultInterop) -> Void)
+    func getTokenForcingRefresh(_ forceRefresh: Bool) async throws -> String
     var notificationTokenKey: String { get }
     var tokenDidChangeNotificationName: Notification.Name { get }
 }
@@ -118,7 +118,7 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
     private let dispatchQueue: DispatchQueue
 
     private init(auth: AuthInterop?,
-         appCheck: DatabaseAppCheckInterop?,
+                 appCheck: DatabaseAppCheckInterop?,
                  dispatchQueue: DispatchQueue) {
         self.appCheck = appCheck
         self.auth = auth
@@ -139,50 +139,23 @@ class DatabaseConnectionContextProvider: DatabaseConnectionContextProviderProtoc
         }
     }
 
-    func fetchContextForcingRefresh(_ forceRefresh: Bool, withCallback callback: @escaping (Result<DatabaseConnectionContext, Error>) -> Void) {
+    func fetchContextForcingRefresh(_ forceRefresh: Bool) async throws -> DatabaseConnectionContext {
         guard self.auth != nil || self.appCheck != nil else {
             // Nothing to fetch. Finish straight away.
-            callback(.success(DatabaseConnectionContext(authToken: nil, appCheckToken: nil)))
-            return
+            return DatabaseConnectionContext(authToken: nil, appCheckToken: nil)
         }
         // Use dispatch group to call the callback when both Auth and FAC operations
         // finished.
-        let dispatchGroup = DispatchGroup()
-        var authToken: String? = nil
-        var appCheckToken: String? = nil
-        var authError: Error? = nil
-        if let auth = auth {
-            dispatchGroup.enter()
-            auth.getToken(forcingRefresh: forceRefresh) { token, error in
-                authToken = token
-                authError = error
-                dispatchGroup.leave()
-            }
+        let authToken = try await auth?.getToken(forcingRefresh: forceRefresh)
+        let appCheckToken: String?
+            
+        do {
+            appCheckToken = try await appCheck?.getTokenForcingRefresh(forceRefresh)
+        } catch {
+            FFLog("I-RDB096001", "Failed to fetch App Check token: \(error)")
+            appCheckToken = nil
         }
-        if let appCheck = appCheck {
-            dispatchGroup.enter()
-            appCheck.getTokenForcingRefresh(forceRefresh) { tokenResult in
-                appCheckToken = tokenResult.token
-                if let error = tokenResult.error {
-                    FFLog("I-RDB096001", "Failed to fetch App Check token: \(error)")
-                }
-                dispatchGroup.leave()
-            }
-        }
-        dispatchGroup.notify(queue: dispatchQueue, execute: {
-            // Pass only a possible Auth error. App Check errors should not change the
-            // database SDK behaviour at this point as the App Check enforcement is
-            // controlled on the backend.
-            // NOTE: Converted from an (optional, optional) callback, but the consumer
-            // always checks the error first, so failing in the presence of an error is
-            // the right thing to do.
-            if let authError = authError {
-                callback(.failure(authError))
-            } else {
-                let context = DatabaseConnectionContext(authToken: authToken, appCheckToken: appCheckToken)
-                callback(.success(context))
-            }
-        })
+        return DatabaseConnectionContext(authToken: authToken, appCheckToken: appCheckToken)
     }
 
     func listenForAuthTokenChanges(_ listener: @escaping (String) -> Void) {

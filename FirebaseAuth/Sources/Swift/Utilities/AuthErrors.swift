@@ -33,7 +33,7 @@ import Foundation
  */
 
 // TODO: Keep the original global strings as deprecated, at least for CocoaPods, like we do in Storage.
- public class AuthErrors {
+ public struct AuthErrors {
   public static let domain: String = "FIRAuthErrorDomain"
 
   public static let userInfoNameKey: String = "FIRAuthErrorUserInfoNameKey"

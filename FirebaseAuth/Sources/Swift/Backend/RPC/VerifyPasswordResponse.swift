@@ -21,7 +21,7 @@ import Foundation
        - FIRAuthInternalErrorCodeEmailNotFound
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/verifyPassword
  */
- public class VerifyPasswordResponse: AuthRPCResponse {
+ public struct VerifyPasswordResponse: AuthRPCResponse {
   /** @property localID
       @brief The RP local ID if it's already been mapped to the IdP account identified by the
           federated ID.
@@ -43,7 +43,7 @@ import Foundation
           access token from Secure Token Service, depending on whether @c returnSecureToken is set
           on the request.
    */
-   public var idToken: String?
+   public var idToken: String
 
   /** @property approximateExpirationDate
       @brief The approximate expiration date of the access token.
@@ -53,7 +53,7 @@ import Foundation
   /** @property refreshToken
       @brief The refresh token from Secure Token Service.
    */
-  public var refreshToken: String?
+  public var refreshToken: String
 
   /** @property photoURL
       @brief The URI of the public accessible profile picture.
@@ -64,21 +64,32 @@ import Foundation
 
    public var mfaInfo: [AuthProtoMFAEnrollment]?
 
-  public func setFields(dictionary: [String: Any]) throws {
-    localID = dictionary["localId"] as? String
-    email = dictionary["email"] as? String
-    displayName = dictionary["displayName"] as? String
-    idToken = dictionary["idToken"] as? String
-    if let expiresIn = dictionary["expiresIn"] as? String {
-      approximateExpirationDate = Date(timeIntervalSinceNow: (expiresIn as NSString)
-        .doubleValue)
-    }
-    refreshToken = dictionary["refreshToken"] as? String
-    photoURL = (dictionary["photoUrl"] as? String).flatMap { URL(string: $0) }
-
-    if let mfaInfo = dictionary["mfaInfo"] as? [[String: Any]] {
-      self.mfaInfo = mfaInfo.map { AuthProtoMFAEnrollment(dictionary: $0) }
-    }
-    mfaPendingCredential = dictionary["mfaPendingCredential"] as? String
-  }
+     enum CodingKeys: String, CodingKey {
+         case localID = "localId"
+         case email
+         case displayName
+         case idToken
+         case expiresIn
+         case refreshToken
+         case photoURL = "photoUrl"
+         case mfaPendingCredential
+         case mfaInfo
+     }
+  
+     public func setFields(dictionary: [String : Any]) throws {
+         
+     }
+     
+     public init(from decoder: any Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
+         self.email = try container.decodeIfPresent(String.self, forKey: .email)
+         self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+         self.idToken = try container.decode(String.self, forKey: .idToken)
+         self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+         self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+         self.photoURL = try container.decodeIfPresent(URL.self, forKey: .photoURL)
+         self.mfaPendingCredential = try container.decodeIfPresent(String.self, forKey: .mfaPendingCredential)
+         self.mfaInfo = try container.decodeIfPresent([AuthProtoMFAEnrollment].self, forKey: .mfaInfo)
+     }
 }

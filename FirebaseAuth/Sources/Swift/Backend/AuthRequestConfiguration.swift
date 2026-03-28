@@ -23,8 +23,9 @@ import FirebaseCoreSwift
 /** @class FIRAuthRequestConfiguration
    @brief Defines configurations to be added to a request to Firebase Auth's backend.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class AuthRequestConfiguration {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public struct AuthRequestConfiguration: Sendable, Equatable {
+    
   /** @property APIKey
    @brief The Firebase Auth API key used in the request.
    */
@@ -43,15 +44,15 @@ import FirebaseCoreSwift
   /** @property auth
       @brief The FIRAuth instance used in the request.
    */
-  public weak var auth: Auth?
-
-  /// The heartbeat logger used to add heartbeats to the corresponding request's header.
-  public var heartbeatLogger: FIRHeartbeatLoggerProtocol?
-
-  /** @property appCheck
-      @brief The appCheck is used to generate a token.
-   */
-  public var appCheck: AppCheckInterop?
+//  public weak var auth: Auth?
+//
+//  /// The heartbeat logger used to add heartbeats to the corresponding request's header.
+//  public var heartbeatLogger: FIRHeartbeatLoggerProtocol?
+//
+//  /** @property appCheck
+//      @brief The appCheck is used to generate a token.
+//   */
+//  public var appCheck: AppCheckInterop?
 
   /** @property additionalFrameworkMarker
    @brief Additional framework marker that will be added as part of the header of every request.
@@ -63,17 +64,18 @@ import FirebaseCoreSwift
    */
   public var emulatorHostAndPort: String?
 
-
+    public var tenantId: String?
   
   public init(apiKey: String,
               appID: String,
-              auth: Auth? = nil,
+              tenantId: String? = nil,
               heartbeatLogger: FIRHeartbeatLoggerProtocol? = nil,
               appCheck: AppCheckInterop? = nil) {
     self.apiKey = apiKey
     self.appID = appID
-    self.auth = auth
-    self.heartbeatLogger = heartbeatLogger
-    self.appCheck = appCheck
+      self.tenantId = tenantId
+//    self.auth = auth
+//    self.heartbeatLogger = heartbeatLogger
+//    self.appCheck = appCheck
   }
 }

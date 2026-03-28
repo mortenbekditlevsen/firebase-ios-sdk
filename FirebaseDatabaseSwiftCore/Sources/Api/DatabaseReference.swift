@@ -20,7 +20,7 @@ import Foundation
 public class DatabaseReference: DatabaseQuery {
     convenience internal init(config: DatabaseConfig) {
         let parsedUrl = FUtilities.parseUrl(FirebaseApp.defaultApp!.options.databaseURL!)
-        FValidationSwift.validateFrom("initWithUrl:", validURL: parsedUrl)
+        FValidation.validateFrom("initWithUrl:", validURL: parsedUrl)
         self.init(repo: FRepoManager.getRepo(parsedUrl.repoInfo, config: config), path: parsedUrl.path)
     }
 
@@ -42,9 +42,9 @@ public class DatabaseReference: DatabaseQuery {
     public func child(_ pathString: String) -> DatabaseReference {
         if path.getFront() == nil {
             // we're at the root
-            FValidationSwift.validateFrom("child:", validRootPathString: pathString)
+            FValidation.validateFrom("child:", validRootPathString: pathString)
         } else {
-            FValidationSwift.validateFrom("child:", validPathString: pathString)
+            FValidation.validateFrom("child:", validPathString: pathString)
         }
         let path = self.path.child(fromString: pathString)
         return DatabaseReference(repo: repo, path: path)
@@ -62,7 +62,7 @@ public class DatabaseReference: DatabaseQuery {
      * @return A FIRDatabaseReference for the generated location.
      */
     public func childByAutoId() -> DatabaseReference {
-        FValidationSwift.validateFrom("childByAutoId:", writablePath: path)
+        FValidation.validateFrom("childByAutoId:", writablePath: path)
 
         let name = FNextPushId.get(repo.serverTime)
         return child(name)
@@ -134,7 +134,7 @@ public class DatabaseReference: DatabaseQuery {
     }
 
     private func setValueInternal(_ value: Any?, andPriority priority: Any?, completionBlock: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
-        FValidationSwift.validateFrom(fn, writablePath: self.path)
+        FValidation.validateFrom(fn, writablePath: self.path)
         let newNode = FSnapshotUtilities.nodeFrom(value, priority: priority, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.set(self.path, withNode: newNode, withCallback: completionBlock)
@@ -209,7 +209,7 @@ public class DatabaseReference: DatabaseQuery {
     }
 
     private func setPriorityInternal(_ priority: AnyHashable?, withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
-        FValidationSwift.validateFrom(fn, writablePath: self.path)
+        FValidation.validateFrom(fn, writablePath: self.path)
         DatabaseQuery.sharedQueue.async {
             self.repo.set(self.path.child(fromString: ".priority"), withNode: FSnapshotUtilities.nodeFrom(priority), withCallback: block)
         }
@@ -238,7 +238,7 @@ public class DatabaseReference: DatabaseQuery {
     }
 
     private func updateChildValuesInternal(_ values: [String: Any], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
-        FValidationSwift.validateFrom(fn, writablePath: self.path)
+        FValidation.validateFrom(fn, writablePath: self.path)
         let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.update(self.path, withNodes: merge, withCallback: block)
@@ -681,7 +681,7 @@ public class DatabaseReference: DatabaseQuery {
     }
 
     private func onDisconnectSetValueInternal(_ value: AnyHashable?, andPriority priority: AnyHashable?, withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
-        FValidationSwift.validateFrom(fn, writablePath: path)
+        FValidation.validateFrom(fn, writablePath: path)
         let newNodeUnresolved = FSnapshotUtilities.nodeFrom(value, priority: priority, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectSet(self.path, withNode: newNodeUnresolved, withCallback: block)
@@ -744,7 +744,7 @@ public class DatabaseReference: DatabaseQuery {
     }
 
     private func onDisconnectUpdateChildValuesInternal(_ values: [String: Any], withCompletionBlock block: ((Error?, DatabaseReference) -> Void)?, from fn: String) {
-        FValidationSwift.validateFrom(fn, writablePath: path)
+        FValidation.validateFrom(fn, writablePath: path)
         let merge = FSnapshotUtilities.compoundWriteFromDictionary(values, withValidationFrom: fn)
         DatabaseQuery.sharedQueue.async {
             self.repo.onDisconnectUpdate(self.path, withNodes: merge, withCallback: block)
@@ -848,7 +848,7 @@ public class DatabaseReference: DatabaseQuery {
      * return an instance of FIRTransactionResult
      */
     func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult) {
-        FValidationSwift.validateFrom("runTransactionBlock:", writablePath: path)
+        FValidation.validateFrom("runTransactionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: nil, withLocalEvents: true)
     }
 
@@ -874,7 +874,7 @@ public class DatabaseReference: DatabaseQuery {
      * the data at this location is.
      */
     func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock completionBlock: @escaping (Error?, Bool, DataSnapshot?) -> Void) {
-        FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:", writablePath: path)
+        FValidation.validateFrom("runTransactionBlock:andCompletionBlock:", writablePath: path)
         runTransactionBlock(block, andCompletionBlock: completionBlock, withLocalEvents: true)
     }
 
@@ -907,7 +907,7 @@ public class DatabaseReference: DatabaseQuery {
      * states, and only get events based on the final state of the transaction.
      */
     func runTransactionBlock(_ block: @escaping (MutableData) -> TransactionResult, andCompletionBlock onComplete: ((Error?, Bool, DataSnapshot?) -> Void)?, withLocalEvents localEvents: Bool) {
-        FValidationSwift.validateFrom("runTransactionBlock:andCompletionBlock:withLocalEvents", writablePath: path)
+        FValidation.validateFrom("runTransactionBlock:andCompletionBlock:withLocalEvents", writablePath: path)
         DatabaseQuery.sharedQueue.async {
             self.repo.startTransactionOnPath(self.path, update: block, onComplete: onComplete, withLocalEvents: localEvents)
         }

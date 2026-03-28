@@ -16,44 +16,29 @@ import Foundation
 
 private let kExpiresInKey = "expires_in"
 
-/** @var kRefreshTokenKey
-    @brief The key for the refresh token.
- */
-private let kRefreshTokenKey = "refresh_token"
-
-/** @var kAccessTokenKey
-    @brief The key for the access token.
- */
-private let kAccessTokenKey = "access_token"
-
-/** @var kIDTokenKey
-    @brief The key for the "id_token" value in the response.
- */
-private let kIDTokenKey = "id_token"
-
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class SecureTokenResponse: AuthRPCResponse {
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public struct SecureTokenResponse: AuthRPCResponse, Decodable {
   public var approximateExpirationDate: Date?
   public var refreshToken: String?
-  public var accessToken: String?
+  public var accessToken: String
   public var IDToken: String?
 
-  var expectedKind: String? { nil }
 
+    enum CodingKeys: String, CodingKey {
+        case expiresIn = "expires_in"
+        case refreshToken = "refresh_token"
+        case accessToken = "access_token"
+        case IDToken = "id_token"
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.approximateExpirationDate = (try container.decodeIfPresent(RelativeDate.self, forKey: .expiresIn))?.date
+        self.refreshToken = try container.decodeIfPresent(String.self, forKey: .refreshToken)
+        self.accessToken = try container.decode(String.self, forKey: .accessToken)
+        self.IDToken = try container.decodeIfPresent(String.self, forKey: .IDToken)
+        
+    }
   public func setFields(dictionary: [String: Any]) throws {
-    refreshToken = dictionary[kRefreshTokenKey] as? String
-    self.accessToken = dictionary[kAccessTokenKey] as? String
-    IDToken = dictionary[kIDTokenKey] as? String
-
-    guard let accessToken = accessToken else {
-      throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
-    }
-    guard !accessToken.isEmpty else {
-      throw AuthErrorUtils.unexpectedResponse(deserializedResponse: dictionary)
-    }
-    if let expiresIn = dictionary[kExpiresInKey] as? String {
-      approximateExpirationDate = Date(timeIntervalSinceNow: (expiresIn as NSString)
-        .doubleValue)
-    }
   }
 }

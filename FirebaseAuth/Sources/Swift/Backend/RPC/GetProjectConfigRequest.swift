@@ -19,22 +19,24 @@ import Foundation
  */
 private let kGetProjectConfigEndPoint = "getProjectConfig"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
- public class GetProjectConfigRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
-  /** @var response
-      @brief The corresponding response for this request
-   */
-  public var response: AuthRPCResponse = GetProjectConfigResponse()
-
-  public init(requestConfiguration: AuthRequestConfiguration) {
-    super.init(endpoint: kGetProjectConfigEndPoint, requestConfiguration: requestConfiguration)
-  }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    // XXX TODO: Probably nicer to throw, but what should we throw?
-    fatalError()
-  }
-
-  override public func containsPostBody() -> Bool { false }
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+public struct GetProjectConfigRequest: IdentityToolkitRequest,
+                                       AuthRPCRequest {
+    public typealias Response = GetProjectConfigResponse
+        
+    public var useStaging: Bool { false }
+    public var useIdentityPlatform: Bool { false }
+    public var endpoint: String { kGetProjectConfigEndPoint }
+    public var requestConfiguration: AuthRequestConfiguration
+    
+    public init(requestConfiguration: AuthRequestConfiguration) {
+        self.requestConfiguration = requestConfiguration
+    }
+    
+    public func unencodedHTTPRequestBody() throws -> [String: Any] {
+        // XXX TODO: Probably nicer to throw, but what should we throw?
+        fatalError()
+    }
+    
+    public func containsPostBody() -> Bool { false }
 }

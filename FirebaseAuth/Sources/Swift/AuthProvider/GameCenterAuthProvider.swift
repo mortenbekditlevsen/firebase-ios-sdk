@@ -19,14 +19,14 @@
   /**
    @brief A concrete implementation of `AuthProvider` for Game Center Sign In. Not available on watchOS.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-   open class GameCenterAuthProvider {
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+   public enum GameCenterAuthProvider {
     public static let id = "gc.apple.com"
 
     /** @fn
         @brief Creates an `AuthCredential` for a Game Center sign in.
      */
-    public class func getCredential(completion: @escaping (AuthCredential?, Error?) -> Void) {
+    public static func getCredential() async throws -> AuthCredential {
       /**
        Linking GameKit.framework without using it on macOS results in App Store rejection.
        Thus we don't link GameKit.framework to our SDK directly. `optionalLocalPlayer` is used for
@@ -34,84 +34,53 @@
        `GameKitNotLinkedError` will be raised.
        **/
       guard let _: AnyClass = NSClassFromString("GKLocalPlayer") else {
-        completion(nil, AuthErrorUtils.gameKitNotLinkedError())
-        return
+        throw AuthErrorUtils.gameKitNotLinkedError()
       }
 
       let localPlayer = GKLocalPlayer.local
       guard localPlayer.isAuthenticated else {
-        completion(nil, AuthErrorUtils.localPlayerNotAuthenticatedError())
-        return
+        throw AuthErrorUtils.localPlayerNotAuthenticatedError()
       }
 
-      if #available(iOS 13.5, macOS 10.15.5, macCatalyst 13.5, tvOS 13.4.8, *) {
-        localPlayer.fetchItems { publicKeyURL, signature, salt, timestamp, error in
-          if let error = error {
-            completion(nil, error)
-          } else {
-            let credential = GameCenterAuthCredential(withPlayerID: localPlayer.playerID,
-                                                      teamPlayerID: localPlayer.teamPlayerID,
-                                                      gamePlayerID: localPlayer.gamePlayerID,
-                                                      publicKeyURL: publicKeyURL,
-                                                      signature: signature,
-                                                      salt: salt,
-                                                      timestamp: timestamp,
-                                                      displayName: localPlayer.displayName)
-            completion(credential, nil)
-          }
-        }
+      if #available(iOS 13.5, macOS 15.0.5, macCatalyst 13.5, tvOS 13.4.8, *) {
+        let (publicKeyURL, signature, salt, timestamp) = try await localPlayer.fetchItemsForIdentityVerificationSignature()
+          return GameCenterAuthCredential(withPlayerID: localPlayer.playerID,
+                                          teamPlayerID: localPlayer.teamPlayerID,
+                                          gamePlayerID: localPlayer.gamePlayerID,
+                                          publicKeyURL: publicKeyURL,
+                                          signature: signature,
+                                          salt: salt,
+                                          timestamp: timestamp,
+                                          displayName: localPlayer.displayName)
       } else {
-        localPlayer
-          .generateIdentityVerificationSignature { publicKeyURL, signature, salt, timestamp, error in
-            if error != nil {
-              completion(nil, error)
-            } else {
-              /**
-               @c `localPlayer.alias` is actually the displayname needed, instead of
-               `localPlayer.displayname`. For more information, check
-               https://developer.apple.com/documentation/gamekit/gkplayer
-               **/
-              let displayName = localPlayer.alias
-              let credential = GameCenterAuthCredential(withPlayerID: localPlayer.playerID,
-                                                        teamPlayerID: nil,
-                                                        gamePlayerID: nil,
-                                                        publicKeyURL: publicKeyURL,
-                                                        signature: signature,
-                                                        salt: salt,
-                                                        timestamp: timestamp,
-                                                        displayName: displayName)
-              completion(credential, nil)
-            }
-          }
+          let (publicKeyURL, signature, salt, timestamp) = try await localPlayer
+              .generateIdentityVerificationSignature()
+          /**
+           @c `localPlayer.alias` is actually the displayname needed, instead of
+           `localPlayer.displayname`. For more information, check
+           https://developer.apple.com/documentation/gamekit/gkplayer
+           **/
+          let displayName = localPlayer.alias
+          return GameCenterAuthCredential(withPlayerID: localPlayer.playerID,
+                                          teamPlayerID: nil,
+                                          gamePlayerID: nil,
+                                          publicKeyURL: publicKeyURL,
+                                          signature: signature,
+                                          salt: salt,
+                                          timestamp: timestamp,
+                                          displayName: displayName)
       }
     }
 
     /** @fn
         @brief Creates an `AuthCredential` for a Game Center sign in.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, watchOS 8, *)
-    open class func getCredential() async throws -> AuthCredential {
-      return try await withCheckedThrowingContinuation { continuation in
-        getCredential { credential, error in
-          if let credential = credential {
-            continuation.resume(returning: credential)
-          } else {
-            continuation.resume(throwing: error!) // TODO: Change to ?? and generate unknown error
-          }
-        }
-      }
-    }
-
-    @available(*, unavailable)
-   public init() {
-      fatalError("This class is not meant to be initialized.")
-    }
   }
 
   // Change to internal
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   
-  public class GameCenterAuthCredential: AuthCredential, Codable {
+  public struct GameCenterAuthCredential: AuthCredential, Codable {
     public let playerID: String
     public let teamPlayerID: String?
     public let gamePlayerID: String?
@@ -120,6 +89,8 @@
     public let salt: Data?
     public let timestamp: UInt64
     public let displayName: String
+      
+      public var provider: String {GameCenterAuthProvider.id}
 
     /**
         @brief Designated initializer.
@@ -143,7 +114,6 @@
       self.salt = salt
       self.timestamp = timestamp
       self.displayName = displayName
-      super.init(provider: GameCenterAuthProvider.id)
     }
 
 
@@ -170,7 +140,7 @@
           try container.encode(self.displayName, forKey: .displayName)
       }
 
-      public required init(from decoder: Decoder) throws {
+      public init(from decoder: Decoder) throws {
           let container = try decoder.container(keyedBy: CodingKeys.self)
           self.playerID = try container.decode(String.self, forKey: .playerID)
           self.teamPlayerID = try container.decode(String.self, forKey: .teamPlayerID)
@@ -182,8 +152,6 @@
           self.publicKeyURL = try container.decodeIfPresent(URL.self, forKey: .publicKeyURL)
           self.signature = try container.decodeIfPresent(Data.self, forKey: .signature)
           self.salt = try container.decodeIfPresent(Data.self, forKey: .salt)
-          super.init(provider: GameCenterAuthProvider.id)
-
       }
   }
 #endif

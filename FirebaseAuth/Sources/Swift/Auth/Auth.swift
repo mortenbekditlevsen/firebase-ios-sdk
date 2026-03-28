@@ -75,59 +75,49 @@ import Foundation
 //#endif
 
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 extension Auth: AuthInterop {
   
-  public func getToken(forcingRefresh forceRefresh: Bool,
-                       completion callback: @escaping (String?, Error?) -> Void) {
-    kAuthGlobalWorkQueue.async { [weak self] in
-      if let strongSelf = self {
+    @MainActor
+    public func getToken(forcingRefresh forceRefresh: Bool) async throws -> String? {
         // Enable token auto-refresh if not already enabled.
-        if !strongSelf.autoRefreshTokens {
-          AuthLog.logInfo(code: "I-AUT000002", message: "Token auto-refresh enabled.")
-          strongSelf.autoRefreshTokens = true
-          strongSelf.scheduleAutoTokenRefresh()
-
-          #if os(iOS) || os(tvOS) // TODO: Is a similar mechanism needed on macOS?
+        if !autoRefreshTokens {
+            AuthLog.logInfo(code: "I-AUT000002", message: "Token auto-refresh enabled.")
+            autoRefreshTokens = true
+            scheduleAutoTokenRefresh()
+            
+#if os(iOS) || os(tvOS) // TODO: Is a similar mechanism needed on macOS?
             strongSelf.applicationDidBecomeActiveObserver =
-              NotificationCenter.default.addObserver(
+            NotificationCenter.default.addObserver(
                 forName: UIApplication.didBecomeActiveNotification,
                 object: nil, queue: nil
-              ) { notification in
+            ) { notification in
                 if let strongSelf = self {
-                  strongSelf.isAppInBackground = false
-                  if !strongSelf.autoRefreshScheduled {
-                    strongSelf.scheduleAutoTokenRefresh()
-                  }
+                    strongSelf.isAppInBackground = false
+                    if !strongSelf.autoRefreshScheduled {
+                        strongSelf.scheduleAutoTokenRefresh()
+                    }
                 }
-              }
+            }
             strongSelf.applicationDidEnterBackgroundObserver =
-              NotificationCenter.default.addObserver(
+            NotificationCenter.default.addObserver(
                 forName: UIApplication.didEnterBackgroundNotification,
                 object: nil, queue: nil
-              ) { notification in
+            ) { notification in
                 if let strongSelf = self {
-                  strongSelf.isAppInBackground = true
+                    strongSelf.isAppInBackground = true
                 }
-              }
-          #endif
+            }
+#endif
         }
-      }
-      // Call back with 'nil' if there is no current user.
-      guard let strongSelf = self, let currentUser = strongSelf.currentUser else {
-        DispatchQueue.main.async {
-          callback(nil, nil)
+        // Call back with 'nil' if there is no current user.
+        guard let currentUser else {
+            return nil
         }
-        return
-      }
-      // Call back with current user token.
-      currentUser.internalGetToken(forceRefresh: forceRefresh) { token, error in
-        DispatchQueue.main.async {
-          callback(token, error)
-        }
-      }
+        // Call back with current user token.
+        let token = try await currentUser.internalGetToken(forceRefresh: forceRefresh)
+        return token
     }
-  }
 
   public func getUserID() -> String? {
     return currentUser?.uid
@@ -138,7 +128,8 @@ extension Auth: AuthInterop {
     @brief Manages authentication for Firebase apps.
     @remarks This class is thread-safe.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
+@MainActor
  open class Auth {
   /** @fn auth
    @brief Gets the auth object for the default Firebase app.
@@ -221,71 +212,16 @@ extension Auth: AuthInterop {
    @param completion Optionally; a block invoked after the user of the calling Auth instance has
    been updated or an error was encountered.
    */
-  public func updateCurrentUser(_ user: User?, completion: ((Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      guard let user else {
-        if let completion {
-          DispatchQueue.main.async {
-            completion(AuthErrorUtils.nullUserError(message: nil))
-          }
-        }
-        return
-      }
-      let updateUserBlock: (User) -> Void = { user in
-        do {
-          try self.updateCurrentUser(user, byForce: true, savingToDisk: true)
-          if let completion {
-            DispatchQueue.main.async {
-              completion(nil)
-            }
-          }
-        } catch {
-          if let completion {
-            DispatchQueue.main.async {
-              completion(error)
-            }
-          }
-        }
-      }
-      if user.requestConfiguration.apiKey != self.requestConfiguration.apiKey {
-        // If the API keys are different, then we need to confirm that the user belongs to the same
-        // project before proceeding.
-        user.requestConfiguration = self.requestConfiguration
-        user.reload { error in
-          if let error {
-            if let completion {
-              DispatchQueue.main.async {
-                completion(error)
-              }
-            }
-            return
-          }
-          updateUserBlock(user)
-        }
-      } else {
-        updateUserBlock(user)
-      }
-    }
-  }
-
-  /** @fn updateCurrentUser:completion:
-   @brief Sets the `currentUser` on the receiver to the provided user object.
-   @param user The user object to be set as the current user of the calling Auth instance.
-   @param completion Optionally; a block invoked after the user of the calling Auth instance has
-   been updated or an error was encountered.
-   */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func updateCurrentUser(_ user: User) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.updateCurrentUser(user) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
+     @MainActor
+     public func updateCurrentUser(_ user: User) async throws {
+         if user.requestConfiguration.apiKey != self.requestConfiguration.apiKey {
+             // If the API keys are different, then we need to confirm that the user belongs to the same
+             // project before proceeding.
+             user.requestConfiguration = self.requestConfiguration
+             try await user.reload()
+         }
+         try self.updateCurrentUser(user, byForce: true, savingToDisk: true)
+     }
 
   /** @fn fetchSignInMethodsForEmail:completion:
    @brief Fetches the list of all sign-in methods previously used for the provided email address.
@@ -301,20 +237,11 @@ extension Auth: AuthInterop {
 
    @remarks See @c AuthErrors for a list of error codes that are common to all API methods.
    */
-  public func fetchSignInMethods(forEmail email: String,
-                                       completion: (([String]?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
+  public func fetchSignInMethods(forEmail email: String) async throws -> [String] {
       let request = CreateAuthURIRequest(identifier: email,
                                          continueURI: "http:www.google.com",
                                          requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { response, error in
-        if let completion {
-          DispatchQueue.main.async {
-            completion((response as? CreateAuthURIResponse)?.signinMethods, error)
-          }
-        }
-      }
-    }
+      return try await AuthBackend.post(withRequest: request).signinMethods
   }
 
   /** @fn fetchSignInMethodsForEmail:completion:
@@ -328,18 +255,6 @@ extension Auth: AuthInterop {
 
    @remarks See @c AuthErrors for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func fetchSignInMethods(forEmail email: String) async throws -> [String] {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.fetchSignInMethods(forEmail: email) { methods, error in
-        if let methods {
-          continuation.resume(returning: methods)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
 
   /** @fn signInWithEmail:password:completion:
       @brief Signs in using an email address and password.
@@ -362,15 +277,11 @@ extension Auth: AuthInterop {
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
   public func signIn(withEmail email: String,
-                           password: String,
-                           completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
-      self.internalSignInAndRetrieveData(withEmail: email,
-                                         password: password) { authData, error in
-        decoratedCallback(authData, error)
-      }
-    }
+                     password: String) async throws -> AuthDataResult {
+      let result = try await self.internalSignInAndRetrieveData(withEmail: email,
+                                                          password: password)
+      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      return result
   }
 
   /** @fn signInWithEmail:password:callback:
@@ -383,30 +294,20 @@ extension Auth: AuthInterop {
           update the current user.
    */
   internal func signIn(withEmail email: String,
-                       password: String,
-                       callback: @escaping ((User?, Error?) -> Void)) {
-    let request = VerifyPasswordRequest(email: email,
-                                        password: password,
-                                        requestConfiguration: requestConfiguration)
-    if request.password.count == 0 {
-      callback(nil, AuthErrorUtils.wrongPasswordError(message: nil))
-      return
-    }
-    AuthBackend.post(withRequest: request) { rawResponse, error in
-        print("POST RESPONSE", rawResponse, error)
-      if let error {
-        callback(nil, error)
-        return
+                       password: String) async throws -> User {
+      let request = VerifyPasswordRequest(email: email,
+                                          password: password,
+                                          requestConfiguration: requestConfiguration)
+      guard !request.password.isEmpty else {
+          throw AuthErrorUtils.wrongPasswordError(message: nil)
       }
-      guard let response = rawResponse as? VerifyPasswordResponse else {
-        fatalError("Internal Auth Error: null response from VerifyPasswordRequest")
-      }
-      self.completeSignIn(withAccessToken: response.idToken,
-                          accessTokenExpirationDate: response.approximateExpirationDate,
-                          refreshToken: response.refreshToken,
-                          anonymous: false,
-                          callback: callback)
-    }
+      let response = try await AuthBackend.post(withRequest: request)
+      return try await  self.completeSignIn(
+        withAccessToken: response.idToken,
+        accessTokenExpirationDate: response.approximateExpirationDate,
+        refreshToken: response.refreshToken,
+        anonymous: false
+      )
   }
 
   /** @fn signInWithEmail:password:completion:
@@ -427,19 +328,7 @@ extension Auth: AuthInterop {
 
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func signIn(withEmail email: String, password: String) async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.signIn(withEmail: email, password: password) { authData, error in
-          print("SIGNIN", authData, error)
-        if let authData {
-          continuation.resume(returning: authData)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
+  
 
   /** @fn signInWithEmail:link:completion:
    @brief Signs in using an email address and email sign-in link.
@@ -460,15 +349,12 @@ extension Auth: AuthInterop {
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
   public func signIn(withEmail email: String,
-                           link: String,
-                           completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
+                           link: String) async throws -> AuthDataResult {
       let credential = EmailAuthCredential(withEmail: email, link: link)
-      self.internalSignInAndRetrieveData(withCredential: credential,
-                                         isReauthentication: false,
-                                         callback: decoratedCallback)
-    }
+      let result = try await self.internalSignInAndRetrieveData(withCredential: credential,
+                                         isReauthentication: false)
+      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      return result
   }
 
   /** @fn signInWithEmail:link:completion:
@@ -489,18 +375,6 @@ extension Auth: AuthInterop {
 
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func signIn(withEmail email: String, link: String) async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.signIn(withEmail: email, link: link) { result, error in
-        if let result {
-          continuation.resume(returning: result)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
 
   #if os(iOS)
     @available(tvOS, unavailable)
@@ -615,7 +489,7 @@ extension Auth: AuthInterop {
 
      @remarks See @c AuthErrors for a list of error codes that are common to all API methods.
      */
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     @available(tvOS, unavailable)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
@@ -672,14 +546,11 @@ extension Auth: AuthInterop {
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods
    */
   
-  public func signIn(with credential: AuthCredential,
-                     completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
-      self.internalSignInAndRetrieveData(withCredential: credential,
-                                         isReauthentication: false,
-                                         callback: decoratedCallback)
-    }
+  public func signIn(with credential: AuthCredential) async throws -> AuthDataResult {
+      let authResult = try await self.internalSignInAndRetrieveData(withCredential: credential,
+                                                                    isReauthentication: false)
+      try self.updateCurrentUser(authResult.user, byForce: false, savingToDisk: true)
+      return authResult
   }
 
   /** @fn signInWithCredential:completion:
@@ -720,18 +591,7 @@ extension Auth: AuthInterop {
 
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func signIn(with credential: AuthCredential) async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.signIn(with: credential) { result, error in
-        if let result {
-          continuation.resume(returning: result)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
+ 
 
   /** @fn signInAnonymouslyWithCompletion:
    @brief Asynchronously creates and becomes an anonymous user.
@@ -748,46 +608,26 @@ extension Auth: AuthInterop {
 
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  public func signInAnonymously(completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
-      if let currentUser = self.currentUser, currentUser.isAnonymous {
-        let result = AuthDataResult(withUser: currentUser, additionalUserInfo: nil)
-        decoratedCallback(result, nil)
-      }
-      let request = SignUpNewUserRequest(requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        if let error {
-          decoratedCallback(nil, error)
-          return
-        }
-        guard let response = rawResponse as? SignUpNewUserResponse else {
-          fatalError("Internal Auth Error: Failed to get a SignUpNewUserResponse")
-        }
-        self.completeSignIn(withAccessToken: response.idToken,
-                            accessTokenExpirationDate: response.approximateExpirationDate,
-                            refreshToken: response.refreshToken,
-                            anonymous: true) { user, error in
-          if let error {
-            decoratedCallback(nil, error)
-            return
-          }
-          if let user {
-            let additionalUserInfo = AdditionalUserInfo(providerID: nil,
-                                                        profile: nil,
-                                                        username: nil,
-                                                        isNewUser: true)
-            decoratedCallback(
-              AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo),
-              nil
-            )
-          } else {
-            decoratedCallback(nil, nil)
-          }
-        }
-      }
-    }
-  }
+     public func signInAnonymously() async throws -> AuthDataResult {
+         if let currentUser = self.currentUser, currentUser.isAnonymous {
+             // Doesn't appear to be necessary when this is the current user, but old code did this
+             try self.updateCurrentUser(currentUser, byForce: false, savingToDisk: true)
+             return AuthDataResult(withUser: currentUser, additionalUserInfo: nil)
+         }
+         let request = SignUpNewUserRequest(requestConfiguration: self.requestConfiguration)
+         let response = try await AuthBackend.post(withRequest: request)
+         let user = try await self.completeSignIn(withAccessToken: response.idToken,
+                                                  accessTokenExpirationDate: response.approximateExpirationDate,
+                                                  refreshToken: response.refreshToken,
+                                                  anonymous: true)
+         let additionalUserInfo = AdditionalUserInfo(providerID: nil,
+                                                     profile: nil,
+                                                     username: nil,
+                                                     isNewUser: true)
+         let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
+         try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+         return result
+     }
 
   /** @fn signInAnonymouslyWithCompletion:
    @brief Asynchronously creates and becomes an anonymous user.
@@ -802,18 +642,7 @@ extension Auth: AuthInterop {
 
    @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func signInAnonymously() async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.signInAnonymously { result, error in
-        if let result {
-          continuation.resume(returning: result)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
+ 
 
   /** @fn signInWithCustomToken:completion:
       @brief Asynchronously signs in to Firebase with the given Auth token.
@@ -831,43 +660,21 @@ extension Auth: AuthInterop {
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  public func signIn(withCustomToken token: String,
-                           completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
+  public func signIn(withCustomToken token: String) async throws -> AuthDataResult {
       let request = VerifyCustomTokenRequest(token: token,
                                              requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        if let error {
-          decoratedCallback(nil, error)
-          return
-        }
-        guard let response = rawResponse as? VerifyCustomTokenResponse else {
-          fatalError("Internal Auth Error: Failed to get a VerifyCustomTokenResponse")
-        }
-        self.completeSignIn(withAccessToken: response.idToken,
+      let response = try await AuthBackend.post(withRequest: request)
+       let user = try await self.completeSignIn(withAccessToken: response.idToken,
                             accessTokenExpirationDate: response.approximateExpirationDate,
                             refreshToken: response.refreshToken,
-                            anonymous: false) { user, error in
-          if let error {
-            decoratedCallback(nil, error)
-            return
-          }
-          if let user {
-            let additionalUserInfo = AdditionalUserInfo(providerID: nil,
-                                                        profile: nil,
-                                                        username: nil,
-                                                        isNewUser: response.isNewUser)
-            decoratedCallback(
-              AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo),
-              nil
-            )
-          } else {
-            decoratedCallback(nil, nil)
-          }
-        }
-      }
-    }
+                            anonymous: false)
+      let additionalUserInfo = AdditionalUserInfo(providerID: nil,
+                                                  profile: nil,
+                                                  username: nil,
+                                                  isNewUser: response.isNewUser)
+      let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
+      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      return result
   }
 
   /** @fn signInWithCustomToken:completion:
@@ -886,18 +693,7 @@ extension Auth: AuthInterop {
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func signIn(withCustomToken token: String) async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.signIn(withCustomToken: token) { result, error in
-        if let result {
-          continuation.resume(returning: result)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
+ 
 
   /** @fn createUserWithEmail:password:completion:
       @brief Creates and, on success, signs in a user with the given email address and password.
@@ -922,57 +718,29 @@ extension Auth: AuthInterop {
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
   public func createUser(withEmail email: String,
-                               password: String,
-                               completion: ((AuthDataResult?, Error?) -> Void)? = nil) {
-    guard password.count > 0 else {
-      if let completion {
-        completion(nil, AuthErrorUtils.weakPasswordError(serverResponseReason: "Missing password"))
-      }
-      return
+                               password: String) async throws -> AuthDataResult {
+    guard !password.isEmpty else {
+        throw AuthErrorUtils.weakPasswordError(serverResponseReason: "Missing password")
     }
-    guard email.count > 0 else {
-      if let completion {
-        completion(nil, AuthErrorUtils.missingEmailError(message: nil))
-      }
-      return
+    guard !email.isEmpty else {
+      throw AuthErrorUtils.missingEmailError(message: nil)
     }
-    kAuthGlobalWorkQueue.async {
-      let decoratedCallback = self.signInFlowAuthDataResultCallback(byDecorating: completion)
       let request = SignUpNewUserRequest(email: email,
                                          password: password,
                                          displayName: nil,
                                          requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        if let error {
-          decoratedCallback(nil, error)
-          return
-        }
-        guard let response = rawResponse as? SignUpNewUserResponse else {
-          fatalError("Internal Auth Error: Failed to get a SignUpNewUserResponse")
-        }
-        self.completeSignIn(withAccessToken: response.idToken,
-                            accessTokenExpirationDate: response.approximateExpirationDate,
-                            refreshToken: response.refreshToken,
-                            anonymous: false) { user, error in
-          if let error {
-            decoratedCallback(nil, error)
-            return
-          }
-          if let user {
-            let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
-                                                        profile: nil,
-                                                        username: nil,
-                                                        isNewUser: true)
-            decoratedCallback(
-              AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo),
-              nil
-            )
-          } else {
-            decoratedCallback(nil, nil)
-          }
-        }
-      }
-    }
+      let response = try await AuthBackend.post(withRequest: request)
+      let user = try await self.completeSignIn(withAccessToken: response.idToken,
+                          accessTokenExpirationDate: response.approximateExpirationDate,
+                          refreshToken: response.refreshToken,
+                          anonymous: false)
+      let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
+                                                  profile: nil,
+                                                  username: nil,
+                                                  isNewUser: true)
+      let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
+      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      return result
   }
 
   /** @fn createUserWithEmail:password:completion:
@@ -997,18 +765,7 @@ extension Auth: AuthInterop {
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func createUser(withEmail email: String, password: String) async throws -> AuthDataResult {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.createUser(withEmail: email, password: password) { result, error in
-        if let result {
-          continuation.resume(returning: result)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
+ 
 
   /** @fn confirmPasswordResetWithCode:newPassword:completion:
       @brief Resets the password given a code sent to the user outside of the app and a new password
@@ -1029,22 +786,11 @@ extension Auth: AuthInterop {
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  public func confirmPasswordReset(withCode code: String, newPassword: String,
-                                         completion: @escaping (Error?) -> Void) {
-    kAuthGlobalWorkQueue.async {
+  public func confirmPasswordReset(withCode code: String, newPassword: String) async throws {
       let request = ResetPasswordRequest(oobCode: code,
                                          newPassword: newPassword,
                                          requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { _, error in
-        DispatchQueue.main.async {
-          if let error {
-            completion(error)
-            return
-          }
-          completion(nil)
-        }
-      }
-    }
+      _ = try await AuthBackend.post(withRequest: request)
   }
 
   /** @fn confirmPasswordResetWithCode:newPassword:completion:
@@ -1066,18 +812,6 @@ extension Auth: AuthInterop {
 
       @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func confirmPasswordReset(withCode code: String, newPassword: String) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.confirmPasswordReset(withCode: code, newPassword: newPassword) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
 
   /** @fn checkActionCode:completion:
       @brief Checks the validity of an out of band code.
@@ -1086,33 +820,18 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-  public func checkActionCode(_ code: String,
-                                    completion: @escaping (ActionCodeInfo?, Error?) -> Void) {
-    kAuthGlobalWorkQueue.async {
-      let request = ResetPasswordRequest(oobCode: code,
-                                         newPassword: nil,
-                                         requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        DispatchQueue.main.async {
-          if let error {
-            completion(nil, error)
-            return
-          }
-          guard let response = rawResponse as? ResetPasswordResponse,
-                let email = response.email else {
-            fatalError("Internal Auth Error: Failed to get a ResetPasswordResponse")
-          }
-          let operation = ActionCodeInfo.actionCodeOperation(forRequestType: response.requestType)
-          let actionCodeInfo = ActionCodeInfo(withOperation: operation,
-                                              email: email,
-                                              newEmail: response.verifiedEmail)
-          DispatchQueue.main.async {
-            completion(actionCodeInfo, nil)
-          }
-        }
-      }
-    }
-  }
+     @MainActor
+     public func checkActionCode(_ code: String) async throws -> ActionCodeInfo {
+         let request = ResetPasswordRequest(oobCode: code,
+                                            newPassword: nil,
+                                            requestConfiguration: self.requestConfiguration)
+         let response = try await AuthBackend.post(withRequest: request)
+         let operation = ActionCodeInfo.actionCodeOperation(forRequestType: response.requestType)
+         let actionCodeInfo = ActionCodeInfo(withOperation: operation,
+                                             email: response.email,
+                                             newEmail: response.verifiedEmail)
+         return actionCodeInfo
+     }
 
   /** @fn checkActionCode:completion:
       @brief Checks the validity of an out of band code.
@@ -1121,18 +840,6 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func checkActionCode(_ code: String) async throws -> ActionCodeInfo {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.checkActionCode(code) { info, error in
-        if let info {
-          continuation.resume(returning: info)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
-  }
 
   /** @fn verifyPasswordResetCode:completion:
       @brief Checks the validity of a verify password reset code.
@@ -1141,36 +848,19 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-  public func verifyPasswordResetCode(_ code: String,
-                                            completion: @escaping (String?, Error?) -> Void) {
-    checkActionCode(code) { info, error in
-      if let error {
-        completion(nil, error)
-        return
-      }
-      completion(info?.email, nil)
-    }
-  }
-
-  /** @fn verifyPasswordResetCode:completion:
-      @brief Checks the validity of a verify password reset code.
-
-      @param code The password reset code to be verified.
-      @param completion Optionally; a block which is invoked when the request finishes. Invoked
-          asynchronously on the main thread in the future.
-   */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+     @MainActor
   public func verifyPasswordResetCode(_ code: String) async throws -> String {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.verifyPasswordResetCode(code) { code, error in
-        if let code {
-          continuation.resume(returning: code)
-        } else {
-          continuation.resume(throwing: error!)
-        }
-      }
-    }
+      try await checkActionCode(code).email
   }
+
+  /** @fn verifyPasswordResetCode:completion:
+      @brief Checks the validity of a verify password reset code.
+
+      @param code The password reset code to be verified.
+      @param completion Optionally; a block which is invoked when the request finishes. Invoked
+          asynchronously on the main thread in the future.
+   */
+ 
 
   /** @fn applyActionCode:completion:
       @brief Applies out of band code.
@@ -1182,40 +872,22 @@ extension Auth: AuthInterop {
       @remarks This method will not work for out of band codes which require an additional parameter,
           such as password reset code.
    */
-  public func applyActionCode(_ code: String, completion: @escaping (Error?) -> Void) {
-    kAuthGlobalWorkQueue.async {
-      let request = SetAccountInfoRequest(requestConfiguration: self.requestConfiguration)
-      request.oobCode = code
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        DispatchQueue.main.async {
-          completion(error)
-        }
-      }
-    }
-  }
-
-  /** @fn applyActionCode:completion:
-      @brief Applies out of band code.
-
-      @param code The out of band code to be applied.
-      @param completion Optionally; a block which is invoked when the request finishes. Invoked
-          asynchronously on the main thread in the future.
-
-      @remarks This method will not work for out of band codes which require an additional parameter,
-          such as password reset code.
-   */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
   public func applyActionCode(_ code: String) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.applyActionCode(code) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
+      var request = SetAccountInfoRequest(requestConfiguration: self.requestConfiguration)
+      request.oobCode = code
+      _ = try await AuthBackend.post(withRequest: request)
   }
+
+  /** @fn applyActionCode:completion:
+      @brief Applies out of band code.
+
+      @param code The out of band code to be applied.
+      @param completion Optionally; a block which is invoked when the request finishes. Invoked
+          asynchronously on the main thread in the future.
+
+      @remarks This method will not work for out of band codes which require an additional parameter,
+          such as password reset code.
+   */
 
   /** @fn sendPasswordResetWithEmail:completion:
       @brief Initiates a password reset for the given email address.
@@ -1234,9 +906,8 @@ extension Auth: AuthInterop {
               sending update email.
 
    */
-  public func sendPasswordReset(withEmail email: String,
-                                      completion: ((Error?) -> Void)? = nil) {
-    sendPasswordReset(withEmail: email, actionCodeSettings: nil, completion: completion)
+  public func sendPasswordReset(withEmail email: String) async throws {
+    try await sendPasswordReset(withEmail: email, actionCodeSettings: nil)
   }
 
   /** @fn sendPasswordResetWithEmail:actionCodeSetting:completion:
@@ -1267,22 +938,13 @@ extension Auth: AuthInterop {
 
    */
   public func sendPasswordReset(withEmail email: String,
-                                      actionCodeSettings: ActionCodeSettings?,
-                                      completion: ((Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
+                                      actionCodeSettings: ActionCodeSettings?) async throws {
       let request = GetOOBConfirmationCodeRequest.passwordResetRequest(
         email: email,
         actionCodeSettings: actionCodeSettings,
         requestConfiguration: self.requestConfiguration
       )
-      AuthBackend.post(withRequest: request) { response, error in
-        if let completion {
-          DispatchQueue.main.async {
-            completion(error)
-          }
-        }
-      }
-    }
+      _ = try await AuthBackend.post(withRequest: request)
   }
 
   /** @fn sendPasswordResetWithEmail:actionCodeSetting:completion:
@@ -1312,19 +974,6 @@ extension Auth: AuthInterop {
               continue URL is not valid.
 
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func sendPasswordReset(withEmail email: String,
-                                actionCodeSettings: ActionCodeSettings? = nil) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.sendPasswordReset(withEmail: email, actionCodeSettings: actionCodeSettings) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
 
   /** @fn sendSignInLinkToEmail:actionCodeSettings:completion:
       @brief Sends a sign in with email link to provided email address.
@@ -1336,22 +985,13 @@ extension Auth: AuthInterop {
           asynchronously on the main thread in the future.
    */
   public func sendSignInLink(toEmail email: String,
-                                   actionCodeSettings: ActionCodeSettings,
-                                   completion: ((Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
+                                   actionCodeSettings: ActionCodeSettings) async throws {
       let request = GetOOBConfirmationCodeRequest.signInWithEmailLinkRequest(
         email,
         actionCodeSettings: actionCodeSettings,
         requestConfiguration: self.requestConfiguration
       )
-      AuthBackend.post(withRequest: request) { response, error in
-        if let completion {
-          DispatchQueue.main.async {
-            completion(error)
-          }
-        }
-      }
-    }
+      _ = try await AuthBackend.post(withRequest: request)
   }
 
   /** @fn sendSignInLinkToEmail:actionCodeSettings:completion:
@@ -1363,19 +1003,6 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func sendSignInLink(toEmail email: String,
-                             actionCodeSettings: ActionCodeSettings) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.sendSignInLink(toEmail: email, actionCodeSettings: actionCodeSettings) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
 
   /** @fn signOut:
       @brief Signs out the current user.
@@ -1442,7 +1069,7 @@ extension Auth: AuthInterop {
     -> AnyObject {
     var firstInvocation = true
     var previousUserID: String?
-    return addIDTokenDidChangeListener { auth, user in
+    return addIDTokenDidChangeListener { @MainActor auth, user in
       let shouldCallListener = firstInvocation || previousUserID != user?.uid
       firstInvocation = false
       previousUserID = user?.uid
@@ -1458,12 +1085,9 @@ extension Auth: AuthInterop {
       @param listenerHandle The handle for the listener.
    */
   
-  public func removeStateDidChangeListener(_ listenerHandle: AnyObject) {
+  public func removeStateDidChangeListener(_ listenerHandle: any NSObjectProtocol) {
     NotificationCenter.default.removeObserver(listenerHandle)
-      // XXX TODO
-//    objc_sync_enter(Auth.self)
-//    defer { objc_sync_exit(Auth.self) }
-    listenerHandles.remove(listenerHandle)
+      listenerHandles.removeAll(where: { $0 === listenerHandle })
   }
 
   /** @fn addIDTokenDidChangeListener:
@@ -1486,20 +1110,22 @@ extension Auth: AuthInterop {
       @return A handle useful for manually unregistering the block as a listener.
    */
   public
-  func addIDTokenDidChangeListener(_ listener: @escaping (Auth, User?) -> Void)
+     func addIDTokenDidChangeListener(_ listener: @MainActor @escaping @Sendable (Auth, User?) -> Void)
     -> AnyObject {
     let handle = NotificationCenter.default.addObserver(
       forName: Auth.authStateDidChangeNotification,
       object: self,
       queue: OperationQueue.main
     ) { notification in
-      if let auth = notification.object as? Auth {
-        listener(auth, auth.currentUser)
-      }
+        if let auth = notification.object as? Auth {
+            Task { @MainActor in
+                listener(auth, auth.currentUser)
+            }
+        }
     }
         // XXX TODO
 //    objc_sync_enter(Auth.self)
-    listenerHandles.add(listener)
+    listenerHandles.append(handle)
 //    objc_sync_exit(Auth.self)
     DispatchQueue.main.async {
       listener(self, self.currentUser)
@@ -1520,9 +1146,7 @@ extension Auth: AuthInterop {
       @brief Sets `languageCode` to the app's current language.
    */
   public func useAppLanguage() {
-    kAuthGlobalWorkQueue.async {
       self.requestConfiguration.languageCode = Locale.preferredLanguages.first
-    }
   }
 
   /** @fn useEmulatorWithHost:port
@@ -1547,54 +1171,21 @@ extension Auth: AuthInterop {
       @param completion (Optional) the block invoked when the request to revoke the token is
           complete, or fails. Invoked asynchronously on the main thread in the future.
    */
-  public func revokeToken(withAuthorizationCode authorizationCode: String,
-                                completion: ((Error?) -> Void)? = nil) {
-    currentUser?.internalGetToken { idToken, error in
-      if let error {
-        if let completion {
-          DispatchQueue.main.async {
-            completion(error)
-          }
-          return
-        }
-      }
-      guard let idToken else {
-        fatalError("Internal Auth Error: Both idToken and error are nil")
-      }
-      let request = RevokeTokenRequest(withToken: authorizationCode,
-                                       idToken: idToken,
-                                       requestConfiguration: self.requestConfiguration)
-      AuthBackend.post(withRequest: request) { response, error in
-        if let completion {
-          DispatchQueue.main.async {
-            if let error {
-              completion(error)
-            } else {
-              completion(nil)
-            }
-          }
-        }
-      }
-    }
-  }
+     @MainActor
+     public func revokeToken(withAuthorizationCode authorizationCode: String) async throws {
+         guard let currentUser else { return }
+         let idToken = try await currentUser.internalGetToken()
+         let request = RevokeTokenRequest(withToken: authorizationCode,
+                                          idToken: idToken,
+                                          requestConfiguration: self.requestConfiguration)
+         _ = try await AuthBackend.post(withRequest: request)
+     }
 
   /** @fn revokeTokenWithAuthorizationCode:Completion
       @brief Revoke the users token with authorization code.
       @param completion (Optional) the block invoked when the request to revoke the token is
           complete, or fails. Invoked asynchronously on the main thread in the future.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func revokeToken(withAuthorizationCode authorizationCode: String) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.revokeToken(withAuthorizationCode: authorizationCode) { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
 
   /** @fn useUserAccessGroup:error:
       @brief Switch userAccessGroup and current user to the given accessGroup and the user stored in
@@ -1709,10 +1300,10 @@ extension Auth: AuthInterop {
     #endif
     requestConfiguration = AuthRequestConfiguration(apiKey: apiKey,
                                                     appID: app.options.googleAppID,
-                                                    auth: nil,
+//                                                    auth: nil,
                                                     heartbeatLogger: app.heartbeatLogger,
                                                     appCheck: nil)
-    requestConfiguration.auth = self
+//    requestConfiguration.auth = self
 
     protectedDataInitialization(keychainStorageProvider)
   }
@@ -1720,27 +1311,21 @@ extension Auth: AuthInterop {
   private func protectedDataInitialization<T: AuthStorage>(_ keychainStorageProvider: T
     .Type = AuthKeychainServices.self) {
     // Continue with the rest of initialization in the work thread.
-    weak var weakSelf = self
-    kAuthGlobalWorkQueue.async {
-      // Load current user from Keychain.
-      guard let strongSelf = weakSelf else {
-        return
-      }
       if let keychainServiceName = Auth
-        .keychainServiceName(forAppName: strongSelf.firebaseAppName) {
-        strongSelf.keychainServices = keychainStorageProvider.init(service: keychainServiceName)
-        strongSelf.storedUserManager = AuthStoredUserManager(serviceName: keychainServiceName)
+        .keychainServiceName(forAppName: firebaseAppName) {
+        keychainServices = keychainStorageProvider.init(service: keychainServiceName)
+        storedUserManager = AuthStoredUserManager(serviceName: keychainServiceName)
       }
 
       do {
-        if let storedUserAccessGroup = strongSelf.storedUserManager.getStoredUserAccessGroup() {
-          try strongSelf.internalUseUserAccessGroup(storedUserAccessGroup)
+        if let storedUserAccessGroup = storedUserManager.getStoredUserAccessGroup() {
+          try internalUseUserAccessGroup(storedUserAccessGroup)
         } else {
           let user = try self.getUser()
-          try strongSelf.updateCurrentUser(user, byForce: false, savingToDisk: false)
+          try updateCurrentUser(user, byForce: false, savingToDisk: false)
           if let user {
-            strongSelf.tenantID = user.tenantID
-            strongSelf.lastNotifiedUserToken = user.rawAccessToken()
+            tenantID = user.tenantID
+            lastNotifiedUserToken = user.rawAccessToken()
           }
         }
       } catch {
@@ -1780,7 +1365,6 @@ extension Auth: AuthInterop {
         // TODO: Does this swizzling still work?
 //        GULSceneDelegateSwizzler.registerSceneDelegateInterceptor(strongSelf)
       #endif
-    }
   }
 
   #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
@@ -1805,12 +1389,13 @@ extension Auth: AuthInterop {
   #endif
 
   deinit {
-    let defaultCenter = NotificationCenter.default
-    while listenerHandles.count > 0 {
-      let handleToRemove = listenerHandles.lastObject
-      defaultCenter.removeObserver(handleToRemove as Any)
-      listenerHandles.removeLastObject()
-    }
+      // XXX TODO
+//    let defaultCenter = NotificationCenter.default
+//    while listenerHandles.count > 0 {
+//      let handleToRemove = listenerHandles.last
+//      defaultCenter.removeObserver(handleToRemove as Any)
+//      listenerHandles.removeLast()
+//    }
 
     #if os(iOS)
       defaultCenter.removeObserver(applicationDidBecomeActiveObserver as Any,
@@ -1853,20 +1438,15 @@ extension Auth: AuthInterop {
     return "firebase_auth_\(appID)"
   }
 
-  func updateKeychain(withUser user: User?) -> Error? {
-    if user != currentUser {
-      // No-op if the user is no longer signed in. This is not considered an error as we don't check
-      // whether the user is still current on other callbacks of user operations either.
-      return nil
-    }
-    do {
-      try saveUser(user)
-      possiblyPostAuthStateChangeNotification()
-    } catch {
-      return error
-    }
-    return nil
-  }
+     func updateKeychain(withUser user: User?) throws {
+         if user != currentUser {
+             // No-op if the user is no longer signed in. This is not considered an error as we don't check
+             // whether the user is still current on other callbacks of user operations either.
+             return
+         }
+         try saveUser(user)
+         possiblyPostAuthStateChangeNotification()
+     }
 
   /** @var gKeychainServiceNameForAppName
       @brief A map from Firebase app name to keychain service names.
@@ -1969,48 +1549,43 @@ extension Auth: AuthInterop {
           executed.
       @param retry Flag to determine whether the invocation is a retry attempt or not.
    */
-  private func scheduleAutoTokenRefresh(withDelay delay: TimeInterval, retry: Bool) {
-    guard let accessToken = currentUser?.rawAccessToken() else {
-      return
-    }
-    let intDelay = Int(ceil(delay))
-    if retry {
-      AuthLog.logInfo(code: "I-AUT000003", message: "Token auto-refresh re-scheduled in " +
-        "\(intDelay / 60):\(intDelay % 60) " +
-        "because of error on previous refresh attempt.")
-    } else {
-      AuthLog.logInfo(code: "I-AUT000004", message: "Token auto-refresh scheduled in " +
-        "\(intDelay / 60):\(intDelay % 60) " +
-        "for the new token.")
-    }
-    autoRefreshScheduled = true
-    weak var weakSelf = self
-    AuthDispatcher.shared.dispatch(afterDelay: delay, queue: kAuthGlobalWorkQueue) {
-      guard let strongSelf = weakSelf else {
-        return
-      }
-      guard strongSelf.currentUser?.rawAccessToken() == accessToken else {
-        // Another auto refresh must have been scheduled, so keep _autoRefreshScheduled unchanged.
-        return
-      }
-      strongSelf.autoRefreshScheduled = false
-      if strongSelf.isAppInBackground {
-        return
-      }
-      let uid = strongSelf.currentUser?.uid
-      strongSelf.currentUser?.internalGetToken(forceRefresh: true) { token, error in
-        if strongSelf.currentUser?.uid != uid {
-          return
-        }
-        if error != nil {
-          // Kicks off exponential back off logic to retry failed attempt. Starts with one minute delay
-          // (60 seconds) if this is the first failed attempt.
-          let rescheduleDelay = retry ? min(delay * 2, 16 * 60) : 60
-          strongSelf.scheduleAutoTokenRefresh(withDelay: rescheduleDelay, retry: true)
-        }
-      }
-    }
-  }
+     private func scheduleAutoTokenRefresh(withDelay delay: TimeInterval, retry: Bool) {
+         guard let accessToken = currentUser?.rawAccessToken() else {
+             return
+         }
+         let intDelay = Int(ceil(delay))
+         if retry {
+             AuthLog.logInfo(code: "I-AUT000003", message: "Token auto-refresh re-scheduled in " +
+                             "\(intDelay / 60):\(intDelay % 60) " +
+                             "because of error on previous refresh attempt.")
+         } else {
+             AuthLog.logInfo(code: "I-AUT000004", message: "Token auto-refresh scheduled in " +
+                             "\(intDelay / 60):\(intDelay % 60) " +
+                             "for the new token.")
+         }
+         autoRefreshScheduled = true
+         Task { [weak self] in
+             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+             guard let self, let currentUser else { return }
+             guard currentUser.rawAccessToken() == accessToken else {
+                 // Another auto refresh must have been scheduled, so keep _autoRefreshScheduled unchanged.
+                 return
+             }
+             autoRefreshScheduled = false
+             if isAppInBackground {
+                 return
+             }
+             let uid = currentUser.uid
+             let token = try await currentUser.internalGetToken(forceRefresh: true)
+             if currentUser.uid != uid {
+                 return
+             }
+             // Kicks off exponential back off logic to retry failed attempt. Starts with one minute delay
+             // (60 seconds) if this is the first failed attempt.
+             let rescheduleDelay = retry ? min(delay * 2, 16 * 60) : 60
+             scheduleAutoTokenRefresh(withDelay: rescheduleDelay, retry: true)
+         }
+     }
 
   /** @fn updateCurrentUser:byForce:savingToDisk:error:
       @brief Update the current user; initializing the user's internal properties correctly, and
@@ -2090,17 +1665,15 @@ extension Auth: AuthInterop {
           asynchronously on the global auth work queue in the future.
    */
   // TODO: internal
-  public func completeSignIn(withAccessToken accessToken: String?,
+  public func completeSignIn(withAccessToken accessToken: String,
                                    accessTokenExpirationDate: Date?,
-                                   refreshToken: String?,
-                                   anonymous: Bool,
-                                   callback: @escaping ((User?, Error?) -> Void)) {
-    User.retrieveUser(withAuth: self,
-                      accessToken: accessToken,
-                      accessTokenExpirationDate: accessTokenExpirationDate,
-                      refreshToken: refreshToken,
-                      anonymous: anonymous,
-                      callback: callback)
+                                   refreshToken: String,
+                                   anonymous: Bool) async throws -> User {
+      try await User.retrieveUser(withAuth: self,
+                                  accessToken: accessToken,
+                                  accessTokenExpirationDate: accessTokenExpirationDate,
+                                  refreshToken: refreshToken,
+                                  anonymous: anonymous)
   }
 
   /** @fn internalSignInAndRetrieveDataWithEmail:password:callback:
@@ -2112,155 +1685,108 @@ extension Auth: AuthInterop {
       @remarks This is the internal counterpart of this method, which uses a callback that does not
           update the current user.
    */
-  private func internalSignInAndRetrieveData(withEmail email: String, password: String,
-                                             completion: ((AuthDataResult?, Error?) -> Void)?) {
-    let credential = EmailAuthCredential(withEmail: email, password: password)
-    internalSignInAndRetrieveData(withCredential: credential,
-                                  isReauthentication: false,
-                                  callback: completion)
-  }
+     private func internalSignInAndRetrieveData(withEmail email: String, password: String) async throws -> AuthDataResult {
+         let credential = EmailAuthCredential(withEmail: email, password: password)
+         return try await internalSignInAndRetrieveData(
+            withCredential: credential,
+            isReauthentication: false
+         )
+     }
 
   internal func internalSignInAndRetrieveData(withCredential credential: AuthCredential,
-                                              isReauthentication: Bool,
-                                              callback: ((AuthDataResult?, Error?) -> Void)?) {
-    if let emailCredential = credential as? EmailAuthCredential {
-      // Special case for email/password credentials
-      switch emailCredential.emailType {
-      case let .link(link):
-        // Email link sign in
-        internalSignInAndRetrieveData(withEmail: emailCredential.email,
-                                      link: link,
-                                      callback: callback)
-      case let .password(password):
-        // Email password sign in
-        let completeEmailSignIn: (User?, Error?) -> Void = { user, error in
-          if let callback {
-            if let error {
-              callback(nil, error)
-              return
-            }
-            guard let user else {
-              // TODO: This matches ObjC code but seems wrong.
-              callback(nil, nil)
-              return
-            }
-            let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
-                                                        profile: nil,
-                                                        username: nil,
-                                                        isNewUser: false)
-            let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-            callback(result, nil)
+                                              isReauthentication: Bool) async throws -> AuthDataResult {
+      if let emailCredential = credential as? EmailAuthCredential {
+          // Special case for email/password credentials
+          switch emailCredential.emailType {
+          case let .link(link):
+              // Email link sign in
+              return try await internalSignInAndRetrieveData(withEmail: emailCredential.email,
+                                                             link: link)
+          case let .password(password):
+              // Email password sign in
+              let user: User = try await signIn(withEmail: emailCredential.email,
+                                                password: password)
+              let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
+                                                          profile: nil,
+                                                          username: nil,
+                                                          isNewUser: false)
+              return AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
           }
-        }
-        signIn(withEmail: emailCredential.email,
-               password: password,
-               callback: completeEmailSignIn)
       }
-      return
-    }
 #if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
       if let gameCenterCredential = credential as? GameCenterAuthCredential {
-        signInAndRetrieveData(withGameCenterCredential: gameCenterCredential,
-                              callback: callback)
-        return
+          return try await signInAndRetrieveData(withGameCenterCredential: gameCenterCredential)
       }
-    #endif
-    #if os(iOS)
+#endif
+#if os(iOS)
       if let phoneCredential = credential as? PhoneAuthCredential {
-        // Special case for phone auth credentials
-        let operation = isReauthentication ? AuthOperationType.reauth : AuthOperationType
-          .signUpOrSignIn
-        signIn(withPhoneCredential: phoneCredential,
-               operation: operation) { rawResponse, error in
-          if let callback {
-            if let error {
-              callback(nil, error)
-              return
-            }
-            guard let response = rawResponse as? VerifyPhoneNumberResponse else {
-              fatalError("Internal Auth Error: Failed to get a VerifyPhoneNumberResponse")
-            }
-            self.completeSignIn(withAccessToken: response.idToken,
-                                accessTokenExpirationDate: response.approximateExpirationDate,
-                                refreshToken: response.refreshToken,
-                                anonymous: false) { user, error in
-              if let error {
-                callback(nil, error)
-                return
+          // Special case for phone auth credentials
+          let operation = isReauthentication ? AuthOperationType.reauth : AuthOperationType
+              .signUpOrSignIn
+          signIn(withPhoneCredential: phoneCredential,
+                 operation: operation) { rawResponse, error in
+              if let callback {
+                  if let error {
+                      callback(nil, error)
+                      return
+                  }
+                  guard let response = rawResponse as? VerifyPhoneNumberResponse else {
+                      fatalError("Internal Auth Error: Failed to get a VerifyPhoneNumberResponse")
+                  }
+                  self.completeSignIn(withAccessToken: response.idToken,
+                                      accessTokenExpirationDate: response.approximateExpirationDate,
+                                      refreshToken: response.refreshToken,
+                                      anonymous: false) { user, error in
+                      if let error {
+                          callback(nil, error)
+                          return
+                      }
+                      if let user {
+                          let additionalUserInfo = AdditionalUserInfo(providerID: PhoneAuthProvider.id,
+                                                                      profile: nil,
+                                                                      username: nil,
+                                                                      isNewUser: response.isNewUser)
+                          let result = AuthDataResult(
+                            withUser: user,
+                            additionalUserInfo: additionalUserInfo
+                          )
+                          callback(result, nil)
+                      } else {
+                          callback(nil, nil)
+                      }
+                  }
               }
-              if let user {
-                let additionalUserInfo = AdditionalUserInfo(providerID: PhoneAuthProvider.id,
-                                                            profile: nil,
-                                                            username: nil,
-                                                            isNewUser: response.isNewUser)
-                let result = AuthDataResult(
-                  withUser: user,
-                  additionalUserInfo: additionalUserInfo
-                )
-                callback(result, nil)
-              } else {
-                callback(nil, nil)
-              }
-            }
           }
-        }
-        return
+          return
       }
-    #endif
-
-    let request = VerifyAssertionRequest(providerID: credential.provider,
-                                         requestConfiguration: requestConfiguration)
-    request.autoCreate = !isReauthentication
-    credential.prepare(request)
-    AuthBackend.post(withRequest: request) { rawResponse, error in
-      if let error {
-        if let callback {
-          callback(nil, error)
-        }
-        return
-      }
-      guard let response = rawResponse as? VerifyAssertionResponse else {
-        fatalError("Internal Auth Error: Failed to get a VerifyAssertionResponse")
-      }
+#endif
+      
+      var request = VerifyAssertionRequest(providerID: credential.provider,
+                                           requestConfiguration: requestConfiguration)
+      request.autoCreate = !isReauthentication
+      credential.prepare(&request)
+      let response = try await AuthBackend.post(withRequest: request)
       if response.needConfirmation {
-        if let callback {
           let email = response.email
           let credential = OAuthCredential(withVerifyAssertionResponse: response)
-          callback(nil, AuthErrorUtils.accountExistsWithDifferentCredentialError(
+          throw AuthErrorUtils.accountExistsWithDifferentCredentialError(
             email: email,
             updatedCredential: credential
-          ))
-        }
-        return
+          )
       }
       guard let providerID = response.providerID, providerID.count > 0 else {
-        if let callback {
-          callback(nil, AuthErrorUtils.unexpectedResponse(deserializedResponse: response))
-        }
-        return
+          throw AuthErrorUtils.unexpectedResponse(deserializedResponse: response)
       }
-      self.completeSignIn(withAccessToken: response.idToken,
-                          accessTokenExpirationDate: response.approximateExpirationDate,
-                          refreshToken: response.refreshToken,
-                          anonymous: false) { user, error in
-        if let callback {
-          if let error {
-            callback(nil, error)
-            return
-          }
-          if let user {
-            let additionalUserInfo = AdditionalUserInfo.userInfo(verifyAssertionResponse: response)
-            let updatedOAuthCredential = OAuthCredential(withVerifyAssertionResponse: response)
-            let result = AuthDataResult(withUser: user,
-                                        additionalUserInfo: additionalUserInfo,
-                                        credential: updatedOAuthCredential)
-            callback(result, error)
-          } else {
-            callback(nil, nil)
-          }
-        }
-      }
-    }
+      let user = try await self.completeSignIn(withAccessToken: response.idToken,
+                                               accessTokenExpirationDate: response.approximateExpirationDate,
+                                               refreshToken: response.refreshToken,
+                                               anonymous: false)
+      let additionalUserInfo = AdditionalUserInfo.userInfo(verifyAssertionResponse: response)
+      let updatedOAuthCredential = OAuthCredential(withVerifyAssertionResponse: response)
+      let result = AuthDataResult(withUser: user,
+                                  additionalUserInfo: additionalUserInfo,
+                                  credential: updatedOAuthCredential)
+      return result
   }
 
   #if os(iOS)
@@ -2307,57 +1833,34 @@ extension Auth: AuthInterop {
         @param callback A block which is invoked when the sign in finished (or is cancelled). Invoked
             asynchronously on the global auth work queue in the future.
      */
-    private func signInAndRetrieveData(withGameCenterCredential credential: GameCenterAuthCredential,
-                                       callback: ((AuthDataResult?, Error?) -> Void)?) {
-      guard let publicKeyURL = credential.publicKeyURL,
-            let signature = credential.signature,
-            let salt = credential.salt else {
-        fatalError(
-          "Internal Auth Error: Game Center credential missing publicKeyURL, signature, or salt"
-        )
-      }
-      let request = SignInWithGameCenterRequest(playerID: credential.playerID,
-                                                teamPlayerID: credential.teamPlayerID,
-                                                gamePlayerID: credential.gamePlayerID,
-                                                publicKeyURL: publicKeyURL,
-                                                signature: signature,
-                                                salt: salt,
-                                                timestamp: credential.timestamp,
-                                                displayName: credential.displayName,
-                                                requestConfiguration: requestConfiguration)
-      AuthBackend.post(withRequest: request) { rawResponse, error in
-        if let error {
-          if let callback {
-            callback(nil, error)
-          }
-          return
-        }
-        guard let response = rawResponse as? SignInWithGameCenterResponse else {
-          fatalError("Internal Auth Error: Failed to get a SignInWithGameCenterResponse")
-        }
-        self.completeSignIn(withAccessToken: response.idToken,
-                            accessTokenExpirationDate: response.approximateExpirationDate,
-                            refreshToken: response.refreshToken,
-                            anonymous: false) { user, error in
-          if let callback {
-            if let error {
-              callback(nil, error)
-              return
-            }
-            if let user {
-              let additionalUserInfo = AdditionalUserInfo(providerID: GameCenterAuthProvider.id,
-                                                          profile: nil,
-                                                          username: nil,
-                                                          isNewUser: response.isNewUser)
-              let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-              callback(result, nil)
-            } else {
-              callback(nil, nil)
-            }
-          }
-        }
-      }
-    }
+     private func signInAndRetrieveData(withGameCenterCredential credential: GameCenterAuthCredential) async throws -> AuthDataResult {
+         guard let publicKeyURL = credential.publicKeyURL,
+               let signature = credential.signature,
+               let salt = credential.salt else {
+             fatalError(
+                "Internal Auth Error: Game Center credential missing publicKeyURL, signature, or salt"
+             )
+         }
+         let request = SignInWithGameCenterRequest(playerID: credential.playerID,
+                                                   teamPlayerID: credential.teamPlayerID,
+                                                   gamePlayerID: credential.gamePlayerID,
+                                                   publicKeyURL: publicKeyURL,
+                                                   signature: signature,
+                                                   salt: salt,
+                                                   timestamp: credential.timestamp,
+                                                   displayName: credential.displayName,
+                                                   requestConfiguration: requestConfiguration)
+         let response = try await AuthBackend.post(withRequest: request)
+         let user = try await self.completeSignIn(withAccessToken: response.idToken,
+                                                  accessTokenExpirationDate: response.approximateExpirationDate,
+                                                  refreshToken: response.refreshToken,
+                                                  anonymous: false)
+         let additionalUserInfo = AdditionalUserInfo(providerID: GameCenterAuthProvider.id,
+                                                     profile: nil,
+                                                     username: nil,
+                                                     isNewUser: response.isNewUser)
+         return AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
+     }
   #endif
 
   /** @fn internalSignInAndRetrieveDataWithEmail:link:completion:
@@ -2368,52 +1871,29 @@ extension Auth: AuthInterop {
           asynchronously on the global auth work queue in the future.
    */
   private func internalSignInAndRetrieveData(withEmail email: String,
-                                             link: String,
-                                             callback: ((AuthDataResult?, Error?) -> Void)?) {
-    guard isSignIn(withEmailLink: link) else {
-      fatalError("The link provided is not valid for email/link sign-in. Please check the link by " +
-        "calling isSignIn(withEmailLink:) on the Auth instance before attempting to use it " +
-        "for email/link sign-in.")
-    }
-    let queryItems = getQueryItems(link)
-    guard let actionCode = queryItems["oobCode"] else {
-      fatalError("Missing oobCode in link URL")
-    }
-    let request = EmailLinkSignInRequest(email: email,
-                                         oobCode: actionCode,
-                                         requestConfiguration: requestConfiguration)
-    AuthBackend.post(withRequest: request) { rawResponse, error in
-      if let error {
-        if let callback {
-          callback(nil, error)
-        }
-        return
+                                             link: String) async throws -> AuthDataResult {
+      guard isSignIn(withEmailLink: link) else {
+          fatalError("The link provided is not valid for email/link sign-in. Please check the link by " +
+                     "calling isSignIn(withEmailLink:) on the Auth instance before attempting to use it " +
+                     "for email/link sign-in.")
       }
-      guard let response = rawResponse as? EmailLinkSignInResponse else {
-        fatalError("Internal Auth Error: Failed to get a EmailLinkSignInResponse")
+      let queryItems = getQueryItems(link)
+      guard let actionCode = queryItems["oobCode"] else {
+          fatalError("Missing oobCode in link URL")
       }
-      self.completeSignIn(withAccessToken: response.idToken,
-                          accessTokenExpirationDate: response.approximateExpirationDate,
-                          refreshToken: response.refreshToken,
-                          anonymous: false) { user, error in
-        if let callback {
-          if let error {
-            callback(nil, error)
-            return
-          }
-          if let user {
-            let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
-                                                        profile: nil,
-                                                        username: nil,
-                                                        isNewUser: response.isNewUser)
-            let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-            callback(result, nil)
-          } else {
-            callback(nil, nil)
-          }
-        }
-      }
-    }
+      let request = EmailLinkSignInRequest(email: email,
+                                           oobCode: actionCode,
+                                           requestConfiguration: requestConfiguration)
+      let response = try await AuthBackend.post(withRequest: request)
+      let user = try await self.completeSignIn(withAccessToken: response.idToken,
+                                               accessTokenExpirationDate: response.approximateExpirationDate,
+                                               refreshToken: response.refreshToken,
+                                               anonymous: false)
+      let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
+                                                  profile: nil,
+                                                  username: nil,
+                                                  isNewUser: response.isNewUser)
+      return AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
   }
 
   private func getQueryItems(_ link: String) -> [String: String] {
@@ -2437,30 +1917,6 @@ extension Auth: AuthInterop {
        @remarks Typically invoked as part of the complete sign-in flow. For any other uses please
            consider alternative ways of updating the current user.
    */
-  func signInFlowAuthDataResultCallback(byDecorating callback:
-    ((AuthDataResult?, Error?) -> Void)?) -> (AuthDataResult?, Error?) -> Void {
-    let authDataCallback: (((AuthDataResult?, Error?) -> Void)?, AuthDataResult?, Error?) -> Void =
-      { callback, result, error in
-        if let callback {
-          DispatchQueue.main.async {
-            callback(result, error)
-          }
-        }
-      }
-    return { authResult, error in
-      if let error {
-        authDataCallback(callback, nil, error)
-        return
-      }
-      do {
-        try self.updateCurrentUser(authResult?.user, byForce: false, savingToDisk: true)
-      } catch {
-        authDataCallback(callback, nil, error)
-        return
-      }
-      authDataCallback(callback, authResult, nil)
-    }
-  }
 
   // MARK: Internal properties
 
@@ -2568,5 +2024,5 @@ extension Auth: AuthInterop {
           change" notification listeners.
       @remarks Mutations should occur within a @syncronized(self) context.
    */
-  private var listenerHandles: NSMutableArray = []
+  private var listenerHandles: [any NSObjectProtocol] = []
 }

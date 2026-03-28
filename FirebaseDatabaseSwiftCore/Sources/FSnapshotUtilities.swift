@@ -40,7 +40,7 @@ public enum FSnapshotUtilities {
         var compoundWrite = FCompoundWrite.emptyWrite
         var updatePaths: [FPath] = []
         for (keyId, value) in values {
-            let key = FValidationSwift.validateFrom(fn, validUpdateDictionaryKey: keyId, withValue: value)
+            let key = FValidation.validateFrom(fn, validUpdateDictionaryKey: keyId, withValue: value)
             let path = FPath(with: key)
             let node = FSnapshotUtilities.nodeFrom(value, withValidationFrom: fn)
             updatePaths.append(path)
@@ -73,24 +73,24 @@ public enum FSnapshotUtilities {
              return .empty
          }
          var value: Any = val
-         FValidationSwift.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
+         FValidation.validateFrom(fn, isValidPriorityValue: priority as Any, withPath: path)
          var priority = FSnapshotUtilities.nodeFrom(priority)
          var isLeafNode = false
          if let dict = val as? [String: Any] {
              if let rawPriority = dict[kPayloadPriority] {
-                 FValidationSwift.validateFrom(fn, isValidPriorityValue: rawPriority, withPath: path)
+                 FValidation.validateFrom(fn, isValidPriorityValue: rawPriority, withPath: path)
                  priority = nodeFrom(rawPriority)
              }
              if let payload = dict[kPayloadValue] {
                  value = payload
-                 if FValidationSwift.validateFrom(fn, isValidLeafValue: value, withPath: path) {
+                 if FValidation.validateFrom(fn, isValidLeafValue: value, withPath: path) {
                      isLeafNode = true
                  } else {
                      fatalError("(\(fn)) Invalid data type used with .value. Can only use NSString and NSNumber or be null. Found \(type(of: value)) instead.")
                  }
              }
          }
-         if !isLeafNode && FValidationSwift.validateFrom(fn, isValidLeafValue: value, withPath: path) {
+         if !isLeafNode && FValidation.validateFrom(fn, isValidLeafValue: value, withPath: path) {
              isLeafNode = true
          }
 
@@ -106,7 +106,7 @@ public enum FSnapshotUtilities {
 
              // Avoid creating a million newPaths by appending to old one
              for keyId in dval.keys {
-                 let key = FValidationSwift.validateFrom(fn, validDictionaryKey: keyId, withPath: path)
+                 let key = FValidation.validateFrom(fn, validDictionaryKey: keyId, withPath: path)
                  if !key.hasPrefix(kPayloadMetadataPrefix) {
                      path.append(key)
                      let childNode = nodeFrom(dval[key], priority: nil, withValidationFrom: fn, atDepth: depth + 1, path: &path)

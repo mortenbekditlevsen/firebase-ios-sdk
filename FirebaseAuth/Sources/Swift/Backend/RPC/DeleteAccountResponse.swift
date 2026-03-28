@@ -18,6 +18,5 @@ import Foundation
     @brief Represents the response from the deleteAccount endpoint.
     @see https://developers.google.com/identity/toolkit/web/reference/relyingparty/deleteAccount
  */
- public class DeleteAccountResponse: AuthRPCResponse {
-  public func setFields(dictionary: [String: Any]) throws {}
+ public struct DeleteAccountResponse: AuthRPCResponse {
 }

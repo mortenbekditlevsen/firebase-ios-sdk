@@ -27,11 +27,11 @@ import XCTest
 /// This file tests public methods and enums. Properties are not included.
 /// Each function maps to a public header file.
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 class AuthAPI_hOnlyTests: XCTestCase {
   // Each function corresponds with a public header.
   func FIRActionCodeSettings_h() {
-    let codeSettings = FirebaseAuth.ActionCodeSettings()
+    var codeSettings = FirebaseAuth.ActionCodeSettings()
     codeSettings.iOSBundleID = "abc"
     codeSettings.setAndroidPackageName("name", installIfNotAvailable: true, minimumVersion: "10.0")
   }
@@ -108,7 +108,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
     }
   }
 
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   func FIRAuth_hAsync() async throws {
     let auth = FirebaseAuth.Auth.auth()
     let user = auth.currentUser!
@@ -254,7 +254,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
   #if !os(macOS) && !os(watchOS)
     func FIRFedederatedAuthProvider_h() {
       class FederatedAuthImplementation: FederatedAuthProvider {
-        @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+        @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
         func credential(with UIDelegate: AuthUIDelegate?) async throws -> FirebaseAuth
           .AuthCredential {
           return FacebookAuthProvider.credential(withAccessToken: "token")
@@ -266,7 +266,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
       let obj = FederatedAuthImplementation()
       obj.getCredentialWith(nil) { _, _ in
       }
-      @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+      @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
       func FIRFedederatedAuthProvider_hAsync() async throws {
         let obj = FederatedAuthImplementation()
         try await _ = obj.credential(with: nil)
@@ -280,7 +280,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
       }
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     func FIRGameCenterAuthProvider_hAsync() async throws {
       _ = try await GameCenterAuthProvider.getCredential()
     }
@@ -313,7 +313,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
       }
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     func FIRMultiFactor_hAsync() async throws {
       let provider = PhoneAuthProvider.provider(auth: FirebaseAuth.Auth.auth())
       let credential = provider.credential(withVerificationID: "id",
@@ -338,7 +338,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
       }
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     func FIRMultiFactorResolver_hAsync() async throws {
       let provider = PhoneAuthProvider.provider(auth: FirebaseAuth.Auth.auth())
       let credential = provider.credential(withVerificationID: "id",
@@ -362,7 +362,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
     #endif
   }
 
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   func FIROAuthProvider_h() async throws {
     let provider = OAuthProvider(providerID: GoogleAuthProvider.id, auth: FirebaseAuth.Auth.auth())
     #if os(iOS)
@@ -393,7 +393,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
       _ = provider.credential(withVerificationID: "id", verificationCode: "code")
     }
 
-    @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+    @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
     func FIRPhoneAuthProvider_hAsync() async throws {
       _ = PhoneAuthProvider.provider()
       let provider = PhoneAuthProvider.provider(auth: FirebaseAuth.Auth.auth())
@@ -469,7 +469,7 @@ class AuthAPI_hOnlyTests: XCTestCase {
     }
   }
 
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+  @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
   func FIRUser_hAsync() async throws {
     let auth = FirebaseAuth.Auth.auth()
     let user = auth.currentUser!

@@ -19,20 +19,20 @@ import Foundation
     @remarks Properties are marked as being part of a profile update when they are set. Setting a
         property value to nil is not the same as leaving the property unassigned.
  */
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public class UserProfileChangeRequest {
   /** @property displayName
    @brief The name of the user.
    */
   public var displayName: String? {
-    get { return _displayName }
-    set(newDisplayName) {
+    get { _displayName }
+    set {
       kAuthGlobalWorkQueue.async {
         if self.consumed {
           fatalError("Internal Auth Error: Invalid call to setDisplayName after commitChanges.")
         }
         self.displayNameWasSet = true
-        self._displayName = newDisplayName
+        self._displayName = newValue
       }
     }
   }
@@ -65,47 +65,39 @@ import Foundation
    @param completion Optionally; the block invoked when the user profile change has been applied.
    Invoked asynchronously on the main thread in the future.
    */
-  public func commitChanges(withCompletion completion: ((Error?) -> Void)? = nil) {
-    kAuthGlobalWorkQueue.async {
-      if self.consumed {
-        fatalError("Internal Auth Error: commitChanges should only be called once.")
-      }
-      self.consumed = true
-      // Return fast if there is nothing to update:
-      if !self.photoURLWasSet, !self.displayNameWasSet {
-        User.callInMainThreadWithError(callback: completion, error: nil)
-        return
-      }
-      let displayName = self.displayName
-      let displayNameWasSet = self.displayNameWasSet
-      let photoURL = self.photoURL
-      let photoURLWasSet = self.photoURLWasSet
-
-      self.user.executeUserUpdateWithChanges(changeBlock: { user, request in
-        if photoURLWasSet {
-          request.photoURL = photoURL
-        }
-        if displayNameWasSet {
-          request.displayName = displayName
-        }
-      }) { error in
-        if let error {
-          User.callInMainThreadWithError(callback: completion, error: error)
-          return
-        }
-        if displayNameWasSet {
-          self.user.displayName = displayName
-        }
-        if photoURLWasSet {
-          self.user.photoURL = photoURL
-        }
-        if let error = self.user.updateKeychain() {
-          User.callInMainThreadWithError(callback: completion, error: error)
-        }
-        User.callInMainThreadWithError(callback: completion, error: nil)
-      }
-    }
-  }
+     @MainActor
+     public func commitChanges() async throws  {
+         if self.consumed {
+             fatalError("Internal Auth Error: commitChanges should only be called once.")
+         }
+         self.consumed = true
+         // Return fast if there is nothing to update:
+         if !self.photoURLWasSet, !self.displayNameWasSet {
+             return
+         }
+         let displayName = self.displayName
+         let displayNameWasSet = self.displayNameWasSet
+         let photoURL = self.photoURL
+         let photoURLWasSet = self.photoURLWasSet
+         
+         try await self.user.executeUserUpdateWithChanges(changeBlock: { user, request in
+             if photoURLWasSet {
+                 request.photoURL = photoURL
+             }
+             if displayNameWasSet {
+                 request.displayName = displayName
+             }
+         })
+         
+         if displayNameWasSet {
+             self.user.displayName = displayName
+         }
+         if photoURLWasSet {
+             self.user.photoURL = photoURL
+         }
+         try self.user.updateKeychain()
+         
+     }
 
   /** @fn commitChanges
    @brief Commits any pending changes.
@@ -114,18 +106,6 @@ import Foundation
 
    @throws on error.
    */
-  @available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
-  public func commitChanges() async throws {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.commitChanges { error in
-        if let error {
-          continuation.resume(throwing: error)
-        } else {
-          continuation.resume()
-        }
-      }
-    }
-  }
 
   init(_ user: User) {
     self.user = user

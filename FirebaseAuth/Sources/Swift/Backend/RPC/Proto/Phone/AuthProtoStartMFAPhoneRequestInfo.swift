@@ -14,10 +14,6 @@
 
 import Foundation
 
-/** @var kPhoneNumberKey
- @brief The key for the Phone Number parameter in the request.
- */
-private let kPhoneNumberKey = "phoneNumber"
 
 /** @var kReceiptKey
  @brief The key for the receipt parameter in the request.
@@ -34,34 +30,34 @@ private let kSecretKey = "iosSecret"
  */
 private let kreCAPTCHATokenKey = "recaptchaToken"
 
-class AuthProtoStartMFAPhoneRequestInfo: AuthProto {
-  required init(dictionary: [String: Any]) {
-    fatalError()
-  }
-
-  var phoneNumber: String?
-  var appCredential: AuthAppCredential?
-  var reCAPTCHAToken: String?
-  init(phoneNumber: String?, appCredential: AuthAppCredential?, reCAPTCHAToken: String?) {
-    self.phoneNumber = phoneNumber
-    self.appCredential = appCredential
-    self.reCAPTCHAToken = reCAPTCHAToken
-  }
-
-  var dictionary: [String: Any] {
-    var dict: [String: Any] = [:]
-    if let phoneNumber = phoneNumber {
-      dict[kPhoneNumberKey] = phoneNumber
+struct AuthProtoStartMFAPhoneRequestInfo: Encodable, Sendable /* AuthProto */ {
+    var phoneNumber: String?
+    var appCredential: AuthAppCredential?
+    var reCAPTCHAToken: String?
+    init(
+        phoneNumber: String?,
+        appCredential: AuthAppCredential?,
+        reCAPTCHAToken: String?
+    ) {
+        self.phoneNumber = phoneNumber
+        self.appCredential = appCredential
+        self.reCAPTCHAToken = reCAPTCHAToken
+        
     }
-    if let receipt = appCredential?.receipt {
-      dict[kReceiptKey] = receipt
+    
+    enum CodingKeys: String, CodingKey {
+        case phoneNumber
+        case appCredential
+        case reCAPTCHAToken = "recaptchaToken"
+        case receipt = "iosReceipt"
+        case secret = "iosSecret"
     }
-    if let secret = appCredential?.secret {
-      dict[kSecretKey] = secret
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(self.phoneNumber, forKey: .phoneNumber)
+        try container.encodeIfPresent(self.appCredential?.receipt, forKey: .receipt)
+        try container.encodeIfPresent(self.appCredential?.secret, forKey: .secret)
+        try container.encodeIfPresent(self.reCAPTCHAToken, forKey: .reCAPTCHAToken)
     }
-    if let reCAPTCHAToken = reCAPTCHAToken {
-      dict[kreCAPTCHATokenKey] = reCAPTCHAToken
-    }
-    return dict
-  }
 }

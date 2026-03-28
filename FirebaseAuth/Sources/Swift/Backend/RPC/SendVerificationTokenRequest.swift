@@ -44,9 +44,11 @@ private let kreCAPTCHATokenKey = "recaptchaToken"
  */
 private let kTenantIDKey = "tenantId"
 
-@available(iOS 13, tvOS 13, macOS 10.15, macCatalyst 13, watchOS 7, *)
+@available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 
-public class SendVerificationCodeRequest: IdentityToolkitRequest, AuthRPCRequest {
+public struct SendVerificationCodeRequest: IdentityToolkitRequest, AuthRPCRequest {
+    public typealias Response = SendVerificationCodeResponse
+
   /** @property phoneNumber
       @brief The phone number to which the verification code should be sent.
    */
@@ -66,17 +68,18 @@ public class SendVerificationCodeRequest: IdentityToolkitRequest, AuthRPCRequest
   /** @var response
       @brief The corresponding response for this request
    */
-  public var response: AuthRPCResponse = SendVerificationCodeResponse()
+
+    public var useStaging: Bool { false }
+    public var useIdentityPlatform: Bool { false }
+    public var endpoint: String { kSendVerificationCodeEndPoint }
+    public var requestConfiguration: AuthRequestConfiguration
 
   public init(phoneNumber: String, appCredential: AuthAppCredential?,
                     reCAPTCHAToken: String?, requestConfiguration: AuthRequestConfiguration) {
     self.phoneNumber = phoneNumber
     self.appCredential = appCredential
     self.reCAPTCHAToken = reCAPTCHAToken
-    super.init(
-      endpoint: kSendVerificationCodeEndPoint,
-      requestConfiguration: requestConfiguration
-    )
+      self.requestConfiguration = requestConfiguration
   }
 
   public func unencodedHTTPRequestBody() throws -> [String: Any] {

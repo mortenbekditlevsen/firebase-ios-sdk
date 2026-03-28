@@ -15,19 +15,35 @@
 import Foundation
 
 
-public class VerifyClientResponse: AuthRPCResponse {
+public struct VerifyClientResponse: AuthRPCResponse {
   /// Receipt that the APNS token was successfully validated with APNS.
-  public private(set) var receipt: String?
+  public let receipt: String?
 
   /// The date after which delivery of the silent push notification is considered to have failed.
-  public private(set) var suggestedTimeOutDate: Date?
+  public let suggestedTimeOutDate: Date?
 
-  public func setFields(dictionary: [String: Any]) throws {
-    receipt = dictionary["receipt"] as? String
-    let suggestedTimeout = dictionary["suggestedTimeout"]
-    if let string = suggestedTimeout as? String,
-       let doubleVal = Double(string) {
-      suggestedTimeOutDate = Date(timeIntervalSinceNow: doubleVal)
+    enum CodingKeys: CodingKey {
+        case receipt
+        case suggestedTimeOutDate
     }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.receipt = try container.decodeIfPresent(String.self, forKey: .receipt)
+        
+        
+        self.suggestedTimeOutDate = try container.decodeIfPresent(Date.self, forKey: .suggestedTimeOutDate)
+    }
+    
+    // This looks weird - verify in production
+  public func setFields(dictionary: [String: Any]) throws {
+      /*
+       receipt = dictionary["receipt"] as? String
+       let suggestedTimeout = dictionary["suggestedTimeout"]
+       if let string = suggestedTimeout as? String,
+       let doubleVal = Double(string) {
+       suggestedTimeOutDate = Date(timeIntervalSinceNow: doubleVal)
+
+       */
   }
 }

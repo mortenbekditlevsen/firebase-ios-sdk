@@ -1,4 +1,4 @@
-// swift-tools-version:5.6
+// swift-tools-version:6.2
 // The swift-tools-version declares the minimum version of Swift required to
 // build this package.
 
@@ -23,7 +23,7 @@ let firebaseVersion = "10.10.0"
 
 let package = Package(
   name: "Firebase",
-  platforms: [.iOS(.v13), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v12), .watchOS(.v7)],
+  platforms: [.iOS(.v13), .macCatalyst(.v13), .macOS(.v15), .tvOS(.v12), .watchOS(.v7)],
   products: [
     .executable(name: "SampleApp", targets: ["SampleApp"]),
     .library(
@@ -220,7 +220,8 @@ let package = Package(
   ],
   targets: [
     .target(name: "FirebaseCoreSwift",
-            path: "FirebaseCoreSwift/Sources"
+            path: "FirebaseCoreSwift/Sources",
+            swiftSettings: [.swiftLanguageMode(.v5)]
            ),
     .target(
       name: "Firebase",
@@ -466,7 +467,8 @@ let package = Package(
     .target(
         name: "SampleApp",
         dependencies: ["FirebaseDatabaseSwiftCore", "FirebaseAuth"],
-        path: "SampleApp/Sources"
+        path: "SampleApp/Sources",
+        swiftSettings: [.swiftLanguageMode(.v5)]
     ),
     .target(
         name: "FirebaseDatabaseSwiftCore",
@@ -482,8 +484,9 @@ let package = Package(
         path: "FirebaseDatabaseSwiftCore/Sources",
         exclude: [
           "third_party/LevelDB/LICENSE",
-        ]
-      ),
+        ],
+        swiftSettings: [.swiftLanguageMode(.v5)]
+    ),
       .testTarget(
         name: "DatabaseSwiftCoreUnit",
         dependencies: ["FirebaseDatabaseSwiftCore"],
@@ -691,7 +694,8 @@ let package = Package(
       exclude: [
         "third_party/FirebaseDataEncoder/LICENSE",
         "third_party/FirebaseDataEncoder/METADATA",
-      ]
+      ],
+      swiftSettings: [.swiftLanguageMode(.v5)]
     ),
     .testTarget(
       name: "FirebaseSharedSwiftTests",

@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "E8D8A95C-DDC2-4117-A804-779F4BF6CF3F",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "AuthUnit",
+        "name" : "AuthUnit"
+      }
+    }
+  ],
+  "version" : 1
+}

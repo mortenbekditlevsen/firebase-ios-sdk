@@ -47,10 +47,10 @@ import Foundation
 
   public static func userInfo(verifyAssertionResponse: VerifyAssertionResponse)
     -> AdditionalUserInfo {
-    return AdditionalUserInfo(providerID: verifyAssertionResponse.providerID,
-                              profile: verifyAssertionResponse.profile,
-                              username: verifyAssertionResponse.username,
-                              isNewUser: verifyAssertionResponse.isNewUser)
+        AdditionalUserInfo(providerID: verifyAssertionResponse.providerID,
+                           profile: verifyAssertionResponse.profile,
+                           username: verifyAssertionResponse.username,
+                           isNewUser: verifyAssertionResponse.isNewUser)
   }
 
   init(providerID: String?, profile: [String: Any]?, username: String?, isNewUser: Bool) {
