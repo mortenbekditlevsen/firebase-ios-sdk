@@ -529,14 +529,17 @@ let package = Package(
       name: "AuthUnit",
       dependencies: [
         "FirebaseAuth",
-        "HeartbeatLoggingTestUtils",
+        // HeartbeatLoggingTestUtils is ObjC-based (via FirebaseCoreInternal) and
+        // is only used by AuthBackendRPCImplentationTests — excluded below.
       ],
       path: "FirebaseAuth/Tests/Unit",
       exclude: [
-        "AuthKeychainServicesTests.swift", // TODO: figure out SPM keychain testing
-        "AuthTests.swift",
-        "UserTests.swift",
-        "AuthUseUserAccessGroupTests.swift",
+        "AuthKeychainServicesTests.swift", // Keychain testing requires platform-specific setup
+        "AuthTests.swift",                 // Requires full Firebase app lifecycle
+        "UserTests.swift",                 // Requires full Firebase app lifecycle
+        "AuthUseUserAccessGroupTests.swift",// Keychain access groups: Apple-only
+        "AuthBackendRPCImplentationTests.swift", // Depends on HeartbeatLoggingTestUtils (ObjC)
+        "SwiftAPI.swift",                  // Public API coverage test; uses UIKit (#if !os(macOS) includes Linux)
       ]
     ),
     .target(
