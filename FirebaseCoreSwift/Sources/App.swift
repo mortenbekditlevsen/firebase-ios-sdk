@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Synchronization
 
 // Dummy protocol since I don't have heartbeatlogger working yet
 public protocol FIRHeartbeatLoggerProtocol: Sendable {
@@ -18,12 +19,12 @@ public protocol AppCheckInterop: Sendable {
 
 }
 
-public class FirebaseApp: Equatable {
+public final class FirebaseApp: Equatable, Sendable {
     public static func == (lhs: FirebaseApp, rhs: FirebaseApp) -> Bool {
         lhs.name == rhs.name && lhs.options == rhs.options
     }
 
-    public struct Options: Equatable {
+    public struct Options: Equatable, Sendable {
         public init(databaseURL: String? = nil, projectID: String? = nil, googleAppID: String, apiKey: String?, clientID: String?) {
             self.databaseURL = databaseURL
             self.projectID = projectID
@@ -38,23 +39,40 @@ public class FirebaseApp: Equatable {
         public var apiKey: String?
         public var clientID: String?
     }
-    public var auth: AuthInterop?
-    public var name: String
-    public var options: Options
-    public init(options: Options, name: String) {
-        self.options = options
-        self.name = name
+    public var name: String { _name.withLock { $0} }
+    public var options: Options { _options.withLock { $0 } }
+    public var auth: AuthInterop? {
+        get { _auth.withLock { $0 } }
+        set { _auth.withLock { $0 = newValue} }
     }
-    public var heartbeatLogger: FIRHeartbeatLoggerProtocol?
+    public var heartbeatLogger: FIRHeartbeatLoggerProtocol? {
+        get { _heartbeatLogger.withLock { $0 } }
+        set { _heartbeatLogger.withLock { $0 = newValue} }
+    }
+
+    private let _auth: Mutex<AuthInterop?>
+    private let _name: Mutex<String>
+    private let _options: Mutex<Options>
+    private let _heartbeatLogger: Mutex<FIRHeartbeatLoggerProtocol?>
+    public init(options: Options, name: String) {
+        self._options = .init(options)
+        self._name = .init(name)
+        self._auth = .init(nil)
+        self._heartbeatLogger = .init(nil)
+    }
     public static var isDefaultAppConfigured: Bool { defaultApp != nil }
     public static func configure(name: String? = nil, options: Options) {
-        defaultApp = FirebaseApp(options: options, name: name ?? "[DEFAULT]")
+        _defaultApp.withLock {
+            $0 = FirebaseApp(options: options, name: name ?? "[DEFAULT]")
+        }
     }
-    public static private(set) var defaultApp: FirebaseApp?
+    public static var defaultApp: FirebaseApp? { _defaultApp.withLock { $0 } }
+    private static let _defaultApp: Mutex<FirebaseApp?> = .init(nil)
+
 }
 
 @MainActor
-public protocol AuthInterop: AnyObject {
+public protocol AuthInterop: AnyObject, Sendable {
     func getToken(forcingRefresh forceRefresh: Bool) async throws -> String?
     func getUserID() -> String?
 }
