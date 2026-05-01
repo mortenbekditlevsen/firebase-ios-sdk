@@ -508,7 +508,9 @@ let package = Package(
 //        .product(name: "GTMSessionFetcherCore", package: "gtm-session-fetcher"),
         .product(name: "Crypto", package: "swift-crypto")
       ],
-      path: "FirebaseAuth/Sources/Swift"
+      path: "FirebaseAuth/Sources/Swift",
+      swiftSettings: [.swiftLanguageMode(.v5)]
+
 //      linkerSettings: [
 //        .linkedFramework("Security", .when(platforms: [.iOS, .macOS, .tvOS, .watchOS]),
 ////        .linkedFramework("Foundation"),
