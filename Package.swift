@@ -478,7 +478,7 @@ let package = Package(
                         "FirebaseCoreSwift",
                         .product(name: "Atomics", package: "swift-atomics"),
                         .product(name: "Logging", package: "swift-log"),
-                        .product(name: "SortedCollections", package: "swift-collectionsx"),
+                        .product(name: "SortedCollections", package: "swift-collections"),
                         .product(name: "NIOWebSocket", package: "swift-nio"),
                         .product(name: "NIOSSL", package: "swift-nio-ssl"),
                         .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux, .windows, .android]))],
