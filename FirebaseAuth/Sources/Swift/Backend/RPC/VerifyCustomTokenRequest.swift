@@ -57,17 +57,4 @@ private let kTenantIDKey = "tenantId"
     returnSecureToken = true
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [
-      kTokenKey: token,
-    ]
-    if returnSecureToken {
-      postBody[kReturnSecureTokenKey] = true
-    }
-    if let tenantID = tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

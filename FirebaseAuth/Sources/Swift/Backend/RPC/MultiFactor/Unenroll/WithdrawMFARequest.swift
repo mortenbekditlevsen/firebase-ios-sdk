@@ -44,18 +44,4 @@ struct WithdrawMFARequest: IdentityToolkitRequest, AuthRPCRequest {
     self.mfaEnrollmentID = mfaEnrollmentID
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [:]
-    if let idToken = idToken {
-      postBody["idToken"] = idToken
-    }
-    if let mfaEnrollmentID = mfaEnrollmentID {
-      postBody["mfaEnrollmentId"] = mfaEnrollmentID
-    }
-    if let tenantID = tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

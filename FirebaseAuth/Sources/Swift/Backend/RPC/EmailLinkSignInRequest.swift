@@ -78,17 +78,4 @@ private let kTenantIDKey = "tenantId"
       self.requestConfiguration = requestConfiguration
   }
 
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [
-      kEmailKey: email,
-      kOOBCodeKey: oobCode,
-    ]
-    if let idToken = idToken {
-      postBody[kIDTokenKey] = idToken
-    }
-    if let tenantID = tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

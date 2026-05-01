@@ -94,14 +94,4 @@ private let kIDTokenKey = "idToken"
     self.idToken = idToken
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    let body: [String: Any] = [
-      kProviderIDKey: providerID,
-      kTokenTypeKey: "\(tokenType.rawValue)",
-      kTokenKey: token,
-      kIDTokenKey: idToken,
-    ]
-    return body
-  }
 }

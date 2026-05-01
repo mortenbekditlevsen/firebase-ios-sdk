@@ -161,22 +161,6 @@ public struct SecureTokenRequest: AuthRPCRequest {
 
   public func containsPostBody() -> Bool { true }
 
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [
-      kGrantTypeKey: grantType.value,
-    ]
-    if let scope = scope {
-      postBody[kScopeKey] = scope
-    }
-    if let refreshToken = refreshToken {
-      postBody[kRefreshTokenKey] = refreshToken
-    }
-    if let code = code {
-      postBody[kCodeKey] = code
-    }
-    return postBody
-  }
-
   // MARK: Internal API for development
 
   static var host: String { gAPIHost }

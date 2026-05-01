@@ -49,22 +49,4 @@ struct FinalizeMFAEnrollmentRequest: IdentityToolkitRequest, AuthRPCRequest {
     self.verificationInfo = verificationInfo
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var body: [String: Any] = [:]
-    if let idToken = idToken {
-      body["idToken"] = idToken
-    }
-    if let displayName = displayName {
-      body["displayName"] = displayName
-      if let verificationInfo = verificationInfo {
-        body["phoneVerificationInfo"] = verificationInfo.dictionary
-      }
-    }
-
-    if let tenantID {
-      body[kTenantIDKey] = tenantID
-    }
-    return body
-  }
 }

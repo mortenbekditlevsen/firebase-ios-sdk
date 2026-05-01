@@ -59,8 +59,4 @@ private let kTenantIDKey = "tenantId"
          try container.encodeIfPresent(enrollmentInfo, forKey: .phoneEnrollmentInfo)
          try container.encodeIfPresent(tenantID, forKey: .tenantId)
      }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-      [:]
-  }
 }

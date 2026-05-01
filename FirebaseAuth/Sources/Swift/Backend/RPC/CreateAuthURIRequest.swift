@@ -120,31 +120,4 @@ private let kTenantIDKey = "tenantId"
     self.continueURI = continueURI
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [
-      kIdentifierKey: identifier,
-      kContinueURIKey: continueURI,
-    ]
-
-    if let providerID = providerID {
-      postBody[kProviderIDKey] = providerID
-    }
-    if let openIDRealm = openIDRealm {
-      postBody[kOpenIDRealmKey] = openIDRealm
-    }
-    if let clientID = clientID {
-      postBody[kClientIDKey] = clientID
-    }
-    if let context = context {
-      postBody[kContextKey] = context
-    }
-    if let appID = appID {
-      postBody[kAppIDKey] = appID
-    }
-    if let tenantID = tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

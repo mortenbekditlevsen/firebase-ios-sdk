@@ -100,8 +100,4 @@ private let kVerifyPasswordEndpoint = "verifyPassword"
          }
          try container.encodeIfPresent(tenantID, forKey: .tenantID)
      }
-     
-     public func unencodedHTTPRequestBody() throws -> [String: Any] {
-         [:]
-     }
  }

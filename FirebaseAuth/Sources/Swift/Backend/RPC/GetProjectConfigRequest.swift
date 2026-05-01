@@ -33,10 +33,5 @@ public struct GetProjectConfigRequest: IdentityToolkitRequest,
         self.requestConfiguration = requestConfiguration
     }
     
-    public func unencodedHTTPRequestBody() throws -> [String: Any] {
-        // XXX TODO: Probably nicer to throw, but what should we throw?
-        fatalError()
-    }
-    
     public func containsPostBody() -> Bool { false }
 }

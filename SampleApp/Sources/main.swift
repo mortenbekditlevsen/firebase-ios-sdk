@@ -187,7 +187,15 @@ extension Database {
 
 @MainActor
  func main() async {
-        FirebaseApp.configure(options: FirebaseApp.Options(databaseURL: "https://firestoretests-44fc8.firebaseio.com",  projectID: "firestoretests-44fc8", googleAppID: "1:649012064016:ios:b4dcc2e22b3b90ea", apiKey: "AIzaSyC9NV44W_Takzurg41lo7nxXpUr3vugI88", clientID: "649012064016-pdglutubaeg3rik5feojtq29lk5trf2a.apps.googleusercontent.com"))
+     FirebaseApp.configure(
+        options: FirebaseApp.Options(
+            databaseURL: "https://firestoretests-44fc8.firebaseio.com",
+            projectID: "firestoretests-44fc8",
+            googleAppID: "1:649012064016:ios:b4dcc2e22b3b90ea",
+            apiKey: "AIzaSyC9NV44W_Takzurg41lo7nxXpUr3vugI88",
+            clientID: "649012064016-pdglutubaeg3rik5feojtq29lk5trf2a.apps.googleusercontent.com"
+        )
+     )
         
         // With the current hackish setup, we need to initialize Auth
         // before Database. :-)

@@ -153,28 +153,4 @@ extension AuthOperationType {
     self.operation = operation
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [:]
-    if let verificationID {
-      postBody[kVerificationIDKey] = verificationID
-    }
-    if let verificationCode {
-      postBody[kVerificationCodeKey] = verificationCode
-    }
-    if let accessToken {
-      postBody[kIDTokenKey] = accessToken
-    }
-    if let temporaryProof {
-      postBody[kTemporaryProofKey] = temporaryProof
-    }
-    if let phoneNumber {
-      postBody[kPhoneNumberKey] = phoneNumber
-    }
-    if let tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    postBody[kOperationKey] = operation.operationString
-    return postBody
-  }
 }

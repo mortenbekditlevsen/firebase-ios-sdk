@@ -81,23 +81,4 @@ public struct SendVerificationCodeRequest: IdentityToolkitRequest, AuthRPCReques
     self.reCAPTCHAToken = reCAPTCHAToken
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [:]
-    postBody[kPhoneNumberKey] = phoneNumber
-    if let receipt = appCredential?.receipt {
-      postBody[kReceiptKey] = receipt
-    }
-    if let secret = appCredential?.secret {
-      postBody[kSecretKey] = secret
-    }
-    if let reCAPTCHAToken {
-      postBody[kreCAPTCHATokenKey] = reCAPTCHAToken
-    }
-
-    if let tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

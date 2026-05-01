@@ -57,8 +57,4 @@ private let kStartMFASignInEndPoint = "accounts/mfaSignIn:start"
          try container.encodeIfPresent(tenantID, forKey: .tenantId)
 
      }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-      [:]
-  }
 }

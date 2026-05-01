@@ -31,15 +31,6 @@ public struct VerifyClientRequest: IdentityToolkitRequest, AuthRPCRequest, Encod
   /** @var response
       @brief The corresponding response for this request
    */
-
-    public func unencodedHTTPRequestBody() throws -> [String: Any] {
-        var postBody = [String: Any]()
-        if let appToken = appToken {
-            postBody[Self.appTokenKey] = appToken
-        }
-        postBody[Self.isSandboxKey] = isSandbox
-        return postBody
-    }
   
     enum CodingKeys: CodingKey {
         case appToken

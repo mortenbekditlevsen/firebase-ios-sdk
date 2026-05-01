@@ -106,29 +106,4 @@ public struct SignInWithGameCenterRequest: IdentityToolkitRequest,
     self.displayName = displayName
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [
-      "playerId": playerID,
-      "publicKeyUrl": publicKeyURL.absoluteString,
-      "signature": signature.base64URLEncodedString(),
-      "salt": salt.base64URLEncodedString(),
-    ]
-    if timestamp != 0 {
-      postBody["timestamp"] = timestamp
-    }
-    if let teamPlayerID {
-      postBody["teamPlayerId"] = teamPlayerID
-    }
-    if let gamePlayerID {
-      postBody["gamePlayerId"] = gamePlayerID
-    }
-    if let accessToken {
-      postBody["idToken"] = accessToken
-    }
-    if let displayName {
-      postBody["displayName"] = displayName
-    }
-    return postBody
-  }
 }

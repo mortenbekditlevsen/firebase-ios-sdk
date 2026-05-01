@@ -60,11 +60,4 @@ private let kLocalIDKey = "localId"
     self.accessToken = accessToken
        self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    [
-      kIDTokenKey: accessToken,
-      kLocalIDKey: localID,
-    ]
-  }
 }

@@ -72,17 +72,4 @@ private let kTenantIDKey = "tenantId"
     updatedPassword = newPassword
       self.requestConfiguration = requestConfiguration
   }
-
-  public func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var postBody: [String: Any] = [:]
-
-    postBody[kOOBCodeKey] = oobCode
-    if let updatedPassword {
-      postBody[kCurrentPasswordKey] = updatedPassword
-    }
-    if let tenantID {
-      postBody[kTenantIDKey] = tenantID
-    }
-    return postBody
-  }
 }

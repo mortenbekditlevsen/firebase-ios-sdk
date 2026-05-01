@@ -44,18 +44,4 @@ struct FinalizeMFASignInRequest: IdentityToolkitRequest, AuthRPCRequest {
     self.verificationInfo = verificationInfo
       self.requestConfiguration = requestConfiguration
   }
-
-  func unencodedHTTPRequestBody() throws -> [String: Any] {
-    var body: [String: Any] = [:]
-    if let mfaPendingCredential = mfaPendingCredential {
-      body["mfaPendingCredential"] = mfaPendingCredential
-    }
-    if let verificationInfo = verificationInfo {
-      body["phoneVerificationInfo"] = verificationInfo.dictionary
-    }
-    if let tenantID = tenantID {
-      body[kTenantIDKey] = tenantID
-    }
-    return body
-  }
 }
