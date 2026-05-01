@@ -1066,7 +1066,7 @@ extension Auth: AuthInterop {
    */
   
   public func addStateDidChangeListener(_ listener: @escaping (Auth, User?) -> Void)
-    -> AnyObject {
+    -> any NSObjectProtocol {
     var firstInvocation = true
     var previousUserID: String?
     return addIDTokenDidChangeListener { @MainActor auth, user in
@@ -1111,7 +1111,7 @@ extension Auth: AuthInterop {
    */
   public
      func addIDTokenDidChangeListener(_ listener: @MainActor @escaping @Sendable (Auth, User?) -> Void)
-    -> AnyObject {
+    -> any NSObjectProtocol {
     let handle = NotificationCenter.default.addObserver(
       forName: Auth.authStateDidChangeNotification,
       object: self,
