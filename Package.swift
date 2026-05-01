@@ -163,13 +163,15 @@ let package = Package(
 //      .revision("c38963739c2048a84db6823228df1eb9bd16a5ca")
 //    ),
     .package(
-      name: "leveldb",
       url: "https://github.com/mortenbekditlevsen/leveldb.git",
       branch: "1.22.2-mine"
     ),
     .package(
-      url: "https://github.com/mortenbekditlevsen/swift-collections.git",
-      .branch("main")
+      url: "https://github.com/apple/swift-collections.git",
+      from: "1.3.0",
+      traits: [
+        "UnstableSortedCollections"
+      ]
 //      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
     ),
     .package(
@@ -463,7 +465,7 @@ let package = Package(
         .headerSearchPath("../../../.."),
       ]
     ),
-    .target(
+    .executableTarget(
         name: "SampleApp",
         dependencies: ["FirebaseDatabaseSwiftCore", "FirebaseAuth"],
         path: "SampleApp/Sources",
@@ -476,7 +478,7 @@ let package = Package(
                         "FirebaseCoreSwift",
                         .product(name: "Atomics", package: "swift-atomics"),
                         .product(name: "Logging", package: "swift-log"),
-                        .product(name: "SortedCollections", package: "swift-collections"),
+                        .product(name: "SortedCollections", package: "swift-collectionsx"),
                         .product(name: "NIOWebSocket", package: "swift-nio"),
                         .product(name: "NIOSSL", package: "swift-nio-ssl"),
                         .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux, .windows, .android]))],
