@@ -508,7 +508,7 @@ let package = Package(
         .product(name: "Crypto", package: "swift-crypto")
       ],
       path: "FirebaseAuth/Sources/Swift",
-//      swiftSettings: [.swiftLanguageMode(.v5)]
+      swiftSettings: [.swiftLanguageMode(.v5)]
 
 //      linkerSettings: [
 //        .linkedFramework("Security", .when(platforms: [.iOS, .macOS, .tvOS, .watchOS]),
