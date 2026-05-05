@@ -71,7 +71,6 @@ public final class FirebaseApp: Equatable, Sendable {
 
 }
 
-@MainActor
 public protocol AuthInterop: AnyObject, Sendable {
     func getToken(forcingRefresh forceRefresh: Bool) async throws -> String?
     func getUserID() -> String?

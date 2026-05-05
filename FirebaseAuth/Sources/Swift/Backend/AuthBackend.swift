@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -51,7 +52,6 @@ public protocol AuthBackendRPCIssuer: Sendable {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
 public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
   let fetcherService: URLSession
 
@@ -91,8 +91,7 @@ public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
- public class AuthBackend {
+ public final class AuthBackend: Sendable {
   static func authUserAgent() -> String {
       // XXX TODO:
       // GTMUseragent is bundle id followed by a space and
@@ -103,21 +102,20 @@ public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
       return "FirebaseAuth.iOS/\(firebaseVersion) \(gtmUserAgent)"
   }
 
-  private static var gBackendImplementation: AuthBackendImplementation?
+  private static let gBackendImplementation: Mutex<AuthBackendImplementation?> = .init(nil)
 
   class func setDefaultBackendImplementationWithRPCIssuer(issuer: AuthBackendRPCIssuer?) {
-    let defaultImplementation = AuthBackendRPCImplementation()
-    if let issuer = issuer {
-      defaultImplementation.rpcIssuer = issuer
-    }
-    gBackendImplementation = defaultImplementation
+    let defaultImplementation = AuthBackendRPCImplementation(rpcIssuer: issuer)
+    gBackendImplementation.withLock { $0 = defaultImplementation }
   }
 
   class func implementation() -> AuthBackendImplementation {
-    if gBackendImplementation == nil {
-      gBackendImplementation = AuthBackendRPCImplementation()
+    gBackendImplementation.withLock { current in
+      if let current { return current }
+      let new = AuthBackendRPCImplementation(rpcIssuer: nil)
+      current = new
+      return new
     }
-    return (gBackendImplementation)!
   }
 
   /** @fn postWithRequest:response:callback:
@@ -198,11 +196,10 @@ protocol AuthBackendImplementation: Sendable {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
-private class AuthBackendRPCImplementation: AuthBackendImplementation {
-  var rpcIssuer: AuthBackendRPCIssuer
-   init() {
-    rpcIssuer = AuthBackendRPCIssuerImplementation()
+private final class AuthBackendRPCImplementation: AuthBackendImplementation {
+  let rpcIssuer: AuthBackendRPCIssuer
+   init(rpcIssuer: AuthBackendRPCIssuer?) {
+    self.rpcIssuer = rpcIssuer ?? AuthBackendRPCIssuerImplementation()
   }
 
   /** @fn postWithRequest:response:callback:
