@@ -564,6 +564,9 @@ let package = Package(
         "VerifyCustomTokenTests.swift",
         "VerifyPasswordTests.swift",
         "VerifyPhoneNumberTests.swift",
+        // Targets the old non-generic `enqueueTask` API; the actor has been
+        // reshaped to `AuthSerialTaskQueue<T: Sendable>` with `enqueue(block:)`.
+        "AuthSerialTaskQueueTests.swift",
         // Tests of NSSecureCoding-based credential serialization. The Swift
         // port uses Codable; these need to be rewritten as Codable round-trip
         // tests.
