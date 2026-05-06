@@ -572,6 +572,10 @@ let package = Package(
         // FirebaseApp surface in the Swift port is `FirebaseApp.Options` /
         // `FirebaseApp(options:name:)`.
         "AuthLifecycleTests.swift",
+        // Constructs `IdentityToolkitRequest` directly; that type is now a
+        // protocol, so each concrete RPC request would need to be tested via
+        // its own concrete type.
+        "IdentityToolkitRequestTests.swift",
         // Tests of NSSecureCoding-based credential serialization. The Swift
         // port uses Codable; these need to be rewritten as Codable round-trip
         // tests.
