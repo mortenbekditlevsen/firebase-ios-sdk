@@ -20,19 +20,7 @@ import Foundation
 final class FakeAuthKeychainServices: AuthStorage {
   init(service: String) {}
 
-  private static var keychainServices: [String: FakeAuthKeychainServices] = [:]
-
   private var fakeKeychain: [String: Any] = [:]
-
-  static func storage(identifier: String) -> Self {
-    if let existingInstance = keychainServices[identifier] as? Self {
-      return existingInstance
-    } else {
-      let newInstance = Self(service: "FakeAuthKeychainServices")
-      keychainServices[identifier] = newInstance
-      return newInstance
-    }
-  }
 
   func data(forKey key: String) throws -> Data? {
     if key.isEmpty {
