@@ -43,7 +43,7 @@ class SecureTokenTests: RPCBaseTests {
   }
 
   private func makeSecureTokenRequest(useEmulator: Bool = false) -> SecureTokenRequest {
-    let requestConfiguration = makeRequestConfiguration()
+    var requestConfiguration = makeRequestConfiguration()
     if useEmulator {
       requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     }
