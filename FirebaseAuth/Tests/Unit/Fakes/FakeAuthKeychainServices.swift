@@ -13,12 +13,26 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 @testable import FirebaseAuth
 
 /// A fake storage instance that imitates the system keychain while storing data in-memory.
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 final class FakeAuthKeychainServices: AuthStorage {
   init(service: String) {}
+
+  static func storage(identifier: String) -> Self {
+    _instances.withLock { instances in
+      if let existing = instances[identifier] as? Self {
+        return existing
+      }
+      let newInstance = Self(service: "FakeAuthKeychainServices")
+      instances[identifier] = newInstance
+      return newInstance
+    }
+  }
+
+  private static let _instances: Mutex<[String: FakeAuthKeychainServices]> = .init([:])
 
   private var fakeKeychain: [String: Any] = [:]
 
