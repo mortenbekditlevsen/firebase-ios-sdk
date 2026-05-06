@@ -564,6 +564,19 @@ let package = Package(
         "VerifyCustomTokenTests.swift",
         "VerifyPasswordTests.swift",
         "VerifyPhoneNumberTests.swift",
+        // Tests of NSSecureCoding-based credential serialization. The Swift
+        // port uses Codable; these need to be rewritten as Codable round-trip
+        // tests.
+        "AdditionalUserInfoTests.swift",
+        "AuthAppCredentialTests.swift",
+        "EmailAuthProviderTests.swift",
+        "FacebookAuthProviderTests.swift",
+        "GitHubAuthProviderTests.swift",
+        "GoogleAuthProviderTests.swift",
+        "OAuthProviderTests.swift",
+        "PhoneAuthProviderTests.swift",
+        "TwitterAuthProviderTests.swift",
+        "UserMetadataTests.swift",
       ]
     ),
     .target(

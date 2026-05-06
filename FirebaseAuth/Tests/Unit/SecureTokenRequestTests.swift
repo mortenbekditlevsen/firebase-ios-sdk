@@ -30,7 +30,7 @@ class SecureTokenRequestTests: XCTestCase {
      request inputs.
    */
   func testRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = SecureTokenRequest.refreshRequest(refreshToken: "Token",
                                                     requestConfiguration: requestConfiguration)
     let expectedURL = "https://securetoken.googleapis.com/v1/token?key=\(kAPIKey)"
@@ -42,7 +42,7 @@ class SecureTokenRequestTests: XCTestCase {
      request inputs when using the emulator.
    */
   func testRequestURLUseEmulator() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = SecureTokenRequest.refreshRequest(refreshToken: "Token",
                                                     requestConfiguration: requestConfiguration)
     requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort

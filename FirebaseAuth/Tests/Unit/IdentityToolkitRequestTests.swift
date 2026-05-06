@@ -31,7 +31,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs.
    */
   func testInitWithEndpointExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration)
     let expectedURL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/\(kEndpoint)" +
@@ -44,7 +44,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs when the staging endpoint is specified.
    */
   func testInitWithEndpointUseStagingExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration,
                                          useStaging: true)
@@ -58,7 +58,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs when the Identity Platform endpoint is specified.
    */
   func testInitWithEndpointUseIdentityPlatformExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration,
                                          useIdentityPlatform: true)
@@ -71,7 +71,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs when the Identity Platform and staging endpoint is specified.
    */
   func testInitWithEndpointUseIdentityPlatformUseStagingExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration,
                                          useIdentityPlatform: true,
@@ -86,7 +86,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs when the emulator is used.
    */
   func testInitWithEndpointUseEmulatorExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration)
@@ -100,7 +100,7 @@ class IdentityToolkitRequestTests: XCTestCase {
      request inputs when the emulator is used with the Identity Platform endpoint.
    */
   func testInitWithEndpointUseIdentityPlatformUseEmulatorExpectedRequestURL() {
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
     requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
                                          requestConfiguration: requestConfiguration,
@@ -120,7 +120,7 @@ class IdentityToolkitRequestTests: XCTestCase {
     let nonDefaultApp = FirebaseApp(instanceWithName: "nonDefaultApp", options: options)
     let nonDefaultAuth = Auth(app: nonDefaultApp)
     nonDefaultAuth.tenantID = "tenant-id"
-    let requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID",
+    var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID",
                                                         auth: nonDefaultAuth)
     requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     let request = IdentityToolkitRequest(endpoint: kEndpoint,
