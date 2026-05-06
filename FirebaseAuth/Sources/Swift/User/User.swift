@@ -1162,7 +1162,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @brief A weak reference to a FIRAuth instance associated with this instance.
      */
     // TODO: internal
-    @MainActor
     public weak var auth: Auth?
     
     // MARK: Private functions

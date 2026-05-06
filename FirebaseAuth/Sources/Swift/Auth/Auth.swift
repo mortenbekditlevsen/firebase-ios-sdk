@@ -281,7 +281,7 @@ extension Auth: AuthInterop {
                      password: String) async throws -> AuthDataResult {
       let result = try await self.internalSignInAndRetrieveData(withEmail: email,
                                                           password: password)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -354,7 +354,7 @@ extension Auth: AuthInterop {
       let credential = EmailAuthCredential(withEmail: email, link: link)
       let result = try await self.internalSignInAndRetrieveData(withCredential: credential,
                                          isReauthentication: false)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -550,7 +550,7 @@ extension Auth: AuthInterop {
   public func signIn(with credential: AuthCredential) async throws -> AuthDataResult {
       let authResult = try await self.internalSignInAndRetrieveData(withCredential: credential,
                                                                     isReauthentication: false)
-      try self.updateCurrentUser(authResult.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(authResult.user, byForce: false, savingToDisk: true, state: &state) }
       return authResult
   }
 
@@ -612,7 +612,7 @@ extension Auth: AuthInterop {
      public func signInAnonymously() async throws -> AuthDataResult {
          if let currentUser = self.currentUser, currentUser.isAnonymous {
              // Doesn't appear to be necessary when this is the current user, but old code did this
-             try self.updateCurrentUser(currentUser, byForce: false, savingToDisk: true)
+             try _state.withLock { state in try _updateCurrentUser(currentUser, byForce: false, savingToDisk: true, state: &state) }
              return AuthDataResult(withUser: currentUser, additionalUserInfo: nil)
          }
          let request = SignUpNewUserRequest(requestConfiguration: self.requestConfiguration)
@@ -626,7 +626,7 @@ extension Auth: AuthInterop {
                                                      username: nil,
                                                      isNewUser: true)
          let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-         try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+         try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
          return result
      }
 
@@ -674,7 +674,7 @@ extension Auth: AuthInterop {
                                                   username: nil,
                                                   isNewUser: response.isNewUser)
       let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -740,7 +740,7 @@ extension Auth: AuthInterop {
                                                   username: nil,
                                                   isNewUser: true)
       let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
