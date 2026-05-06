@@ -567,6 +567,11 @@ let package = Package(
         // Targets the old non-generic `enqueueTask` API; the actor has been
         // reshaped to `AuthSerialTaskQueue<T: Sendable>` with `enqueue(block:)`.
         "AuthSerialTaskQueueTests.swift",
+        // Targets old `FirebaseOptions(...)`, `FirebaseApp.resetApps()`, and
+        // `FirebaseApp(instanceWithName:options:)` which no longer exist; the
+        // FirebaseApp surface in the Swift port is `FirebaseApp.Options` /
+        // `FirebaseApp(options:name:)`.
+        "AuthLifecycleTests.swift",
         // Tests of NSSecureCoding-based credential serialization. The Swift
         // port uses Codable; these need to be rewritten as Codable round-trip
         // tests.
