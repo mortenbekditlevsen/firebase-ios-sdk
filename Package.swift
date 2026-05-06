@@ -534,7 +534,6 @@ let package = Package(
       name: "AuthUnit",
       dependencies: [
         "FirebaseAuth",
-        "HeartbeatLoggingTestUtils",
       ],
       path: "FirebaseAuth/Tests/Unit",
       // Phase 2 of the Swift migration is in progress: tests still using the
@@ -546,6 +545,7 @@ let package = Package(
         "AuthUseUserAccessGroupTests.swift",
         // Pending port to async/await fake (phase 2/3):
         "UserTests.swift",
+        "AuthBackendRPCImplentationTests.swift",
         "AuthNotificationManagerTests.swift",
         "DeleteAccountTests.swift",
         "EmailLinkSignInTests.swift",
