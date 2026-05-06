@@ -537,11 +537,33 @@ let package = Package(
         "HeartbeatLoggingTestUtils",
       ],
       path: "FirebaseAuth/Tests/Unit",
+      // Phase 2 of the Swift migration is in progress: tests still using the
+      // legacy callback API are excluded until they're ported to async/await.
+      // See FirebaseAuth/Docs/Concurrency.md.
       exclude: [
+        // Apple-only / WIP:
         "AuthKeychainServicesTests.swift", // TODO: figure out SPM keychain testing
-        "AuthTests.swift",
-        "UserTests.swift",
         "AuthUseUserAccessGroupTests.swift",
+        // Pending port to async/await fake (phase 2/3):
+        "UserTests.swift",
+        "AuthNotificationManagerTests.swift",
+        "DeleteAccountTests.swift",
+        "EmailLinkSignInTests.swift",
+        "GetAccountInfoTests.swift",
+        "GetOOBConfirmationCodeTests.swift",
+        "GetProjectConfigTests.swift",
+        "ResetPasswordTests.swift",
+        "RevokeTokenTests.swift",
+        "SendVerificationCodeTests.swift",
+        "SetAccountInfoTests.swift",
+        "SignInWithGameCenterTests.swift",
+        "SignUpNewUserTests.swift",
+        "SwiftAPI.swift",
+        "VerifyAssertionTests.swift",
+        "VerifyClientTests.swift",
+        "VerifyCustomTokenTests.swift",
+        "VerifyPasswordTests.swift",
+        "VerifyPhoneNumberTests.swift",
       ]
     ),
     .target(

@@ -13,138 +13,184 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 import XCTest
 
 @testable import FirebaseAuth
 
-/** @class FakeBackendRPCIssuer
-    @brief An implementation of @c AuthBackendRPCIssuer which is used to test backend request,
-        response, and glue logic.
- */
+/// An implementation of `AuthBackendRPCIssuer` used to test backend request,
+/// response, and glue logic.
+///
+/// The fake captures each issued request and suspends `asyncPostToURL` on a
+/// pending continuation. The test then inspects the captured request, calls
+/// one of the `respond(...)` methods to drive the suspended task forward, and
+/// awaits the resulting `AuthBackend.post(...)` value.
+///
+/// The test pattern is:
+///
+/// ```swift
+/// async let task = AuthBackend.post(withRequest: makeRequest())
+/// try await rpcIssuer.waitForRequest()
+/// XCTAssertEqual(rpcIssuer.requestURL?.absoluteString, expected)
+/// try rpcIssuer.respond(withJSON: [...])
+/// let response = try await task
+/// ```
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-class FakeBackendRPCIssuer: AuthBackendRPCIssuer {
-  /** @property requestURL
-      @brief The URL which was requested.
-   */
-  var requestURL: URL?
+final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
+  // MARK: - Captured request data (most recent)
 
-  /** @property requestData
-      @brief The raw data in the POST body.
-   */
-  var requestData: Data?
+  private let _requestURL: Mutex<URL?> = .init(nil)
+  private let _requestData: Mutex<Data?> = .init(nil)
+  private let _decodedRequest: Mutex<[String: Any]?> = .init(nil)
+  private let _contentType: Mutex<String?> = .init(nil)
+  private let _request: Mutex<(any AuthRPCRequest)?> = .init(nil)
 
-  /** @property decodedRequest
-      @brief The raw data in the POST body decoded as JSON.
-   */
-  var decodedRequest: [String: Any]?
+  var requestURL: URL? { _requestURL.withLock { $0 } }
+  var requestData: Data? { _requestData.withLock { $0 } }
+  var decodedRequest: [String: Any]? { _decodedRequest.withLock { $0 } }
+  var contentType: String? { _contentType.withLock { $0 } }
+  var request: (any AuthRPCRequest)? { _request.withLock { $0 } }
 
-  /** @property contentType
-      @brief The value of the content type HTTP header in the request.
-   */
-  var contentType: String?
+  // MARK: - Per-request inspection hooks
 
-  /** @property request
-      @brief Save the request for validation.
-   */
-  var request: AuthRPCRequest?
+  private struct Hooks: @unchecked Sendable {
+    var verifyRequester: ((SendVerificationCodeRequest) -> Void)?
+    var verifyClientRequester: ((VerifyClientRequest) -> Void)?
+    var projectConfigRequester: ((GetProjectConfigRequest) -> Void)?
+    var verifyPasswordRequester: ((VerifyPasswordRequest) -> Void)?
+    var verifyPhoneNumberRequester: ((VerifyPhoneNumberRequest) -> Void)?
+  }
 
-  /** @property completeRequest
-      @brief The last request to be processed by the backend.
-   */
-  var completeRequest: URLRequest?
+  private let _hooks: Mutex<Hooks> = .init(Hooks())
 
-  /** @var _handler
-      @brief A block we must invoke when @c respondWithError or @c respondWithJSON are called.
-   */
-  private var handler: ((Data?, Error?) -> Void)?
+  var verifyRequester: ((SendVerificationCodeRequest) -> Void)? {
+    get { _hooks.withLock { $0.verifyRequester } }
+    set { _hooks.withLock { $0.verifyRequester = newValue } }
+  }
 
-  /** @var group
-      @brief Block on handler initialization
-   */
-  var group: DispatchGroup?
+  var verifyClientRequester: ((VerifyClientRequest) -> Void)? {
+    get { _hooks.withLock { $0.verifyClientRequester } }
+    set { _hooks.withLock { $0.verifyClientRequester = newValue } }
+  }
 
-  /** @var verifyRequester
-      @brief Optional function to run tests on the request.
-   */
-  var verifyRequester: ((SendVerificationCodeRequest) -> Void)?
-  var verifyClientRequester: ((VerifyClientRequest) -> Void)?
-  var projectConfigRequester: ((GetProjectConfigRequest) -> Void)?
-  var verifyPasswordRequester: ((VerifyPasswordRequest) -> Void)?
-  var verifyPhoneNumberRequester: ((VerifyPhoneNumberRequest) -> Void)?
+  var projectConfigRequester: ((GetProjectConfigRequest) -> Void)? {
+    get { _hooks.withLock { $0.projectConfigRequester } }
+    set { _hooks.withLock { $0.projectConfigRequester = newValue } }
+  }
 
-  var fakeGetAccountProviderJSON: [[String: Any]]?
-  var fakeSecureTokenServiceJSON: [String: Any]?
-  var secureTokenNetworkError: NSError?
-  var secureTokenErrorString: String?
+  var verifyPasswordRequester: ((VerifyPasswordRequest) -> Void)? {
+    get { _hooks.withLock { $0.verifyPasswordRequester } }
+    set { _hooks.withLock { $0.verifyPasswordRequester = newValue } }
+  }
 
-  func asyncPostToURL(withRequest request: AuthRPCRequest,
-                      body: Data?,
-                      contentType: String,
-                      completionHandler: @escaping ((Data?, Error?) -> Void)) {
-    self.contentType = contentType
-    handler = completionHandler
-    self.request = request
-    requestURL = request.requestURL()
+  var verifyPhoneNumberRequester: ((VerifyPhoneNumberRequest) -> Void)? {
+    get { _hooks.withLock { $0.verifyPhoneNumberRequester } }
+    set { _hooks.withLock { $0.verifyPhoneNumberRequester = newValue } }
+  }
 
-    if let verifyRequester,
-       let verifyRequest = request as? SendVerificationCodeRequest {
-      verifyRequester(verifyRequest)
-    } else if let verifyClientRequester,
-              let verifyClientRequest = request as? VerifyClientRequest {
-      verifyClientRequester(verifyClientRequest)
-    } else if let projectConfigRequester,
-              let projectConfigRequest = request as? GetProjectConfigRequest {
-      projectConfigRequester(projectConfigRequest)
-    } else if let verifyPasswordRequester,
-              let verifyPasswordRequest = request as? VerifyPasswordRequest {
-      verifyPasswordRequester(verifyPasswordRequest)
-    } else if let verifyPhoneNumberRequester,
-              let verifyPhoneNumberRequest = request as? VerifyPhoneNumberRequest {
-      verifyPhoneNumberRequester(verifyPhoneNumberRequest)
-    }
+  // MARK: - Canned responses for short-circuited request types
 
-    if let _ = request as? GetAccountInfoRequest,
-       let json = fakeGetAccountProviderJSON {
-      guard let _ = try? respond(withJSON: ["users": json]) else {
-        fatalError("fakeGetAccountProviderJSON respond failed")
+  private struct Canned: @unchecked Sendable {
+    var fakeGetAccountProviderJSON: [[String: Any]]?
+    var fakeSecureTokenServiceJSON: [String: Any]?
+    var secureTokenNetworkError: NSError?
+    var secureTokenErrorString: String?
+  }
+
+  private let _canned: Mutex<Canned> = .init(Canned())
+
+  var fakeGetAccountProviderJSON: [[String: Any]]? {
+    get { _canned.withLock { $0.fakeGetAccountProviderJSON } }
+    set { _canned.withLock { $0.fakeGetAccountProviderJSON = newValue } }
+  }
+
+  var fakeSecureTokenServiceJSON: [String: Any]? {
+    get { _canned.withLock { $0.fakeSecureTokenServiceJSON } }
+    set { _canned.withLock { $0.fakeSecureTokenServiceJSON = newValue } }
+  }
+
+  var secureTokenNetworkError: NSError? {
+    get { _canned.withLock { $0.secureTokenNetworkError } }
+    set { _canned.withLock { $0.secureTokenNetworkError = newValue } }
+  }
+
+  var secureTokenErrorString: String? {
+    get { _canned.withLock { $0.secureTokenErrorString } }
+    set { _canned.withLock { $0.secureTokenErrorString = newValue } }
+  }
+
+  // MARK: - Pending request / response continuations
+
+  private struct Pending {
+    var requestArrived: [CheckedContinuation<Void, Never>] = []
+    var pendingResponse: CheckedContinuation<Data, Error>?
+  }
+
+  private let _pending: Mutex<Pending> = .init(Pending())
+
+  /// Waits until `asyncPostToURL` has captured a request. Returns immediately
+  /// if a request is already pending response.
+  func waitForRequest() async {
+    let alreadyWaiting = _pending.withLock { $0.pendingResponse != nil }
+    if alreadyWaiting { return }
+    await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+      let resumeNow = _pending.withLock { pending -> Bool in
+        if pending.pendingResponse != nil { return true }
+        pending.requestArrived.append(cont)
+        return false
       }
-      return
-    } else if let _ = request as? SecureTokenRequest {
-      if let secureTokenNetworkError {
-        guard let _ = try? respond(withData: nil,
-                                   error: secureTokenNetworkError) else {
-          fatalError("Failed to generate secureTokenNetworkError")
-        }
-      } else if let secureTokenErrorString {
-        guard let _ = try? respond(serverErrorMessage: secureTokenErrorString) else {
-          fatalError("Failed to generate secureTokenErrorString")
-        }
-        return
-      } else if let json = fakeSecureTokenServiceJSON {
-        guard let _ = try? respond(withJSON: json) else {
-          fatalError("fakeGetAccountProviderJSON respond failed")
-        }
-        return
-      }
-    }
-    if let body = body {
-      requestData = body
-      // Use the real implementation so that the complete request can
-      // be verified during testing.
-      AuthBackend.request(withURL: requestURL!,
-                          contentType: contentType,
-                          requestConfiguration: request.requestConfiguration()) { request in
-        self.completeRequest = request
-      }
-      decodedRequest = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
-    }
-    if let group {
-      self.group = nil
-      group.leave()
+      if resumeNow { cont.resume() }
     }
   }
 
-  @discardableResult func respond(serverErrorMessage errorMessage: String) throws -> Data {
+  // MARK: - AuthBackendRPCIssuer
+
+  func asyncPostToURL<T: AuthRPCRequest>(withRequest request: T,
+                                         body: Data?,
+                                         contentType: String) async throws -> Data {
+    _contentType.withLock { $0 = contentType }
+    _request.withLock { $0 = request }
+    _requestURL.withLock { $0 = request.requestURL() }
+    _requestData.withLock { $0 = body }
+    if let body {
+      _decodedRequest.withLock {
+        $0 = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
+      }
+    } else {
+      _decodedRequest.withLock { $0 = nil }
+    }
+
+    runHooks(for: request)
+
+    if let canned = try shortCircuitResponse(for: request) {
+      return canned
+    }
+
+    return try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Data, Error>) in
+      let waiters: [CheckedContinuation<Void, Never>] = _pending.withLock { pending in
+        pending.pendingResponse = cont
+        let drained = pending.requestArrived
+        pending.requestArrived.removeAll()
+        return drained
+      }
+      for w in waiters { w.resume() }
+    }
+  }
+
+  // MARK: - respond(...)
+
+  @discardableResult
+  func respond(withJSON json: [String: Any], error: NSError? = nil) throws -> Data {
+    let data = try JSONSerialization.data(
+      withJSONObject: json,
+      options: JSONSerialization.WritingOptions.prettyPrinted
+    )
+    try respond(withData: data, error: error)
+    return data
+  }
+
+  @discardableResult
+  func respond(serverErrorMessage errorMessage: String) throws -> Data {
     let error = NSError(domain: NSCocoaErrorDomain, code: 0)
     return try respond(serverErrorMessage: errorMessage, error: error)
   }
@@ -154,29 +200,84 @@ class FakeBackendRPCIssuer: AuthBackendRPCIssuer {
     return try respond(withJSON: ["error": ["message": errorMessage]], error: error)
   }
 
-  @discardableResult func respond(underlyingErrorMessage errorMessage: String,
-                                  message: String = "See the reason") throws -> Data {
+  @discardableResult
+  func respond(underlyingErrorMessage errorMessage: String,
+               message: String = "See the reason") throws -> Data {
     let error = NSError(domain: NSCocoaErrorDomain, code: 0)
-    return try respond(withJSON: ["error": ["message": message,
-                                            "errors": [["reason": errorMessage]]] as [String: Any]],
-    error: error)
-  }
-
-  @discardableResult func respond(withJSON json: [String: Any],
-                                  error: NSError? = nil) throws -> Data {
-    let data = try JSONSerialization.data(withJSONObject: json,
-                                          options: JSONSerialization.WritingOptions.prettyPrinted)
-    try respond(withData: data, error: error)
-    return data
+    return try respond(
+      withJSON: ["error": [
+        "message": message,
+        "errors": [["reason": errorMessage]],
+      ] as [String: Any]],
+      error: error
+    )
   }
 
   func respond(withData data: Data?, error: NSError?) throws {
-    let handler = try XCTUnwrap(handler, "There is no pending RPC request.")
+    let cont = _pending.withLock { pending -> CheckedContinuation<Data, Error>? in
+      let c = pending.pendingResponse
+      pending.pendingResponse = nil
+      return c
+    }
+    guard let cont else {
+      XCTFail("There is no pending RPC request.")
+      return
+    }
     XCTAssertTrue(
-      (data != nil) || (error != nil),
-      "At least one of: data or error should be been non-nil."
+      data != nil || error != nil,
+      "At least one of: data or error should be non-nil."
     )
-    self.handler = nil
-    handler(data, error)
+    if let error {
+      cont.resume(throwing: error)
+    } else if let data {
+      cont.resume(returning: data)
+    } else {
+      cont.resume(throwing: NSError(domain: "FakeBackendRPCIssuer", code: 0))
+    }
+  }
+
+  // MARK: - Private
+
+  private func runHooks<T: AuthRPCRequest>(for request: T) {
+    let hooks = _hooks.withLock { $0 }
+    if let h = hooks.verifyRequester, let r = request as? SendVerificationCodeRequest {
+      h(r)
+    } else if let h = hooks.verifyClientRequester, let r = request as? VerifyClientRequest {
+      h(r)
+    } else if let h = hooks.projectConfigRequester, let r = request as? GetProjectConfigRequest {
+      h(r)
+    } else if let h = hooks.verifyPasswordRequester, let r = request as? VerifyPasswordRequest {
+      h(r)
+    } else if let h = hooks.verifyPhoneNumberRequester,
+              let r = request as? VerifyPhoneNumberRequest {
+      h(r)
+    }
+  }
+
+  private func shortCircuitResponse<T: AuthRPCRequest>(for request: T) throws -> Data? {
+    if request is GetAccountInfoRequest, let json = fakeGetAccountProviderJSON {
+      return try JSONSerialization.data(
+        withJSONObject: ["users": json],
+        options: .prettyPrinted
+      )
+    }
+    if request is SecureTokenRequest {
+      if let err = secureTokenNetworkError {
+        throw err
+      }
+      if let msg = secureTokenErrorString {
+        return try JSONSerialization.data(
+          withJSONObject: ["error": ["message": msg]],
+          options: .prettyPrinted
+        )
+      }
+      if let json = fakeSecureTokenServiceJSON {
+        return try JSONSerialization.data(
+          withJSONObject: json,
+          options: .prettyPrinted
+        )
+      }
+    }
+    return nil
   }
 }

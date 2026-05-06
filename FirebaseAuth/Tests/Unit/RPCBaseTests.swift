@@ -81,73 +81,77 @@ class RPCBaseTests: XCTestCase {
     AuthBackend.setDefaultBackendImplementationWithRPCIssuer(issuer: nil)
   }
 
-  /** @fn checkRequest
-      @brief Tests the encoding of a request.
-   */
-  @discardableResult func checkRequest(request: AuthRPCRequest,
+  /// Issue `request`, wait for the fake to capture it, validate URL/body shape,
+  /// then send a benign empty success response so the in-flight task can complete.
+  /// Returns the fake issuer for any further assertions the caller wants to make.
+  @discardableResult
+  func checkRequest<R: AuthRPCRequest>(request: R,
                                        expected: String,
                                        key: String,
                                        value: String?,
-                                       checkPostBody: Bool = false) throws -> FakeBackendRPCIssuer {
-    AuthBackend.post(withRequest: request) { response, error in
-      XCTFail("No explicit response from the fake backend.")
+                                       checkPostBody: Bool = false) async throws -> FakeBackendRPCIssuer {
+    let task = Task<R.Response, Error> {
+      try await AuthBackend.post(withRequest: request)
     }
     let rpcIssuer = try XCTUnwrap(rpcIssuer)
+    await rpcIssuer.waitForRequest()
     XCTAssertEqual(rpcIssuer.requestURL?.absoluteString, expected)
-    if checkPostBody,
-       let containsPostBody = request.containsPostBody?() {
-      XCTAssertFalse(containsPostBody)
+    if checkPostBody {
+      XCTAssertFalse(request.containsPostBody())
     } else if let requestDictionary = rpcIssuer.decodedRequest as? [String: AnyHashable] {
       XCTAssertEqual(requestDictionary[key], value)
     } else {
       XCTFail("decodedRequest is not a dictionary")
     }
+    // Send an empty success so the awaited task can complete; the caller may
+    // not care about the response value but we must not leave it hanging.
+    try? rpcIssuer.respond(withJSON: [:])
+    _ = try? await task.value
     return rpcIssuer
   }
 
-  /** @fn checkBackendError
-      @brief This test checks error messagess from the backend map to the expected error codes
-   */
-  func checkBackendError(request: AuthRPCRequest,
-                         message: String = "",
-                         reason: String? = nil,
-                         json: [String: AnyHashable]? = nil,
-                         errorCode: AuthErrorCode,
-                         errorReason: String? = nil,
-                         underlyingErrorKey: String? = nil,
-                         checkLocalizedDescription: String? = nil) throws {
-    var callbackInvoked = false
-    var rpcResponse: CreateAuthURIResponse?
-    var rpcError: NSError?
-
-    AuthBackend.post(withRequest: request) { response, error in
-      callbackInvoked = true
-      rpcResponse = response as? CreateAuthURIResponse
-      rpcError = error as? NSError
+  /// Issue `request`, then drive a server-error response and assert that the
+  /// caller-visible error matches `errorCode` (and optional further checks).
+  func checkBackendError<R: AuthRPCRequest>(request: R,
+                                            message: String = "",
+                                            reason: String? = nil,
+                                            json: [String: AnyHashable]? = nil,
+                                            errorCode: AuthErrorCode,
+                                            errorReason: String? = nil,
+                                            underlyingErrorKey: String? = nil,
+                                            checkLocalizedDescription: String? = nil) async throws {
+    let task = Task<R.Response, Error> {
+      try await AuthBackend.post(withRequest: request)
     }
+    await rpcIssuer?.waitForRequest()
 
-    if let json = json {
+    if let json {
       _ = try rpcIssuer?.respond(withJSON: json)
-    } else if let reason = reason {
+    } else if let reason {
       _ = try rpcIssuer?.respond(underlyingErrorMessage: reason, message: message)
     } else {
       _ = try rpcIssuer?.respond(serverErrorMessage: message)
     }
 
-    XCTAssert(callbackInvoked)
-    XCTAssertNil(rpcResponse)
-    XCTAssertEqual(rpcError?.code, errorCode.rawValue)
-    if errorCode == .internalError {
-      let underlyingError = try XCTUnwrap(rpcError?.userInfo[NSUnderlyingErrorKey] as? NSError)
-      XCTAssertNotNil(underlyingError.userInfo[AuthErrorUtils.userInfoDeserializedResponseKey])
-    }
-    if let errorReason {
-      XCTAssertEqual(errorReason, rpcError?.userInfo[NSLocalizedFailureReasonErrorKey] as? String)
-    }
-    if let checkLocalizedDescription {
-      let localizedDescription = try XCTUnwrap(rpcError?
-        .userInfo[NSLocalizedDescriptionKey] as? String)
-      XCTAssertEqual(checkLocalizedDescription, localizedDescription)
+    do {
+      _ = try await task.value
+      XCTFail("Expected error \(errorCode.rawValue), got success")
+    } catch {
+      let rpcError = error as NSError
+      XCTAssertEqual(rpcError.code, errorCode.rawValue)
+      if errorCode == .internalError {
+        let underlyingError = try XCTUnwrap(rpcError.userInfo[NSUnderlyingErrorKey] as? NSError)
+        XCTAssertNotNil(underlyingError.userInfo[AuthErrorUtils.userInfoDeserializedResponseKey])
+      }
+      if let errorReason {
+        XCTAssertEqual(errorReason, rpcError.userInfo[NSLocalizedFailureReasonErrorKey] as? String)
+      }
+      if let checkLocalizedDescription {
+        let localizedDescription = try XCTUnwrap(
+          rpcError.userInfo[NSLocalizedDescriptionKey] as? String
+        )
+        XCTAssertEqual(checkLocalizedDescription, localizedDescription)
+      }
     }
   }
 
@@ -298,13 +302,6 @@ class RPCBaseTests: XCTestCase {
       kLocalIDKey: kLocalID,
       kPasswordHashKey: kTestPasswordHash,
     ]]
-  }
-
-  func createGroup() -> DispatchGroup {
-    let group = DispatchGroup()
-    rpcIssuer?.group = group
-    group.enter()
-    return group
   }
 
   func fakeActionCodeSettings() -> ActionCodeSettings {
