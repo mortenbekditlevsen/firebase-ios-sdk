@@ -17,7 +17,7 @@ import Foundation
 /**
     @brief Public representation of a credential.
  */
-public protocol AuthCredential {
+public protocol AuthCredential: Sendable {
     var provider: String { get }
     func prepare(_ request: inout VerifyAssertionRequest)
 }

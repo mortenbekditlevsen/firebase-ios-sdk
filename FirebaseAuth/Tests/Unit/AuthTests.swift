@@ -21,12 +21,10 @@ import XCTest
 
 /// Async-only Auth tests.
 ///
-/// The class is `@MainActor` so that continuations resume on the main actor by
-/// default — that matches the historical ObjC SDK contract that callbacks were
-/// delivered to the main thread, without forcing the production Auth API to
-/// be `@MainActor`. See `FirebaseAuth/Docs/Concurrency.md`.
+/// Tests run on the cooperative thread pool. If a particular test wants
+/// continuations on the main actor for parity with the original ObjC SDK
+/// callback contract, mark that test method `@MainActor`.
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
 final class AuthTests: RPCBaseTests {
   static let kAccessToken = "TEST_ACCESS_TOKEN"
   static let kNewAccessToken = "NEW_ACCESS_TOKEN"
@@ -137,7 +135,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSignInWithEmptyPasswordFails() async throws {
     do {
-      _ = try await auth.signIn(withEmail: kEmail, password: "")
+      let _: AuthDataResult = try await auth.signIn(withEmail: kEmail, password: "")
       XCTFail("Expected wrongPassword")
     } catch {
       XCTAssertEqual((error as NSError).code, AuthErrorCode.wrongPassword.rawValue)
