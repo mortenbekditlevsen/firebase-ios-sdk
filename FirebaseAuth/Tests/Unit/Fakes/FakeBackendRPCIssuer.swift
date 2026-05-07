@@ -131,19 +131,16 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
   /// Waits until `asyncPostToURL` has captured a request. Returns immediately
   /// if a request is already pending response.
   func waitForRequest() async {
-    print("[FakeBackend] waitForRequest enter")
     let alreadyWaiting = _pending.withLock { $0.pendingResponse != nil }
-    if alreadyWaiting { print("[FakeBackend] waitForRequest fast-path"); return }
+    if alreadyWaiting { return }
     await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
       let resumeNow = _pending.withLock { pending -> Bool in
         if pending.pendingResponse != nil { return true }
         pending.requestArrived.append(cont)
         return false
       }
-      if resumeNow { print("[FakeBackend] waitForRequest resume-now"); cont.resume() }
-      else { print("[FakeBackend] waitForRequest queued") }
+      if resumeNow { cont.resume() }
     }
-    print("[FakeBackend] waitForRequest exit")
   }
 
   // MARK: - AuthBackendRPCIssuer
@@ -151,7 +148,6 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
   func asyncPostToURL<T: AuthRPCRequest>(withRequest request: T,
                                          body: Data?,
                                          contentType: String) async throws -> Data {
-    print("[FakeBackend] asyncPostToURL request=\(type(of: request))")
     _contentType.withLock { $0 = contentType }
     _request.withLock { $0 = request }
     _requestURL.withLock { $0 = request.requestURL() }
@@ -167,7 +163,6 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
     runHooks(for: request)
 
     if let canned = try shortCircuitResponse(for: request) {
-      print("[FakeBackend] short-circuit response for \(type(of: request))")
       return canned
     }
 
@@ -178,7 +173,6 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
         pending.requestArrived.removeAll()
         return drained
       }
-      print("[FakeBackend] suspended; resuming \(waiters.count) waiter(s)")
       for w in waiters { w.resume() }
     }
   }
@@ -197,8 +191,10 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
 
   @discardableResult
   func respond(serverErrorMessage errorMessage: String) throws -> Data {
-    let error = NSError(domain: NSCocoaErrorDomain, code: 0)
-    return try respond(serverErrorMessage: errorMessage, error: error)
+    // Send the server error envelope as a successful HTTP body. The backend
+    // implementation translates this to an AuthErrorCode; the fake mustn't
+    // surface a network error here.
+    return try respond(withJSON: ["error": ["message": errorMessage]])
   }
 
   @discardableResult
@@ -209,25 +205,21 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
   @discardableResult
   func respond(underlyingErrorMessage errorMessage: String,
                message: String = "See the reason") throws -> Data {
-    let error = NSError(domain: NSCocoaErrorDomain, code: 0)
     return try respond(
       withJSON: ["error": [
         "message": message,
         "errors": [["reason": errorMessage]],
-      ] as [String: Any]],
-      error: error
+      ] as [String: Any]]
     )
   }
 
   func respond(withData data: Data?, error: NSError?) throws {
-    print("[FakeBackend] respond enter (data=\(data?.count ?? -1) error=\(error != nil))")
     let cont = _pending.withLock { pending -> CheckedContinuation<Data, Error>? in
       let c = pending.pendingResponse
       pending.pendingResponse = nil
       return c
     }
     guard let cont else {
-      print("[FakeBackend] respond: NO pending continuation")
       XCTFail("There is no pending RPC request.")
       return
     }
@@ -242,7 +234,6 @@ final class FakeBackendRPCIssuer: AuthBackendRPCIssuer, @unchecked Sendable {
     } else {
       cont.resume(throwing: NSError(domain: "FakeBackendRPCIssuer", code: 0))
     }
-    print("[FakeBackend] respond resumed")
   }
 
   // MARK: - Private
