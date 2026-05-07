@@ -258,7 +258,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSendSignInLinkSuccess() async throws {
     let settings = fakeActionCodeSettings()
-    let task = Task<Void, Error> { [auth = self.auth!, kEmail] in
+    let task = Task<Void, Error> { [auth = self.auth!, kEmail, settings] in
       try await auth.sendSignInLink(toEmail: kEmail, actionCodeSettings: settings)
     }
     await rpcIssuer?.waitForRequest()
