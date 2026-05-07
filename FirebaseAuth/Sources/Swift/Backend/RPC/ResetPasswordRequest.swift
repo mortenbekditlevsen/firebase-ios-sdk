@@ -36,7 +36,7 @@ private let kTenantIDKey = "tenantId"
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public struct ResetPasswordRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
      public typealias Response = ResetPasswordResponse
 
   /** @property oobCode
@@ -71,5 +71,18 @@ private let kTenantIDKey = "tenantId"
     self.oobCode = oobCode
     updatedPassword = newPassword
       self.requestConfiguration = requestConfiguration
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case oobCode
+    case updatedPassword = "newPassword"
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(oobCode, forKey: .oobCode)
+    try c.encodeIfPresent(updatedPassword, forKey: .updatedPassword)
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
   }
 }

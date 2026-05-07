@@ -137,7 +137,7 @@ private let kTenantIDKey = "tenantId"
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 
 public struct GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
     public typealias Response = GetOOBConfirmationCodeResponse
 
   /** @property requestType
@@ -285,4 +285,34 @@ public struct GetOOBConfirmationCodeRequest: IdentityToolkitRequest,
          requestConfiguration: requestConfiguration)
   }
 
+  enum CodingKeys: String, CodingKey {
+    case requestType
+    case email
+    case updatedEmail = "newEmail"
+    case accessToken = "idToken"
+    case continueURL = "continueUrl"
+    case iOSBundleID = "iOSBundleId"
+    case androidPackageName
+    case androidMinimumVersion
+    case androidInstallApp
+    case canHandleCodeInApp
+    case dynamicLinkDomain
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(requestType.value, forKey: .requestType)
+    try c.encodeIfPresent(email, forKey: .email)
+    try c.encodeIfPresent(updatedEmail, forKey: .updatedEmail)
+    try c.encodeIfPresent(accessToken, forKey: .accessToken)
+    try c.encodeIfPresent(continueURL, forKey: .continueURL)
+    try c.encodeIfPresent(iOSBundleID, forKey: .iOSBundleID)
+    try c.encodeIfPresent(androidPackageName, forKey: .androidPackageName)
+    try c.encodeIfPresent(androidMinimumVersion, forKey: .androidMinimumVersion)
+    if androidInstallApp { try c.encode(true, forKey: .androidInstallApp) }
+    if handleCodeInApp { try c.encode(true, forKey: .canHandleCodeInApp) }
+    try c.encodeIfPresent(dynamicLinkDomain, forKey: .dynamicLinkDomain)
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
+  }
 }

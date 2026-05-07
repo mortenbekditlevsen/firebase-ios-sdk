@@ -65,7 +65,7 @@ private let kTenantIDKey = "tenantId"
  */
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public struct CreateAuthURIRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
      public typealias Response = CreateAuthURIResponse
   /** @property identifier
       @brief The email or federated ID of the user.
@@ -119,5 +119,28 @@ private let kTenantIDKey = "tenantId"
     self.identifier = identifier
     self.continueURI = continueURI
       self.requestConfiguration = requestConfiguration
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case identifier
+    case continueURI = "continueUri"
+    case openIDRealm = "openidRealm"
+    case providerID = "providerId"
+    case clientID = "clientId"
+    case context
+    case appID = "appId"
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(identifier, forKey: .identifier)
+    try c.encode(continueURI, forKey: .continueURI)
+    try c.encodeIfPresent(openIDRealm, forKey: .openIDRealm)
+    try c.encodeIfPresent(providerID, forKey: .providerID)
+    try c.encodeIfPresent(clientID, forKey: .clientID)
+    try c.encodeIfPresent(context, forKey: .context)
+    try c.encodeIfPresent(appID, forKey: .appID)
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
   }
 }

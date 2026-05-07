@@ -116,7 +116,7 @@ private let kTenantIDKey = "tenantId"
  */
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public struct SetAccountInfoRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
      public typealias Response = SetAccountInfoResponse
 
   /** @property accessToken
@@ -210,5 +210,44 @@ private let kTenantIDKey = "tenantId"
   public init(requestConfiguration: AuthRequestConfiguration) {
     returnSecureToken = true
       self.requestConfiguration = requestConfiguration
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case accessToken = "idToken"
+    case displayName
+    case localID = "localId"
+    case email
+    case photoURL = "photoUrl"
+    case password
+    case providers = "provider"
+    case oobCode
+    case emailVerified
+    case upgradeToFederatedLogin
+    case captchaChallenge
+    case captchaResponse
+    case deleteAttributes = "deleteAttribute"
+    case deleteProviders = "deleteProvider"
+    case returnSecureToken
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encodeIfPresent(accessToken, forKey: .accessToken)
+    try c.encodeIfPresent(displayName, forKey: .displayName)
+    try c.encodeIfPresent(localID, forKey: .localID)
+    try c.encodeIfPresent(email, forKey: .email)
+    try c.encodeIfPresent(photoURL, forKey: .photoURL)
+    try c.encodeIfPresent(password, forKey: .password)
+    try c.encodeIfPresent(providers, forKey: .providers)
+    try c.encodeIfPresent(oobCode, forKey: .oobCode)
+    if emailVerified { try c.encode(true, forKey: .emailVerified) }
+    if upgradeToFederatedLogin { try c.encode(true, forKey: .upgradeToFederatedLogin) }
+    try c.encodeIfPresent(captchaChallenge, forKey: .captchaChallenge)
+    try c.encodeIfPresent(captchaResponse, forKey: .captchaResponse)
+    try c.encodeIfPresent(deleteAttributes, forKey: .deleteAttributes)
+    try c.encodeIfPresent(deleteProviders, forKey: .deleteProviders)
+    if returnSecureToken { try c.encode(true, forKey: .returnSecureToken) }
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
   }
 }

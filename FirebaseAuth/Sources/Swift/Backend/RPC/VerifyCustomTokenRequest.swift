@@ -36,7 +36,7 @@ private let kTenantIDKey = "tenantId"
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public struct VerifyCustomTokenRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
      public typealias Response = VerifyCustomTokenResponse
 
   public let token: String
@@ -56,5 +56,18 @@ private let kTenantIDKey = "tenantId"
     self.token = token
     returnSecureToken = true
       self.requestConfiguration = requestConfiguration
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case token
+    case returnSecureToken
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(token, forKey: .token)
+    if returnSecureToken { try c.encode(true, forKey: .returnSecureToken) }
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
   }
 }
