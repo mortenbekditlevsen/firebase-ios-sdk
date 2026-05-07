@@ -66,7 +66,7 @@ final class AuthTests: RPCBaseTests {
 
   func testFetchSignInMethodsForEmailSuccess() async throws {
     let expected = ["emailLink", "facebook.com"]
-    let task = Task<[String], Error> { [auth = self.auth!, kEmail] in
+    let task = Task.detached { [auth = self.auth!, kEmail] in
       try await auth.fetchSignInMethods(forEmail: kEmail)
     }
     await rpcIssuer?.waitForRequest()
@@ -81,7 +81,7 @@ final class AuthTests: RPCBaseTests {
   }
 
   func testFetchSignInMethodsForEmailFailure() async throws {
-    let task = Task<[String], Error> { [auth = self.auth!, kEmail] in
+    let task = Task.detached { [auth = self.auth!, kEmail] in
       try await auth.fetchSignInMethods(forEmail: kEmail)
     }
     await rpcIssuer?.waitForRequest()
@@ -98,7 +98,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSignInWithEmailPasswordSuccess() async throws {
     setFakeGetAccountProvider()
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!, kEmail, kFakePassword] in
+    let task = Task.detached { [auth = self.auth!, kEmail, kFakePassword] in
       try await auth.signIn(withEmail: kEmail, password: kFakePassword)
     }
     await rpcIssuer?.waitForRequest()
@@ -119,7 +119,7 @@ final class AuthTests: RPCBaseTests {
   }
 
   func testSignInWithEmailPasswordWrongPassword() async throws {
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!, kEmail, kFakePassword] in
+    let task = Task.detached { [auth = self.auth!, kEmail, kFakePassword] in
       try await auth.signIn(withEmail: kEmail, password: kFakePassword)
     }
     await rpcIssuer?.waitForRequest()
@@ -147,7 +147,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSignInAnonymouslySuccess() async throws {
     setFakeGetAccountProviderAnonymous()
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!] in
+    let task = Task.detached { [auth = self.auth!] in
       try await auth.signInAnonymously()
     }
     await rpcIssuer?.waitForRequest()
@@ -169,7 +169,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSignInWithCustomTokenSuccess() async throws {
     setFakeGetAccountProvider()
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!, kCustomToken] in
+    let task = Task.detached { [auth = self.auth!, kCustomToken] in
       try await auth.signIn(withCustomToken: kCustomToken)
     }
     await rpcIssuer?.waitForRequest()
@@ -191,7 +191,7 @@ final class AuthTests: RPCBaseTests {
 
   func testCreateUserWithEmailPasswordSuccess() async throws {
     setFakeGetAccountProvider()
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!, kEmail, kFakePassword] in
+    let task = Task.detached { [auth = self.auth!, kEmail, kFakePassword] in
       try await auth.createUser(withEmail: kEmail, password: kFakePassword)
     }
     await rpcIssuer?.waitForRequest()
@@ -246,7 +246,7 @@ final class AuthTests: RPCBaseTests {
   // MARK: - sendPasswordReset / sendSignInLink
 
   func testSendPasswordResetSuccess() async throws {
-    let task = Task<Void, Error> { [auth = self.auth!, kEmail] in
+    let task = Task.detached { [auth = self.auth!, kEmail] in
       try await auth.sendPasswordReset(withEmail: kEmail)
     }
     await rpcIssuer?.waitForRequest()
@@ -258,7 +258,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSendSignInLinkSuccess() async throws {
     let settings = fakeActionCodeSettings()
-    let task = Task<Void, Error> { [auth = self.auth!, kEmail, settings] in
+    let task = Task.detached { [auth = self.auth!, kEmail, settings] in
       try await auth.sendSignInLink(toEmail: kEmail, actionCodeSettings: settings)
     }
     await rpcIssuer?.waitForRequest()
@@ -271,7 +271,7 @@ final class AuthTests: RPCBaseTests {
   // MARK: - applyActionCode / checkActionCode / verifyPasswordResetCode
 
   func testApplyActionCodeSuccess() async throws {
-    let task = Task<Void, Error> { [auth = self.auth!, kFakeOobCode] in
+    let task = Task.detached { [auth = self.auth!, kFakeOobCode] in
       try await auth.applyActionCode(kFakeOobCode)
     }
     await rpcIssuer?.waitForRequest()
@@ -281,7 +281,7 @@ final class AuthTests: RPCBaseTests {
   }
 
   func testCheckActionCodeSuccess() async throws {
-    let task = Task<ActionCodeInfo, Error> { [auth = self.auth!, kFakeOobCode] in
+    let task = Task.detached { [auth = self.auth!, kFakeOobCode] in
       try await auth.checkActionCode(kFakeOobCode)
     }
     await rpcIssuer?.waitForRequest()
@@ -296,7 +296,7 @@ final class AuthTests: RPCBaseTests {
   }
 
   func testVerifyPasswordResetCodeSuccess() async throws {
-    let task = Task<String, Error> { [auth = self.auth!, kFakeOobCode] in
+    let task = Task.detached { [auth = self.auth!, kFakeOobCode] in
       try await auth.verifyPasswordResetCode(kFakeOobCode)
     }
     await rpcIssuer?.waitForRequest()
@@ -355,7 +355,7 @@ final class AuthTests: RPCBaseTests {
   /// round-trip for `VerifyPassword`.
   private func signInWithEmailHelper() async throws {
     setFakeGetAccountProvider()
-    let task = Task<AuthDataResult, Error> { [auth = self.auth!, kEmail, kFakePassword] in
+    let task = Task.detached { [auth = self.auth!, kEmail, kFakePassword] in
       try await auth.signIn(withEmail: kEmail, password: kFakePassword)
     }
     await rpcIssuer?.waitForRequest()

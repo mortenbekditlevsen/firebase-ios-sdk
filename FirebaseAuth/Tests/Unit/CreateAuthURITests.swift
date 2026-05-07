@@ -64,7 +64,7 @@ final class CreateAuthURITests: RPCBaseTests {
     let kTestAuthUri = "AuthURI"
 
     let request = makeAuthURIRequest()
-    let task = Task<CreateAuthURIResponse, Error> {
+    let task = Task.detached { [request] in
       try await AuthBackend.post(withRequest: request)
     }
     await rpcIssuer?.waitForRequest()
@@ -80,7 +80,7 @@ final class CreateAuthURITests: RPCBaseTests {
     let kTestProviderID2 = "facebook.com"
 
     let request = makeAuthURIRequest()
-    let task = Task<CreateAuthURIResponse, Error> {
+    let task = Task.detached { [request] in
       try await AuthBackend.post(withRequest: request)
     }
     await rpcIssuer?.waitForRequest()
