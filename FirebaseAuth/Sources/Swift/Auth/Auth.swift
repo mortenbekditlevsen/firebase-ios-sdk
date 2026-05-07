@@ -294,8 +294,11 @@ extension Auth: AuthInterop {
       @remarks This is the internal counterpart of this method, which uses a callback that does not
           update the current user.
    */
-  internal func signIn(withEmail email: String,
-                       password: String) async throws -> User {
+  /// Internal counterpart of `signIn(withEmail:password:)` that returns a `User`
+  /// without updating `currentUser`. Renamed to avoid overload ambiguity with
+  /// the public `signIn(withEmail:password:) -> AuthDataResult`.
+  internal func internalSignIn(withEmail email: String,
+                               password: String) async throws -> User {
       let request = VerifyPasswordRequest(email: email,
                                           password: password,
                                           requestConfiguration: requestConfiguration)
@@ -1611,8 +1614,8 @@ extension Auth: AuthInterop {
                                                              link: link)
           case let .password(password):
               // Email password sign in
-              let user: User = try await signIn(withEmail: emailCredential.email,
-                                                password: password)
+              let user: User = try await internalSignIn(withEmail: emailCredential.email,
+                                                        password: password)
               let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
                                                           profile: nil,
                                                           username: nil,

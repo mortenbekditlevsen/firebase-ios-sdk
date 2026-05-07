@@ -135,7 +135,7 @@ final class AuthTests: RPCBaseTests {
 
   func testSignInWithEmptyPasswordFails() async throws {
     do {
-      let _: AuthDataResult = try await auth.signIn(withEmail: kEmail, password: "")
+      _ = try await auth.signIn(withEmail: kEmail, password: "")
       XCTFail("Expected wrongPassword")
     } catch {
       XCTAssertEqual((error as NSError).code, AuthErrorCode.wrongPassword.rawValue)
