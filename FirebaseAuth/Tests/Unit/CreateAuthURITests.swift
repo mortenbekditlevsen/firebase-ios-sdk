@@ -63,8 +63,9 @@ final class CreateAuthURITests: RPCBaseTests {
     let kAuthUriKey = "authUri"
     let kTestAuthUri = "AuthURI"
 
+    let request = makeAuthURIRequest()
     let task = Task<CreateAuthURIResponse, Error> {
-      try await AuthBackend.post(withRequest: makeAuthURIRequest())
+      try await AuthBackend.post(withRequest: request)
     }
     await rpcIssuer?.waitForRequest()
     _ = try rpcIssuer?.respond(withJSON: [kAuthUriKey: kTestAuthUri])
@@ -78,8 +79,9 @@ final class CreateAuthURITests: RPCBaseTests {
     let kTestProviderID1 = "google.com"
     let kTestProviderID2 = "facebook.com"
 
+    let request = makeAuthURIRequest()
     let task = Task<CreateAuthURIResponse, Error> {
-      try await AuthBackend.post(withRequest: makeAuthURIRequest())
+      try await AuthBackend.post(withRequest: request)
     }
     await rpcIssuer?.waitForRequest()
 
