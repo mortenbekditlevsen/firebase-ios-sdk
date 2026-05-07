@@ -188,6 +188,20 @@ struct ErrorMessageResponse: Decodable {
     let errorMessage: String
 }
 
+/// The server error envelope used by Identity Toolkit endpoints. Both the
+/// `respond(serverErrorMessage:)` test helper and the real server emit this
+/// shape: `{"error": {"message": "...", "errors": [{"reason": "..."}]}}`.
+struct ServerErrorEnvelope: Decodable {
+    struct Body: Decodable {
+        let message: String
+        let errors: [UnderlyingError]?
+    }
+    struct UnderlyingError: Decodable {
+        let reason: String
+    }
+    let error: Body
+}
+
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 protocol AuthBackendImplementation: Sendable {
     func post<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response
@@ -430,19 +444,40 @@ private final class AuthBackendRPCImplementation: AuthBackendImplementation {
         } catch {
             throw AuthErrorUtils.networkError(underlyingError: error)
         }
-        
+
         let decoder = JSONDecoder()
+
+        // First, check if the body is a server error envelope of the form
+        // `{"error": {"message": "...", "errors": [...]}}` and translate it to
+        // a Firebase Auth error before attempting to decode the success type.
+        if let envelope = try? decoder.decode(ServerErrorEnvelope.self, from: data) {
+            let errorDictionary: [String: Any] = {
+                guard let underlyingErrors = envelope.error.errors else { return [:] }
+                return ["errors": underlyingErrors.map { ["reason": $0.reason] }]
+            }()
+            if let clientError = AuthBackendRPCImplementation.clientError(
+                withServerErrorMessage: envelope.error.message,
+                errorDictionary: errorDictionary,
+                responseType: T.Response.self,
+                error: nil
+            ) {
+                throw clientError
+            }
+            // No specific mapping; surface as an unexpected error response.
+            throw AuthErrorUtils.unexpectedErrorResponse(
+                deserializedResponse: envelope.error.message
+            )
+        }
+
         do {
             // Try to decode the HTTP response data which may contain either a
             // successful response or error message.
             let response = try decoder.decode(T.Response.self, from: data)
             return response
         } catch {
-                        
             // In case returnIDPCredential of a verifyAssertion request is set to
             // @YES, the server may return a 200 with a response that may contain a
             // server error.
-
             if let verifyAssertionRequest = request as? VerifyAssertionRequest,
                verifyAssertionRequest.returnIDPCredential,
                let response = try? decoder.decode(ErrorMessageResponse.self, from: data),

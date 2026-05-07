@@ -43,9 +43,9 @@ class SecureTokenRequestTests: XCTestCase {
    */
   func testRequestURLUseEmulator() {
     var requestConfiguration = AuthRequestConfiguration(apiKey: kAPIKey, appID: "appID")
+    requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     let request = SecureTokenRequest.refreshRequest(refreshToken: "Token",
                                                     requestConfiguration: requestConfiguration)
-    requestConfiguration.emulatorHostAndPort = kEmulatorHostAndPort
     let expectedURL =
       "http://\(kEmulatorHostAndPort)/securetoken.googleapis.com/v1/token?key=\(kAPIKey)"
     XCTAssertEqual(expectedURL, request.requestURL().absoluteString)
