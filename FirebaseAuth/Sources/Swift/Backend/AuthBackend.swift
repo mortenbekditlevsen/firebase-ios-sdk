@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -51,7 +52,6 @@ public protocol AuthBackendRPCIssuer: Sendable {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
 public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
   let fetcherService: URLSession
 
@@ -91,8 +91,7 @@ public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
- public class AuthBackend {
+ public final class AuthBackend: Sendable {
   static func authUserAgent() -> String {
       // XXX TODO:
       // GTMUseragent is bundle id followed by a space and
@@ -103,21 +102,20 @@ public struct AuthBackendRPCIssuerImplementation: AuthBackendRPCIssuer {
       return "FirebaseAuth.iOS/\(firebaseVersion) \(gtmUserAgent)"
   }
 
-  private static var gBackendImplementation: AuthBackendImplementation?
+  private static let gBackendImplementation: Mutex<AuthBackendImplementation?> = .init(nil)
 
   class func setDefaultBackendImplementationWithRPCIssuer(issuer: AuthBackendRPCIssuer?) {
-    let defaultImplementation = AuthBackendRPCImplementation()
-    if let issuer = issuer {
-      defaultImplementation.rpcIssuer = issuer
-    }
-    gBackendImplementation = defaultImplementation
+    let defaultImplementation = AuthBackendRPCImplementation(rpcIssuer: issuer)
+    gBackendImplementation.withLock { $0 = defaultImplementation }
   }
 
   class func implementation() -> AuthBackendImplementation {
-    if gBackendImplementation == nil {
-      gBackendImplementation = AuthBackendRPCImplementation()
+    gBackendImplementation.withLock { current in
+      if let current { return current }
+      let new = AuthBackendRPCImplementation(rpcIssuer: nil)
+      current = new
+      return new
     }
-    return (gBackendImplementation)!
   }
 
   /** @fn postWithRequest:response:callback:
@@ -190,6 +188,20 @@ struct ErrorMessageResponse: Decodable {
     let errorMessage: String
 }
 
+/// The server error envelope used by Identity Toolkit endpoints. Both the
+/// `respond(serverErrorMessage:)` test helper and the real server emit this
+/// shape: `{"error": {"message": "...", "errors": [{"reason": "..."}]}}`.
+struct ServerErrorEnvelope: Decodable {
+    struct Body: Decodable {
+        let message: String
+        let errors: [UnderlyingError]?
+    }
+    struct UnderlyingError: Decodable {
+        let reason: String
+    }
+    let error: Body
+}
+
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 protocol AuthBackendImplementation: Sendable {
     func post<T: AuthRPCRequest>(withRequest request: T) async throws -> T.Response
@@ -198,11 +210,10 @@ protocol AuthBackendImplementation: Sendable {
 }
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
-private class AuthBackendRPCImplementation: AuthBackendImplementation {
-  var rpcIssuer: AuthBackendRPCIssuer
-   init() {
-    rpcIssuer = AuthBackendRPCIssuerImplementation()
+private final class AuthBackendRPCImplementation: AuthBackendImplementation {
+  let rpcIssuer: AuthBackendRPCIssuer
+   init(rpcIssuer: AuthBackendRPCIssuer?) {
+    self.rpcIssuer = rpcIssuer ?? AuthBackendRPCIssuerImplementation()
   }
 
   /** @fn postWithRequest:response:callback:
@@ -433,19 +444,40 @@ private class AuthBackendRPCImplementation: AuthBackendImplementation {
         } catch {
             throw AuthErrorUtils.networkError(underlyingError: error)
         }
-        
+
         let decoder = JSONDecoder()
+
+        // First, check if the body is a server error envelope of the form
+        // `{"error": {"message": "...", "errors": [...]}}` and translate it to
+        // a Firebase Auth error before attempting to decode the success type.
+        if let envelope = try? decoder.decode(ServerErrorEnvelope.self, from: data) {
+            let errorDictionary: [String: Any] = {
+                guard let underlyingErrors = envelope.error.errors else { return [:] }
+                return ["errors": underlyingErrors.map { ["reason": $0.reason] }]
+            }()
+            if let clientError = AuthBackendRPCImplementation.clientError(
+                withServerErrorMessage: envelope.error.message,
+                errorDictionary: errorDictionary,
+                responseType: T.Response.self,
+                error: nil
+            ) {
+                throw clientError
+            }
+            // No specific mapping; surface as an unexpected error response.
+            throw AuthErrorUtils.unexpectedErrorResponse(
+                deserializedResponse: envelope.error.message
+            )
+        }
+
         do {
             // Try to decode the HTTP response data which may contain either a
             // successful response or error message.
             let response = try decoder.decode(T.Response.self, from: data)
             return response
         } catch {
-                        
             // In case returnIDPCredential of a verifyAssertion request is set to
             // @YES, the server may return a 200 with a response that may contain a
             // server error.
-
             if let verifyAssertionRequest = request as? VerifyAssertionRequest,
                verifyAssertionRequest.returnIDPCredential,
                let response = try? decoder.decode(ErrorMessageResponse.self, from: data),

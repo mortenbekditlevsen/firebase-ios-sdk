@@ -141,7 +141,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
     
-    @MainActor
     public func updateEmail(to email: String) async throws {
         //        kAuthGlobalWorkQueue.async {
         try await self.updateEmail(email: email, password: nil)
@@ -199,7 +198,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
     
-    @MainActor
     public func updatePassword(to password: String) async throws {
         guard !password.isEmpty else {
             throw AuthErrorUtils.weakPasswordError(serverResponseReason: "Missing Password")
@@ -250,7 +248,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
     
-    @MainActor
     public func updatePhoneNumber(_ credential: PhoneAuthCredential,
                                   completion: ((Error?) -> Void)? = nil) {
         kAuthGlobalWorkQueue.async {
@@ -303,7 +300,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @return An object which may be used to change the user's profile data atomically.
      */
     
-    @MainActor
     public func createProfileChangeRequest() -> UserProfileChangeRequest {
         UserProfileChangeRequest(self)
     }
@@ -328,7 +324,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      
      @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
      */
-    @MainActor
     public func reload() async throws {
         _ = try await self.getAccountInfoRefreshingCache()
     }
@@ -383,7 +378,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
      */
     
-    @MainActor
     public func reauthenticate(with credential: AuthCredential) async throws -> AuthDataResult {
         // Perhaps not the best error, but this is what would be thrown if auth was nil in the old code
         guard let auth else {
@@ -532,7 +526,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
      */
     
-    @MainActor
     public func getIDToken(forcingRefresh forceRefresh: Bool = false) async throws -> String? {
         
         try await getIDTokenResult(forcingRefresh: forceRefresh)?.token
@@ -574,7 +567,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all API methods.
      */
     
-    @MainActor
     public func getIDTokenResult(forcingRefresh: Bool = false) async throws -> AuthTokenResult? {
         let token = try await self.internalGetToken(forceRefresh: forcingRefresh)
         
@@ -622,7 +614,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
     
-    @MainActor
     public func link(with credential: AuthCredential) async throws -> AuthDataResult {
         if self.providerDataRaw[credential.provider] != nil {
             throw AuthErrorUtils.providerAlreadyLinkedError()
@@ -641,7 +632,7 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
         }
 #endif
         
-        let user = try await self.taskQueue.enqueue { @MainActor in
+        let user = try await self.taskQueue.enqueue {
             let accessToken = try await self.internalGetToken()
             guard let requestConfiguration = self.auth?.requestConfiguration else {
                 fatalError("Internal Error: Unexpected nil requestConfiguration.")
@@ -778,9 +769,8 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
-    @MainActor
     public func unlink(fromProvider provider: String) async throws -> User {
-        try await taskQueue.enqueue { @MainActor in
+        try await taskQueue.enqueue {
             let accessToken = try await self.internalGetToken()
             guard let requestConfiguration = self.auth?.requestConfiguration else {
                 fatalError("Internal Error: Unexpected nil requestConfiguration.")
@@ -893,7 +883,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      continue URL is not valid.
      */
     
-    @MainActor
     public func sendEmailVerification(with actionCodeSettings: ActionCodeSettings? = nil) async throws  {
         let accessToken = try await self.internalGetToken()
         guard let requestConfiguration = self.auth?.requestConfiguration else {
@@ -952,7 +941,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      
      @remarks See `AuthErrors` for a list of error codes that are common to all `User` methods.
      */
-    @MainActor
     public func delete() async throws {
         let accessToken = try await self.internalGetToken()
         let request = DeleteAccountRequest(
@@ -987,7 +975,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      email is complete, or fails.
      */
     
-    @MainActor
     public func __sendEmailVerificationBeforeUpdating(email: String) async throws {
         try await sendEmailVerification(beforeUpdatingEmail: email)
     }
@@ -1000,7 +987,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @param completion Optionally; the block invoked when the request to send the verification
      email is complete, or fails.
      */
-    @MainActor
     public func sendEmailVerification(beforeUpdatingEmail email: String,
                                       actionCodeSettings: ActionCodeSettings? =
                                       nil) async throws {
@@ -1047,7 +1033,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
     
     // TODO: internal Swift
     @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-    @MainActor
     public static func retrieveUser(withAuth auth: Auth,
                                    accessToken: String,
                                    accessTokenExpirationDate: Date?,
@@ -1162,12 +1147,10 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @brief A weak reference to a FIRAuth instance associated with this instance.
      */
     // TODO: internal
-    @MainActor
     public weak var auth: Auth?
     
     // MARK: Private functions
     
-    @MainActor
     private func updateEmail(email: String?,
                              password: String?) async throws {
         let hadEmailPasswordCredential = hasEmailPasswordCredential
@@ -1228,7 +1211,7 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
         changeBlock: @escaping @Sendable (GetAccountInfoResponseUser?,
                                 inout SetAccountInfoRequest) -> Void
     ) async throws {
-        _ = try await taskQueue.enqueue { @MainActor in
+        _ = try await taskQueue.enqueue {
             let user = try await self.getAccountInfoRefreshingCache()
             let accessToken = try await self.internalGetToken()
             if let configuration = self.auth?.requestConfiguration {
@@ -1267,7 +1250,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @remarks The method makes sure the token service has access and refresh token and the new tokens
      are saved in the keychain before calling back.
      */
-    @MainActor
     private func setTokenService(tokenService: SecureTokenService) async throws {
         var tokenService = tokenService
         _ = try await tokenService.fetchAccessToken(forcingRefresh: false)
@@ -1280,7 +1262,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
      @param callback Invoked when the request to getAccountInfo has completed, or when an error has
      been detected. Invoked asynchronously on the auth global work queue in the future.
      */
-    @MainActor
     private func getAccountInfoRefreshingCache() async throws -> GetAccountInfoResponseUser {
         let token = try await internalGetToken()
         guard let requestConfiguration = self.auth?.requestConfiguration else {
@@ -1300,7 +1281,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
         }
     }
     
-    @MainActor
     private func update(withGetAccountInfoResponse response: GetAccountInfoResponse) {
         let user = response.user
         userdata.uid = user.localID ?? ""
@@ -1404,7 +1384,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
     }
 #endif
     
-    @MainActor
     private func link(withEmailCredential emailCredential: EmailAuthCredential) async throws -> AuthDataResult {
         if hasEmailPasswordCredential {
             throw AuthErrorUtils
@@ -1450,7 +1429,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
 
 
 #if os(macOS) || os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
-    @MainActor
     private func link(withGameCenterCredential gameCenterCredential: GameCenterAuthCredential) async throws -> AuthDataResult {
         let accessToken = try await internalGetToken()
         guard let requestConfiguration = self.auth?.requestConfiguration,
@@ -1511,7 +1489,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
   #endif
 
   // Update the new token and refresh user info again.
-    @MainActor
   private func updateTokenAndRefreshUser(idToken: String, refreshToken: String,
                                          accessToken: String,
                                          expirationDate: Date?,
@@ -1544,7 +1521,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
       @brief Signs out this user if the user or the token is invalid.
       @param error The error from the server.
    */
-    @MainActor
   private func signOutIfTokenIsInvalid(withError error: Error) {
     let code = (error as NSError).code
     if code == AuthErrorCode.userNotFound.rawValue ||
@@ -1564,7 +1540,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
    */
   // TODO: internal
   
-    @MainActor
     public func internalGetToken(forceRefresh: Bool = false) async throws -> String {
         do {
             let (token, tokenUpdated) = try await userdata.tokenService.fetchAccessToken(forcingRefresh: forceRefresh)
@@ -1585,7 +1560,6 @@ public final class User: UserInfo, Sendable, Codable, Equatable {
       @param error The error if NO is returned.
       @return Whether the operation is successful.
    */
-    @MainActor
   func updateKeychain() throws {
       try auth?.updateKeychain(withUser: self)
   }

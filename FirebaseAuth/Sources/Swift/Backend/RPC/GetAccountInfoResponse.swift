@@ -146,7 +146,7 @@ public struct GetAccountInfoResponseUser: Decodable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.localID = try container.decodeIfPresent(String.self, forKey: .localID)
         self.email = try container.decodeIfPresent(String.self, forKey: .email)
-        self.emailVerified = try container.decode(Bool.self, forKey: .emailVerified)
+        self.emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified) ?? false
         self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
         self.photoURL = try container.decodeIfPresent(URL.self, forKey: .photoURL)
         if let creationDateString = try container.decodeIfPresent(String.self, forKey: .creationDate) {

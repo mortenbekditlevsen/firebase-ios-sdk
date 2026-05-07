@@ -13,30 +13,31 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 
 /** @class AuthDispatcher
     @brief A utility class used to facilitate scheduling tasks to be executed in the future.
  */
-@MainActor
-class AuthDispatcher {
+final class AuthDispatcher: Sendable {
   static let shared = AuthDispatcher()
 
-  /** @property dispatchAfterImplementation
-      @brief Allows custom implementation of dispatchAfterDelay:queue:callback:.
-      @remarks Set to nil to restore default implementation.
-   */
-  var dispatchAfterImplementation: ((TimeInterval, DispatchQueue, @escaping () -> Void) -> Void)?
+  /// Allows custom implementation of `dispatch(afterDelay:queue:task:)`.
+  /// Set to `nil` to restore default implementation.
+  private let _dispatchAfterImplementation:
+    Mutex<(@Sendable (TimeInterval, DispatchQueue, @escaping @Sendable () -> Void) -> Void)?> = .init(nil)
 
-  /** @fn dispatchAfterDelay:queue:callback:
-      @brief Schedules task in the future after a specified delay.
+  var dispatchAfterImplementation:
+    (@Sendable (TimeInterval, DispatchQueue, @escaping @Sendable () -> Void) -> Void)? {
+    get { _dispatchAfterImplementation.withLock { $0 } }
+    set { _dispatchAfterImplementation.withLock { $0 = newValue } }
+  }
 
-      @param delay The delay in seconds after which the task will be scheduled to execute.
-      @param queue The dispatch queue on which the task will be submitted.
-      @param task The task (block) to be scheduled for future execution.
-   */
-  func dispatch(afterDelay delay: TimeInterval, queue: DispatchQueue, task: @escaping () -> Void) {
-    if let dispatchAfterImplementation {
-      dispatchAfterImplementation(delay, queue, task)
+  /// Schedules `task` to run after `delay` on `queue`.
+  func dispatch(afterDelay delay: TimeInterval,
+                queue: DispatchQueue,
+                task: @escaping @Sendable () -> Void) {
+    if let impl = _dispatchAfterImplementation.withLock({ $0 }) {
+      impl(delay, queue, task)
     } else {
       queue.asyncAfter(deadline: DispatchTime.now() + delay, execute: task)
     }

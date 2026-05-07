@@ -14,7 +14,7 @@
 
 import Foundation
 
- public class AdditionalUserInfo: Codable {
+ public final class AdditionalUserInfo: Codable, @unchecked Sendable {
   private static let providerIDCodingKey = "providerID"
   private static let profileCodingKey = "profile"
   private static let usernameCodingKey = "username"

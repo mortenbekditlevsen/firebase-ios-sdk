@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 @testable import FirebaseAuth
 
 /// A fake storage instance that imitates the system keychain while storing data in-memory.
@@ -20,19 +21,20 @@ import Foundation
 final class FakeAuthKeychainServices: AuthStorage {
   init(service: String) {}
 
-  private static var keychainServices: [String: FakeAuthKeychainServices] = [:]
-
-  private var fakeKeychain: [String: Any] = [:]
-
   static func storage(identifier: String) -> Self {
-    if let existingInstance = keychainServices[identifier] as? Self {
-      return existingInstance
-    } else {
+    _instances.withLock { instances in
+      if let existing = instances[identifier] as? Self {
+        return existing
+      }
       let newInstance = Self(service: "FakeAuthKeychainServices")
-      keychainServices[identifier] = newInstance
+      instances[identifier] = newInstance
       return newInstance
     }
   }
+
+  private static let _instances: Mutex<[String: FakeAuthKeychainServices]> = .init([:])
+
+  private var fakeKeychain: [String: Any] = [:]
 
   func data(forKey key: String) throws -> Data? {
     if key.isEmpty {

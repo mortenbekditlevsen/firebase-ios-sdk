@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import Synchronization
 @_exported import FirebaseCoreSwift
 
 ////import FirebaseCore
@@ -77,60 +78,42 @@ import Foundation
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
 extension Auth: AuthInterop {
-  
-    @MainActor
+
     public func getToken(forcingRefresh forceRefresh: Bool) async throws -> String? {
         // Enable token auto-refresh if not already enabled.
-        if !autoRefreshTokens {
-            AuthLog.logInfo(code: "I-AUT000002", message: "Token auto-refresh enabled.")
-            autoRefreshTokens = true
-            scheduleAutoTokenRefresh()
-            
+        let user: User? = _state.withLock { state in
+            if !state.autoRefreshTokens {
+                AuthLog.logInfo(code: "I-AUT000002", message: "Token auto-refresh enabled.")
+                state.autoRefreshTokens = true
+                _scheduleAutoTokenRefresh(state: &state)
+
 #if os(iOS) || os(tvOS) // TODO: Is a similar mechanism needed on macOS?
-            strongSelf.applicationDidBecomeActiveObserver =
-            NotificationCenter.default.addObserver(
-                forName: UIApplication.didBecomeActiveNotification,
-                object: nil, queue: nil
-            ) { notification in
-                if let strongSelf = self {
-                    strongSelf.isAppInBackground = false
-                    if !strongSelf.autoRefreshScheduled {
-                        strongSelf.scheduleAutoTokenRefresh()
-                    }
-                }
-            }
-            strongSelf.applicationDidEnterBackgroundObserver =
-            NotificationCenter.default.addObserver(
-                forName: UIApplication.didEnterBackgroundNotification,
-                object: nil, queue: nil
-            ) { notification in
-                if let strongSelf = self {
-                    strongSelf.isAppInBackground = true
-                }
-            }
+                // TODO: re-port the UIApplication observers; the previous WIP referenced
+                // an undefined `strongSelf` and never compiled. Tracking issue: phase 6.
 #endif
+            }
+            return state.currentUser
         }
         // Call back with 'nil' if there is no current user.
-        guard let currentUser else {
-            return nil
-        }
+        guard let user else { return nil }
         // Call back with current user token.
-        let token = try await currentUser.internalGetToken(forceRefresh: forceRefresh)
-        return token
+        return try await user.internalGetToken(forceRefresh: forceRefresh)
     }
 
   public func getUserID() -> String? {
-    return currentUser?.uid
+    return _state.withLock { $0.currentUser?.uid }
   }
 }
 
 /** @class Auth
     @brief Manages authentication for Firebase apps.
-    @remarks This class is thread-safe.
+
+    Thread-safe. All mutable state is protected by an internal `Mutex`. Callbacks
+    delivered to listeners are invoked outside the lock and have no actor isolation;
+    callers that need to update UI should hop to `@MainActor` themselves.
  */
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
-@MainActor
- open class Auth {
+ open class Auth: @unchecked Sendable {
   /** @fn auth
    @brief Gets the auth object for the default Firebase app.
    @remarks The default Firebase app must have already been configured or an exception will be
@@ -171,9 +154,12 @@ extension Auth: AuthInterop {
   public weak var app: FirebaseApp?
 
   /** @property currentUser
-   @brief Synchronously gets the cached current user, or null if there is none.
+   @brief Synchronously gets the cached current user, or nil if there is none.
    */
-  public var currentUser: User?
+  public var currentUser: User? {
+    get { _state.withLock { $0.currentUser } }
+    set { _state.withLock { $0.currentUser = newValue } }
+  }
 
   /** @property languageCode
    @brief The current user language code. This property can be set to the app's current language by
@@ -181,17 +167,26 @@ extension Auth: AuthInterop {
 
    @remarks The string used to set this property must be a language code that follows BCP 47.
    */
-  public var languageCode: String?
+  public var languageCode: String? {
+    get { _state.withLock { $0.languageCode } }
+    set { _state.withLock { $0.languageCode = newValue } }
+  }
 
   /** @property settings
    @brief Contains settings related to the auth object.
    */
-  public var settings: AuthSettings?
+  public var settings: AuthSettings? {
+    get { _state.withLock { $0.settings } }
+    set { _state.withLock { $0.settings = newValue } }
+  }
 
   /** @property userAccessGroup
    @brief The current user access group that the Auth instance is using. Default is nil.
    */
-  public var userAccessGroup: String?
+  public var userAccessGroup: String? {
+    get { _state.withLock { $0.userAccessGroup } }
+    set { _state.withLock { $0.userAccessGroup = newValue } }
+  }
 
   /** @property shareAuthStateAcrossDevices
    @brief Contains shareAuthStateAcrossDevices setting related to the auth object.
@@ -199,28 +194,34 @@ extension Auth: AuthInterop {
    have no effect. You should set shareAuthStateAcrossDevices to it's desired
    state and then set the userAccessGroup after.
    */
-  public var shareAuthStateAcrossDevices: Bool = false
+  public var shareAuthStateAcrossDevices: Bool {
+    get { _state.withLock { $0.shareAuthStateAcrossDevices } }
+    set { _state.withLock { $0.shareAuthStateAcrossDevices = newValue } }
+  }
 
   /** @property tenantID
    @brief The tenant ID of the auth instance. nil if none is available.
    */
-  public var tenantID: String?
+  public var tenantID: String? {
+    get { _state.withLock { $0.tenantID } }
+    set { _state.withLock { $0.tenantID = newValue } }
+  }
 
   /** @fn updateCurrentUser:completion:
    @brief Sets the `currentUser` on the receiver to the provided user object.
    @param user The user object to be set as the current user of the calling Auth instance.
-   @param completion Optionally; a block invoked after the user of the calling Auth instance has
-   been updated or an error was encountered.
    */
-     @MainActor
      public func updateCurrentUser(_ user: User) async throws {
-         if user.requestConfiguration.apiKey != self.requestConfiguration.apiKey {
+         let myConfiguration = _state.withLock { $0.requestConfiguration }
+         if user.requestConfiguration.apiKey != myConfiguration.apiKey {
              // If the API keys are different, then we need to confirm that the user belongs to the same
              // project before proceeding.
-             user.requestConfiguration = self.requestConfiguration
+             user.requestConfiguration = myConfiguration
              try await user.reload()
          }
-         try self.updateCurrentUser(user, byForce: true, savingToDisk: true)
+         try _state.withLock { state in
+             try _updateCurrentUser(user, byForce: true, savingToDisk: true, state: &state)
+         }
      }
 
   /** @fn fetchSignInMethodsForEmail:completion:
@@ -280,7 +281,7 @@ extension Auth: AuthInterop {
                      password: String) async throws -> AuthDataResult {
       let result = try await self.internalSignInAndRetrieveData(withEmail: email,
                                                           password: password)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -293,8 +294,11 @@ extension Auth: AuthInterop {
       @remarks This is the internal counterpart of this method, which uses a callback that does not
           update the current user.
    */
-  internal func signIn(withEmail email: String,
-                       password: String) async throws -> User {
+  /// Internal counterpart of `signIn(withEmail:password:)` that returns a `User`
+  /// without updating `currentUser`. Renamed to avoid overload ambiguity with
+  /// the public `signIn(withEmail:password:) -> AuthDataResult`.
+  internal func internalSignIn(withEmail email: String,
+                               password: String) async throws -> User {
       let request = VerifyPasswordRequest(email: email,
                                           password: password,
                                           requestConfiguration: requestConfiguration)
@@ -353,7 +357,7 @@ extension Auth: AuthInterop {
       let credential = EmailAuthCredential(withEmail: email, link: link)
       let result = try await self.internalSignInAndRetrieveData(withCredential: credential,
                                          isReauthentication: false)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -549,7 +553,7 @@ extension Auth: AuthInterop {
   public func signIn(with credential: AuthCredential) async throws -> AuthDataResult {
       let authResult = try await self.internalSignInAndRetrieveData(withCredential: credential,
                                                                     isReauthentication: false)
-      try self.updateCurrentUser(authResult.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(authResult.user, byForce: false, savingToDisk: true, state: &state) }
       return authResult
   }
 
@@ -611,7 +615,7 @@ extension Auth: AuthInterop {
      public func signInAnonymously() async throws -> AuthDataResult {
          if let currentUser = self.currentUser, currentUser.isAnonymous {
              // Doesn't appear to be necessary when this is the current user, but old code did this
-             try self.updateCurrentUser(currentUser, byForce: false, savingToDisk: true)
+             try _state.withLock { state in try _updateCurrentUser(currentUser, byForce: false, savingToDisk: true, state: &state) }
              return AuthDataResult(withUser: currentUser, additionalUserInfo: nil)
          }
          let request = SignUpNewUserRequest(requestConfiguration: self.requestConfiguration)
@@ -625,7 +629,7 @@ extension Auth: AuthInterop {
                                                      username: nil,
                                                      isNewUser: true)
          let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-         try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+         try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
          return result
      }
 
@@ -673,7 +677,7 @@ extension Auth: AuthInterop {
                                                   username: nil,
                                                   isNewUser: response.isNewUser)
       let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -739,7 +743,7 @@ extension Auth: AuthInterop {
                                                   username: nil,
                                                   isNewUser: true)
       let result = AuthDataResult(withUser: user, additionalUserInfo: additionalUserInfo)
-      try self.updateCurrentUser(result.user, byForce: false, savingToDisk: true)
+      try _state.withLock { state in try _updateCurrentUser(result.user, byForce: false, savingToDisk: true, state: &state) }
       return result
   }
 
@@ -820,7 +824,6 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-     @MainActor
      public func checkActionCode(_ code: String) async throws -> ActionCodeInfo {
          let request = ResetPasswordRequest(oobCode: code,
                                             newPassword: nil,
@@ -848,7 +851,6 @@ extension Auth: AuthInterop {
       @param completion Optionally; a block which is invoked when the request finishes. Invoked
           asynchronously on the main thread in the future.
    */
-     @MainActor
   public func verifyPasswordResetCode(_ code: String) async throws -> String {
       try await checkActionCode(code).email
   }
@@ -1019,11 +1021,9 @@ extension Auth: AuthInterop {
 
    */
    public func signOut() throws {
-    try kAuthGlobalWorkQueue.sync {
-      guard self.currentUser != nil else {
-        return
-      }
-      return try self.updateCurrentUser(nil, byForce: false, savingToDisk: true)
+    try _state.withLock { state in
+      guard state.currentUser != nil else { return }
+      try _updateCurrentUser(nil, byForce: false, savingToDisk: true, state: &state)
     }
   }
 
@@ -1065,14 +1065,18 @@ extension Auth: AuthInterop {
       @return A handle useful for manually unregistering the block as a listener.
    */
   
-  public func addStateDidChangeListener(_ listener: @escaping (Auth, User?) -> Void)
+  public func addStateDidChangeListener(_ listener: @escaping @Sendable (Auth, User?) -> Void)
     -> any NSObjectProtocol {
-    var firstInvocation = true
-    var previousUserID: String?
-    return addIDTokenDidChangeListener { @MainActor auth, user in
-      let shouldCallListener = firstInvocation || previousUserID != user?.uid
-      firstInvocation = false
-      previousUserID = user?.uid
+    let firstInvocation = Mutex<Bool>(true)
+    let previousUserID = Mutex<String?>(nil)
+    return addIDTokenDidChangeListener { auth, user in
+      let shouldCallListener = firstInvocation.withLock { first -> Bool in
+        let prevID = previousUserID.withLock { $0 }
+        let result = first || prevID != user?.uid
+        first = false
+        return result
+      }
+      previousUserID.withLock { $0 = user?.uid }
       if shouldCallListener {
         listener(auth, user)
       }
@@ -1087,7 +1091,9 @@ extension Auth: AuthInterop {
   
   public func removeStateDidChangeListener(_ listenerHandle: any NSObjectProtocol) {
     NotificationCenter.default.removeObserver(listenerHandle)
-      listenerHandles.removeAll(where: { $0 === listenerHandle })
+    _state.withLock { state in
+      state.listenerHandles.removeAll(where: { $0 === listenerHandle })
+    }
   }
 
   /** @fn addIDTokenDidChangeListener:
@@ -1109,26 +1115,22 @@ extension Auth: AuthInterop {
 
       @return A handle useful for manually unregistering the block as a listener.
    */
-  public
-     func addIDTokenDidChangeListener(_ listener: @MainActor @escaping @Sendable (Auth, User?) -> Void)
-    -> any NSObjectProtocol {
+  public func addIDTokenDidChangeListener(
+    _ listener: @escaping @Sendable (Auth, User?) -> Void
+  ) -> any NSObjectProtocol {
     let handle = NotificationCenter.default.addObserver(
       forName: Auth.authStateDidChangeNotification,
       object: self,
       queue: OperationQueue.main
     ) { notification in
-        if let auth = notification.object as? Auth {
-            Task { @MainActor in
-                listener(auth, auth.currentUser)
-            }
-        }
+      if let auth = notification.object as? Auth {
+        listener(auth, auth.currentUser)
+      }
     }
-        // XXX TODO
-//    objc_sync_enter(Auth.self)
-    listenerHandles.append(handle)
-//    objc_sync_exit(Auth.self)
+    _state.withLock { $0.listenerHandles.append(handle) }
+    let auth = self
     DispatchQueue.main.async {
-      listener(self, self.currentUser)
+      listener(auth, auth.currentUser)
     }
     return handle
   }
@@ -1146,7 +1148,7 @@ extension Auth: AuthInterop {
       @brief Sets `languageCode` to the app's current language.
    */
   public func useAppLanguage() {
-      self.requestConfiguration.languageCode = Locale.preferredLanguages.first
+    _state.withLock { $0.requestConfiguration.languageCode = Locale.preferredLanguages.first }
   }
 
   /** @fn useEmulatorWithHost:port
@@ -1158,10 +1160,10 @@ extension Auth: AuthInterop {
     }
     // If host is an IPv6 address, it should be formatted with surrounding brackets.
     let formattedHost = host.contains(":") ? "[\(host)]" : host
-    kAuthGlobalWorkQueue.sync {
-      self.requestConfiguration.emulatorHostAndPort = "\(formattedHost):\(port)"
+    _state.withLock { state in
+      state.requestConfiguration.emulatorHostAndPort = "\(formattedHost):\(port)"
       #if os(iOS)
-        self.settings?.appVerificationDisabledForTesting = true
+        state.settings?.appVerificationDisabledForTesting = true
       #endif
     }
   }
@@ -1171,9 +1173,8 @@ extension Auth: AuthInterop {
       @param completion (Optional) the block invoked when the request to revoke the token is
           complete, or fails. Invoked asynchronously on the main thread in the future.
    */
-     @MainActor
      public func revokeToken(withAuthorizationCode authorizationCode: String) async throws {
-         guard let currentUser else { return }
+         guard let currentUser = self.currentUser else { return }
          let idToken = try await currentUser.internalGetToken()
          let request = RevokeTokenRequest(withToken: authorizationCode,
                                           idToken: idToken,
@@ -1192,34 +1193,38 @@ extension Auth: AuthInterop {
           it.
    */
   public func useUserAccessGroup(_ accessGroup: String?) throws {
-    // self.storedUserManager is initialized asynchronously. Make sure it is done.
-    kAuthGlobalWorkQueue.sync {}
-    return try internalUseUserAccessGroup(accessGroup)
-  }
-
-  private func internalUseUserAccessGroup(_ accessGroup: String?) throws {
-    storedUserManager.setStoredUserAccessGroup(accessGroup: accessGroup)
-    let user = try getStoredUser(forAccessGroup: accessGroup)
-    try updateCurrentUser(user, byForce: false, savingToDisk: false)
-    if userAccessGroup == nil, accessGroup != nil {
-      let userKey = "\(firebaseAppName)\(kUserKey)"
-      try keychainServices.removeData(forKey: userKey)
+    try _state.withLock { state in
+      try _internalUseUserAccessGroup(accessGroup, state: &state)
     }
-    userAccessGroup = accessGroup
-    lastNotifiedUserToken = user?.rawAccessToken()
   }
 
-  /** @fn getStoredUserForAccessGroup:error:
-      @brief Get the stored user in the given accessGroup.
-      @note This API is not supported on tvOS when `shareAuthStateAcrossDevices` is set to `true`.
-          This case will return `nil`.
-          Please refer to https://github.com/firebase/firebase-ios-sdk/issues/8878 for details.
-   */
+  private func _internalUseUserAccessGroup(_ accessGroup: String?, state: inout State) throws {
+    state.storedUserManager.setStoredUserAccessGroup(accessGroup: accessGroup)
+    let user = try _getStoredUser(forAccessGroup: accessGroup, state: &state)
+    try _updateCurrentUser(user, byForce: false, savingToDisk: false, state: &state)
+    if state.userAccessGroup == nil, accessGroup != nil {
+      let userKey = "\(firebaseAppName)\(kUserKey)"
+      try state.keychainServices.removeData(forKey: userKey)
+    }
+    state.userAccessGroup = accessGroup
+    state.lastNotifiedUserToken = user?.rawAccessToken()
+  }
+
+  /// Get the stored user in the given accessGroup.
+  ///
+  /// - Note: Not supported on tvOS when `shareAuthStateAcrossDevices` is `true`. Returns `nil` in
+  ///         that case. See https://github.com/firebase/firebase-ios-sdk/issues/8878.
   public func getStoredUser(forAccessGroup accessGroup: String?) throws -> User? {
+    try _state.withLock { state in
+      try _getStoredUser(forAccessGroup: accessGroup, state: &state)
+    }
+  }
+
+  private func _getStoredUser(forAccessGroup accessGroup: String?, state: inout State) throws -> User? {
     var user: User?
     if let accessGroup {
       #if os(tvOS)
-        if shareAuthStateAcrossDevices {
+        if state.shareAuthStateAcrossDevices {
           AuthLog.logError(code: "I-AUT000001",
                            message: "Getting a stored user for a given access group is not supported " +
                              "on tvOS when `shareAuthStateAcrossDevices` is set to `true` (#8878)." +
@@ -1230,15 +1235,15 @@ extension Auth: AuthInterop {
       guard let apiKey = app?.options.apiKey else {
         fatalError("Internal Auth Error: missing apiKey")
       }
-      user = try storedUserManager.getStoredUser(
+      user = try state.storedUserManager.getStoredUser(
         accessGroup: accessGroup,
-        shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
+        shareAuthStateAcrossDevices: state.shareAuthStateAcrossDevices,
         projectIdentifier: apiKey
       ).user
     } else {
       let userKey = "\(firebaseAppName)\(kUserKey)"
-      if let encodedUserData = try keychainServices.data(forKey: userKey) {
-          let decoder = JSONDecoder()
+      if let encodedUserData = try state.keychainServices.data(forKey: userKey) {
+        let decoder = JSONDecoder()
         user = try decoder.decode(User.self, from: encodedUserData)
       }
     }
@@ -1248,23 +1253,23 @@ extension Auth: AuthInterop {
 
   #if os(iOS)
     public func setAPNSToken(_ token: Data, type: AuthAPNSTokenType) {
-      kAuthGlobalWorkQueue.sync {
-        self.tokenManager.token = AuthAPNSToken(withData: token, type: type)
+      _state.withLock { state in
+        state.tokenManager.token = AuthAPNSToken(withData: token, type: type)
       }
     }
 
     public func canHandleNotification(_ userInfo: [AnyHashable: Any]) -> Bool {
-      kAuthGlobalWorkQueue.sync {
-        self.notificationManager.canHandle(notification: userInfo)
+      _state.withLock { state in
+        state.notificationManager.canHandle(notification: userInfo)
       }
     }
 
     public func canHandle(_ url: URL) -> Bool {
-      kAuthGlobalWorkQueue.sync {
-        guard let authURLPresenter = self.authURLPresenter as? AuthURLPresenter else {
+      _state.withLock { state in
+        guard let presenter = state.authURLPresenter as? AuthURLPresenter else {
           return false
         }
-        return authURLPresenter.canHandle(url: url)
+        return presenter.canHandle(url: url)
       }
     }
   #endif
@@ -1281,150 +1286,91 @@ extension Auth: AuthInterop {
                        keychainStorageProvider: T.Type = AuthKeychainServices.self) {
     Auth.setKeychainServiceNameForApp(app)
     self.app = app
-    mainBundleUrlTypes = Bundle.main
-      .object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
+    self.firebaseAppName = app.name
 
-//    let appCheck = ComponentType<AppCheckInterop>.instance(for: AppCheckInterop.self,
-//                                                           in: app.container)
     guard let apiKey = app.options.apiKey else {
       fatalError("Missing apiKey for Auth initialization")
     }
 
-    firebaseAppName = app.name
+    let initialRequestConfiguration = AuthRequestConfiguration(
+      apiKey: apiKey,
+      appID: app.options.googleAppID,
+      heartbeatLogger: app.heartbeatLogger,
+      appCheck: nil
+    )
+
+    var initialState = State(requestConfiguration: initialRequestConfiguration)
+    initialState.mainBundleUrlTypes = Bundle.main
+      .object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
+    #if os(iOS)
+      initialState.authURLPresenter = AuthURLPresenter()
+      initialState.settings = AuthSettings()
+    #endif
+    self._state = Mutex(initialState)
+
+    _state.withLock { state in
+      _protectedDataInitialization(keychainStorageProvider, state: &state)
+    }
+  }
+
+  private func _protectedDataInitialization<T: AuthStorage>(
+    _ keychainStorageProvider: T.Type,
+    state: inout State
+  ) {
+    if let keychainServiceName = Auth.keychainServiceName(forAppName: firebaseAppName) {
+      state.keychainServices = keychainStorageProvider.init(service: keychainServiceName)
+      state.storedUserManager = AuthStoredUserManager(serviceName: keychainServiceName)
+    }
+
+    do {
+      if let storedUserAccessGroup = state.storedUserManager.getStoredUserAccessGroup() {
+        try _internalUseUserAccessGroup(storedUserAccessGroup, state: &state)
+      } else {
+        let user = try _getUser(state: &state)
+        try _updateCurrentUser(user, byForce: false, savingToDisk: false, state: &state)
+        if let user {
+          state.tenantID = user.tenantID
+          state.lastNotifiedUserToken = user.rawAccessToken()
+        }
+      }
+    } catch {
+      #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
+        // TODO: re-port the keychain pre-warming observer; the previous WIP referenced
+        // an undefined `strongSelf` and never compiled. Tracking issue: phase 6.
+      #endif
+      AuthLog.logError(code: "I-AUT000001",
+                       message: "Error loading saved user when starting up: \(error)")
+    }
 
     #if os(iOS)
-      authURLPresenter = AuthURLPresenter()
-      settings = AuthSettings()
-//      GULAppDelegateSwizzler.proxyOriginalDelegateIncludingAPNSMethods()
-//      GULSceneDelegateSwizzler.proxyOriginalSceneDelegate()
+      // TODO: re-port the iOS phone-auth managers; the previous WIP referenced an
+      // undefined `strongSelf` and never compiled. Tracking issue: phase 6.
     #endif
-    requestConfiguration = AuthRequestConfiguration(apiKey: apiKey,
-                                                    appID: app.options.googleAppID,
-//                                                    auth: nil,
-                                                    heartbeatLogger: app.heartbeatLogger,
-                                                    appCheck: nil)
-//    requestConfiguration.auth = self
-
-    protectedDataInitialization(keychainStorageProvider)
   }
-
-  private func protectedDataInitialization<T: AuthStorage>(_ keychainStorageProvider: T
-    .Type = AuthKeychainServices.self) {
-    // Continue with the rest of initialization in the work thread.
-      if let keychainServiceName = Auth
-        .keychainServiceName(forAppName: firebaseAppName) {
-        keychainServices = keychainStorageProvider.init(service: keychainServiceName)
-        storedUserManager = AuthStoredUserManager(serviceName: keychainServiceName)
-      }
-
-      do {
-        if let storedUserAccessGroup = storedUserManager.getStoredUserAccessGroup() {
-          try internalUseUserAccessGroup(storedUserAccessGroup)
-        } else {
-          let user = try self.getUser()
-          try updateCurrentUser(user, byForce: false, savingToDisk: false)
-          if let user {
-            tenantID = user.tenantID
-            lastNotifiedUserToken = user.rawAccessToken()
-          }
-        }
-      } catch {
-        #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
-          if (error as NSError).code == AuthErrorCode.keychainError.rawValue {
-            // If there's a keychain error, assume it is due to the keychain being accessed
-            // before the device is unlocked as a result of prewarming, and listen for the
-            // UIApplicationProtectedDataDidBecomeAvailable notification.
-            strongSelf.addProtectedDataDidBecomeAvailableObserver()
-          }
-        #endif
-        AuthLog.logError(code: "I-AUT000001",
-                         message: "Error loading saved user when starting up: \(error)")
-      }
-
-      #if os(iOS)
-        // TODO: escape for app extensions
-        // iOS App extensions should not call [UIApplication sharedApplication], even if UIApplication
-        // responds to it.
-//      if (![GULAppEnvironmentUtil isAppExtension]) {
-//        Class cls = NSClassFromString(@"UIApplication");
-//        if (cls && [cls respondsToSelector:@selector(sharedApplication)]) {
-//          applicationClass = cls;
-//        }
-//      }
-        let application = UIApplication.shared
-        // Initialize for phone number auth.
-        strongSelf.tokenManager = AuthAPNSTokenManager(withApplication: application)
-        strongSelf
-          .appCredentialManager = AuthAppCredentialManager(withKeychain: strongSelf
-            .keychainServices)
-        strongSelf.notificationManager = AuthNotificationManager(
-          withApplication: application,
-          appCredentialManager: strongSelf.appCredentialManager
-        )
-
-        // TODO: Does this swizzling still work?
-//        GULSceneDelegateSwizzler.registerSceneDelegateInterceptor(strongSelf)
-      #endif
-  }
-
-  #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
-    private func addProtectedDataDidBecomeAvailableObserver() {
-      weak var weakSelf = self
-      protectedDataDidBecomeAvailableObserver =
-        NotificationCenter.default.addObserver(
-          forName: UIApplication.protectedDataDidBecomeAvailableNotification,
-          object: nil,
-          queue: nil
-        ) { notification in
-          let strongSelf = weakSelf
-          if let observer = strongSelf?.protectedDataDidBecomeAvailableObserver {
-            NotificationCenter.default.removeObserver(
-              observer,
-              name: UIApplication.protectedDataDidBecomeAvailableNotification,
-              object: nil
-            )
-          }
-        }
-    }
-  #endif
 
   deinit {
-      // XXX TODO
-//    let defaultCenter = NotificationCenter.default
-//    while listenerHandles.count > 0 {
-//      let handleToRemove = listenerHandles.last
-//      defaultCenter.removeObserver(handleToRemove as Any)
-//      listenerHandles.removeLast()
-//    }
-
-    #if os(iOS)
-      defaultCenter.removeObserver(applicationDidBecomeActiveObserver as Any,
-                                   name: UIApplication.didBecomeActiveNotification,
-                                   object: nil)
-      defaultCenter.removeObserver(applicationDidEnterBackgroundObserver as Any,
-                                   name: UIApplication.didEnterBackgroundNotification,
-                                   object: nil)
-    #endif
+    // TODO: re-enable observer removal once the iOS observer wiring is re-ported.
+    // The previous WIP referenced an undefined `defaultCenter` symbol and never compiled.
   }
 
-  private func getUser() throws -> User? {
+  private func _getUser(state: inout State) throws -> User? {
     var user: User?
-    if let userAccessGroup {
+    if let userAccessGroup = state.userAccessGroup {
       guard let apiKey = app?.options.apiKey else {
         fatalError("Internal Auth Error: missing apiKey")
       }
-      user = try storedUserManager.getStoredUser(
+      user = try state.storedUserManager.getStoredUser(
         accessGroup: userAccessGroup,
-        shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
+        shareAuthStateAcrossDevices: state.shareAuthStateAcrossDevices,
         projectIdentifier: apiKey
       ).user
     } else {
       let userKey = "\(firebaseAppName)\(kUserKey)"
-      guard let encodedUserData = try keychainServices.data(forKey: userKey) else {
+      guard let encodedUserData = try state.keychainServices.data(forKey: userKey) else {
         return nil
       }
-        let decoder = JSONDecoder()
-        user = try decoder.decode(User.self, from: encodedUserData)
+      let decoder = JSONDecoder()
+      user = try decoder.decode(User.self, from: encodedUserData)
     }
     user?.auth = self
     return user
@@ -1439,32 +1385,27 @@ extension Auth: AuthInterop {
   }
 
      func updateKeychain(withUser user: User?) throws {
-         if user != currentUser {
-             // No-op if the user is no longer signed in. This is not considered an error as we don't check
-             // whether the user is still current on other callbacks of user operations either.
-             return
+         try _state.withLock { state in
+             if user != state.currentUser {
+                 // No-op if the user is no longer signed in. This is not considered an error as we don't check
+                 // whether the user is still current on other callbacks of user operations either.
+                 return
+             }
+             try _saveUser(user, state: &state)
+             _possiblyPostAuthStateChangeNotification(state: &state)
          }
-         try saveUser(user)
-         possiblyPostAuthStateChangeNotification()
      }
 
-  /** @var gKeychainServiceNameForAppName
-      @brief A map from Firebase app name to keychain service names.
-      @remarks This map is needed for looking up the keychain service name after the FIRApp instance
-          is deleted, to remove the associated keychain item. Accessing should occur within a
-          @syncronized([FIRAuth class]) context.""
-   */
-  fileprivate static var gKeychainServiceNameForAppName: [String: String] = [:]
+  /// A map from Firebase app name to keychain service names.
+  ///
+  /// Needed for looking up the keychain service name after the `FirebaseApp`
+  /// instance is deleted, to remove the associated keychain item.
+  fileprivate static let gKeychainServiceNameForAppName: Mutex<[String: String]> = .init([:])
 
-  /** @fn setKeychainServiceNameForApp
-      @brief Sets the keychain service name global data for the particular app.
-      @param app The Firebase app to set keychain service name for.
-   */
   class func setKeychainServiceNameForApp(_ app: FirebaseApp) {
-      // XXX TODO
-//    objc_sync_enter(Auth.self)
-    gKeychainServiceNameForAppName[app.name] = "firebase_auth_\(app.options.googleAppID)"
-//    objc_sync_exit(Auth.self)
+    gKeychainServiceNameForAppName.withLock {
+      $0[app.name] = "firebase_auth_\(app.options.googleAppID)"
+    }
   }
 
   /** @fn keychainServiceNameForAppName:
@@ -1472,185 +1413,154 @@ extension Auth: AuthInterop {
       @param appName The name of the Firebase app to get keychain service name for.
    */
   class func keychainServiceName(forAppName appName: String) -> String? {
-      // XXX TODO
-//    objc_sync_enter(Auth.self)
-//    defer { objc_sync_exit(Auth.self) }
-    return gKeychainServiceNameForAppName[appName]
+    gKeychainServiceNameForAppName.withLock { $0[appName] }
   }
 
-  /** @fn deleteKeychainServiceNameForAppName:
-      @brief Deletes the keychain service name global data for the particular app by name.
-      @param appName The name of the Firebase app to delete keychain service name for.
-   */
+  /// Deletes the keychain service name global data for the particular app by name.
   class func deleteKeychainServiceNameForAppName(_ appName: String) {
-      // XXX TODO
-//    objc_sync_enter(Auth.self)
-    gKeychainServiceNameForAppName.removeValue(forKey: appName)
-//    objc_sync_exit(Auth.self)
+    gKeychainServiceNameForAppName.withLock { _ = $0.removeValue(forKey: appName) }
   }
 
   internal func signOutByForce(withUserID userID: String) throws {
-    guard currentUser?.uid == userID else {
-      return
+    try _state.withLock { state in
+      guard state.currentUser?.uid == userID else { return }
+      try _updateCurrentUser(nil, byForce: true, savingToDisk: true, state: &state)
     }
-    try updateCurrentUser(nil, byForce: true, savingToDisk: true)
   }
 
   // MARK: Private methods
 
-  /** @fn possiblyPostAuthStateChangeNotification
-      @brief Posts the auth state change notificaton if current user's token has been changed.
-   */
-  private func possiblyPostAuthStateChangeNotification() {
-    let token = currentUser?.rawAccessToken()
-    if lastNotifiedUserToken == token ||
-      (token != nil && lastNotifiedUserToken == token) {
+  /// Posts the auth state change notification if the current user's token has changed.
+  /// Caller must hold the state lock; the actual notification post is dispatched async.
+  private func _possiblyPostAuthStateChangeNotification(state: inout State) {
+    let token = state.currentUser?.rawAccessToken()
+    if state.lastNotifiedUserToken == token ||
+      (token != nil && state.lastNotifiedUserToken == token) {
       return
     }
-    lastNotifiedUserToken = token
-    if autoRefreshTokens {
-      // Shedule new refresh task after successful attempt.
-      scheduleAutoTokenRefresh()
+    state.lastNotifiedUserToken = token
+    if state.autoRefreshTokens {
+      // Schedule a new refresh task after successful attempt.
+      _scheduleAutoTokenRefresh(state: &state)
     }
-    var internalNotificationParameters: [String: Any] = [:]
-
-      // XXX TODO: WHat's this?
-//    if let app = app {
-//      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationAppKey] = app
-//    }
-//    if let token, token.count > 0 {
-//      internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationTokenKey] = token
-//    }
-//    internalNotificationParameters[FIRAuthStateDidChangeInternalNotificationUIDKey] = currentUser?
-//      .uid
-//    let notifications = NotificationCenter.default
-//    DispatchQueue.main.async {
-//      notifications.post(name: NSNotification.Name.FIRAuthStateDidChangeInternal,
-//                         object: self,
-//                         userInfo: internalNotificationParameters)
-//      notifications.post(name: Auth.authStateDidChangeNotification, object: self)
-//    }
+    // Post outside the lock by dispatching async.
+    let center = NotificationCenter.default
+    let name = Auth.authStateDidChangeNotification
+    let auth = self
+    DispatchQueue.main.async {
+      center.post(name: name, object: auth)
+    }
   }
 
-  /** @fn scheduleAutoTokenRefreshWithDelay:
-      @brief Schedules a task to automatically refresh tokens on the current user. The0 token refresh
-          is scheduled 5 minutes before the  scheduled expiration time.
-      @remarks If the token expires in less than 5 minutes, schedule the token refresh immediately.
-   */
-  private func scheduleAutoTokenRefresh() {
+  /// Schedules a task to automatically refresh tokens on the current user.
+  /// The token refresh is scheduled 5 minutes before the scheduled expiration time.
+  /// If the token expires in less than 5 minutes, schedules the refresh immediately.
+  private func _scheduleAutoTokenRefresh(state: inout State) {
     let tokenExpirationInterval =
-      (currentUser?.accessTokenExpirationDate()?.timeIntervalSinceNow ?? 0) - 5 * 60
-    scheduleAutoTokenRefresh(withDelay: max(tokenExpirationInterval, 0), retry: false)
+      (state.currentUser?.accessTokenExpirationDate()?.timeIntervalSinceNow ?? 0) - 5 * 60
+    _scheduleAutoTokenRefresh(withDelay: max(tokenExpirationInterval, 0), retry: false, state: &state)
   }
 
-  /** @fn scheduleAutoTokenRefreshWithDelay:
-      @brief Schedules a task to automatically refresh tokens on the current user.
-      @param delay The delay in seconds after which the token refresh task should be scheduled to be
-          executed.
-      @param retry Flag to determine whether the invocation is a retry attempt or not.
-   */
-     private func scheduleAutoTokenRefresh(withDelay delay: TimeInterval, retry: Bool) {
-         guard let accessToken = currentUser?.rawAccessToken() else {
-             return
-         }
-         let intDelay = Int(ceil(delay))
-         if retry {
-             AuthLog.logInfo(code: "I-AUT000003", message: "Token auto-refresh re-scheduled in " +
-                             "\(intDelay / 60):\(intDelay % 60) " +
-                             "because of error on previous refresh attempt.")
-         } else {
-             AuthLog.logInfo(code: "I-AUT000004", message: "Token auto-refresh scheduled in " +
-                             "\(intDelay / 60):\(intDelay % 60) " +
-                             "for the new token.")
-         }
-         autoRefreshScheduled = true
-         Task { [weak self] in
-             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-             guard let self, let currentUser else { return }
-             guard currentUser.rawAccessToken() == accessToken else {
-                 // Another auto refresh must have been scheduled, so keep _autoRefreshScheduled unchanged.
-                 return
-             }
-             autoRefreshScheduled = false
-             if isAppInBackground {
-                 return
-             }
-             let uid = currentUser.uid
-             let token = try await currentUser.internalGetToken(forceRefresh: true)
-             if currentUser.uid != uid {
-                 return
-             }
-             // Kicks off exponential back off logic to retry failed attempt. Starts with one minute delay
-             // (60 seconds) if this is the first failed attempt.
-             let rescheduleDelay = retry ? min(delay * 2, 16 * 60) : 60
-             scheduleAutoTokenRefresh(withDelay: rescheduleDelay, retry: true)
-         }
-     }
+  private func _scheduleAutoTokenRefresh(withDelay delay: TimeInterval, retry: Bool, state: inout State) {
+    guard let accessToken = state.currentUser?.rawAccessToken() else {
+      return
+    }
+    let intDelay = Int(ceil(delay))
+    if retry {
+      AuthLog.logInfo(code: "I-AUT000003", message: "Token auto-refresh re-scheduled in " +
+                      "\(intDelay / 60):\(intDelay % 60) " +
+                      "because of error on previous refresh attempt.")
+    } else {
+      AuthLog.logInfo(code: "I-AUT000004", message: "Token auto-refresh scheduled in " +
+                      "\(intDelay / 60):\(intDelay % 60) " +
+                      "for the new token.")
+    }
+    state.autoRefreshScheduled = true
+    Task { [weak self] in
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      guard let self else { return }
+      let snapshot = self._state.withLock { state -> (User?, Bool) in
+        (state.currentUser, state.isAppInBackground)
+      }
+      guard let currentUser = snapshot.0 else { return }
+      guard currentUser.rawAccessToken() == accessToken else {
+        // Another auto refresh must have been scheduled, so keep _autoRefreshScheduled unchanged.
+        return
+      }
+      self._state.withLock { $0.autoRefreshScheduled = false }
+      if snapshot.1 { return }
+      let uid = currentUser.uid
+      let _ = try await currentUser.internalGetToken(forceRefresh: true)
+      if currentUser.uid != uid { return }
+      // Kicks off exponential back off logic to retry failed attempt. Starts with one minute delay
+      // (60 seconds) if this is the first failed attempt.
+      let rescheduleDelay = retry ? min(delay * 2, 16 * 60) : 60
+      self._state.withLock { state in
+        self._scheduleAutoTokenRefresh(withDelay: rescheduleDelay, retry: true, state: &state)
+      }
+    }
+  }
 
-  /** @fn updateCurrentUser:byForce:savingToDisk:error:
-      @brief Update the current user; initializing the user's internal properties correctly, and
-          optionally saving the user to disk.
-      @remarks This method is called during: sign in and sign out events, as well as during class
-          initialization time. The only time the saveToDisk parameter should be set to NO is during
-          class initialization time because the user was just read from disk.
-      @param user The user to use as the current user (including nil, which is passed at sign out
-          time.)
-      @param saveToDisk Indicates the method should persist the user data to disk.
-   */
-  private func updateCurrentUser(_ user: User?, byForce force: Bool,
-                                 savingToDisk saveToDisk: Bool) throws {
-    if user == currentUser {
-      possiblyPostAuthStateChangeNotification()
+  /// Updates the current user, optionally persisting to disk.
+  ///
+  /// Called during sign-in/sign-out and class initialization. `saveToDisk` is only
+  /// `false` during init when the user was just read from disk.
+  /// Caller must hold the state lock.
+  private func _updateCurrentUser(_ user: User?, byForce force: Bool,
+                                  savingToDisk saveToDisk: Bool,
+                                  state: inout State) throws {
+    if user == state.currentUser {
+      _possiblyPostAuthStateChangeNotification(state: &state)
     }
     if let user {
-      if user.tenantID != nil || tenantID != nil, tenantID != user.tenantID {
-        let error = AuthErrorUtils.tenantIDMismatchError()
-        throw error
+      if user.tenantID != nil || state.tenantID != nil, state.tenantID != user.tenantID {
+        throw AuthErrorUtils.tenantIDMismatchError()
       }
     }
     var throwError: Error?
     if saveToDisk {
       do {
-        try saveUser(user)
+        try _saveUser(user, state: &state)
       } catch {
         throwError = error
       }
     }
     if throwError == nil || force {
-      currentUser = user
-      possiblyPostAuthStateChangeNotification()
+      state.currentUser = user
+      _possiblyPostAuthStateChangeNotification(state: &state)
     }
     if let throwError {
       throw throwError
     }
   }
 
-  private func saveUser(_ user: User?) throws {
-    if let userAccessGroup {
+  private func _saveUser(_ user: User?, state: inout State) throws {
+    if let userAccessGroup = state.userAccessGroup {
       guard let apiKey = app?.options.apiKey else {
         fatalError("Internal Auth Error: Missing apiKey in saveUser")
       }
       if let user {
-        try storedUserManager.setStoredUser(user: user,
-                                            accessGroup: userAccessGroup,
-                                            shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
-                                            projectIdentifier: apiKey)
-      } else {
-        try storedUserManager.removeStoredUser(
+        try state.storedUserManager.setStoredUser(
+          user: user,
           accessGroup: userAccessGroup,
-          shareAuthStateAcrossDevices: shareAuthStateAcrossDevices,
+          shareAuthStateAcrossDevices: state.shareAuthStateAcrossDevices,
+          projectIdentifier: apiKey
+        )
+      } else {
+        try state.storedUserManager.removeStoredUser(
+          accessGroup: userAccessGroup,
+          shareAuthStateAcrossDevices: state.shareAuthStateAcrossDevices,
           projectIdentifier: apiKey
         )
       }
     } else {
       let userKey = "\(firebaseAppName)\(kUserKey)"
       if let user {
-          let encoder = JSONEncoder()
-          let data = try encoder.encode(user)
-        // Save the user object's encoded value.
-        try keychainServices.setData(data, forKey: userKey)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(user)
+        try state.keychainServices.setData(data, forKey: userKey)
       } else {
-        try keychainServices.removeData(forKey: userKey)
+        try state.keychainServices.removeData(forKey: userKey)
       }
     }
   }
@@ -1704,8 +1614,8 @@ extension Auth: AuthInterop {
                                                              link: link)
           case let .password(password):
               // Email password sign in
-              let user: User = try await signIn(withEmail: emailCredential.email,
-                                                password: password)
+              let user: User = try await internalSignIn(withEmail: emailCredential.email,
+                                                        password: password)
               let additionalUserInfo = AdditionalUserInfo(providerID: EmailAuthProvider.id,
                                                           profile: nil,
                                                           username: nil,
@@ -1923,106 +1833,91 @@ extension Auth: AuthInterop {
   /** @property mainBundle
       @brief Allow tests to swap in an alternate mainBundle.
    */
-  internal var mainBundleUrlTypes: [[String: Any]]!
+  internal var mainBundleUrlTypes: [[String: Any]]? {
+    get { _state.withLock { $0.mainBundleUrlTypes } }
+    set { _state.withLock { $0.mainBundleUrlTypes = newValue } }
+  }
 
   /** @property requestConfiguration
       @brief The configuration object comprising of paramters needed to make a request to Firebase
           Auth's backend.
    */
   // TODO: internal
-  public var requestConfiguration: AuthRequestConfiguration
+  public var requestConfiguration: AuthRequestConfiguration {
+    get { _state.withLock { $0.requestConfiguration } }
+    set { _state.withLock { $0.requestConfiguration = newValue } }
+  }
 
   #if os(iOS)
 
     // TODO: the next three should be internal after Sample is ported.
-    /** @property tokenManager
-        @brief The manager for APNs tokens used by phone number auth.
-     */
-    public var tokenManager: AuthAPNSTokenManager!
+    public var tokenManager: AuthAPNSTokenManager! {
+      get { _state.withLock { $0.tokenManager } }
+      set { _state.withLock { $0.tokenManager = newValue } }
+    }
 
-    /** @property appCredentailManager
-        @brief The manager for app credentials used by phone number auth.
-     */
-    public var appCredentialManager: AuthAppCredentialManager!
+    public var appCredentialManager: AuthAppCredentialManager! {
+      get { _state.withLock { $0.appCredentialManager } }
+      set { _state.withLock { $0.appCredentialManager = newValue } }
+    }
 
-    /** @property notificationManager
-        @brief The manager for remote notifications used by phone number auth.
-     */
-    public var notificationManager: AuthNotificationManager!
+    public var notificationManager: AuthNotificationManager! {
+      get { _state.withLock { $0.notificationManager } }
+      set { _state.withLock { $0.notificationManager = newValue } }
+    }
 
-    /** @property authURLPresenter
-        @brief An object that takes care of presenting URLs via the auth instance.
-     */
-    internal var authURLPresenter: AuthWebViewControllerDelegate
+    internal var authURLPresenter: AuthWebViewControllerDelegate {
+      get { _state.withLock { $0.authURLPresenter! } }
+      set { _state.withLock { $0.authURLPresenter = newValue } }
+    }
 
   #endif // TARGET_OS_IOS
 
   // MARK: Private properties
 
-  /** @property storedUserManager
-      @brief The stored user manager.
-   */
-  private var storedUserManager: AuthStoredUserManager!
-
-  /** @var _firebaseAppName
-      @brief The Firebase app name.
-   */
+  /// The Firebase app name. Immutable.
   private let firebaseAppName: String
 
-  /** @var _keychainServices
-      @brief The keychain service.
-   */
-  private var keychainServices: AuthStorage!
-
-  /** @var _lastNotifiedUserToken
-      @brief The user access (ID) token used last time for posting auth state changed notification.
-   */
-  private var lastNotifiedUserToken: String?
-
-  /** @var _autoRefreshTokens
-      @brief This flag denotes whether or not tokens should be automatically refreshed.
-      @remarks Will only be set to @YES if the another Firebase service is included (additionally to
-        Firebase Auth).
-   */
-  private var autoRefreshTokens = false
-
-  /** @var _autoRefreshScheduled
-      @brief Whether or not token auto-refresh is currently scheduled.
-   */
-  private var autoRefreshScheduled = false
-
-  /** @var _isAppInBackground
-      @brief A flag that is set to YES if the app is put in the background and no when the app is
-          returned to the foreground.
-   */
-  private var isAppInBackground = false
-
-  /** @var _applicationDidBecomeActiveObserver
-      @brief An opaque object to act as the observer for UIApplicationDidBecomeActiveNotification.
-   */
-  private var applicationDidBecomeActiveObserver: AnyObject?
-
-  /** @var _applicationDidBecomeActiveObserver
-      @brief An opaque object to act as the observer for
-          UIApplicationDidEnterBackgroundNotification.
-   */
-  private var applicationDidEnterBackgroundObserver: AnyObject?
-
-  /** @var _protectedDataDidBecomeAvailableObserver
-      @brief An opaque object to act as the observer for
-     UIApplicationProtectedDataDidBecomeAvailable.
-   */
-  private var protectedDataDidBecomeAvailableObserver: AnyObject?
-
-  /** @var kUserKey
-      @brief Key of user stored in the keychain. Prefixed with a Firebase app name.
-   */
+  /// Key of user stored in the keychain. Prefixed with a Firebase app name.
   private let kUserKey = "_firebase_user"
 
-  /** @var _listenerHandles
-      @brief Handles returned from @c NSNotificationCenter for blocks which are "auth state did
-          change" notification listeners.
-      @remarks Mutations should occur within a @syncronized(self) context.
-   */
-  private var listenerHandles: [any NSObjectProtocol] = []
+  /// All mutable state lives here, protected by `Mutex`.
+  ///
+  /// Methods that mutate compound state (e.g. `_updateCurrentUser`) take an
+  /// `inout State` and are called from inside a single `_state.withLock` block.
+  /// Public scalar properties go through one `withLock` per access.
+  fileprivate let _state: Mutex<State>
+
+  /// Bag of all mutable Auth state. Access only via `_state.withLock`.
+  struct State {
+    var requestConfiguration: AuthRequestConfiguration
+    var currentUser: User?
+    var languageCode: String?
+    var settings: AuthSettings?
+    var userAccessGroup: String?
+    var shareAuthStateAcrossDevices: Bool = false
+    var tenantID: String?
+    var lastNotifiedUserToken: String?
+    var autoRefreshTokens: Bool = false
+    var autoRefreshScheduled: Bool = false
+    var isAppInBackground: Bool = false
+    var mainBundleUrlTypes: [[String: Any]]?
+    var keychainServices: AuthStorage!
+    var storedUserManager: AuthStoredUserManager!
+    var listenerHandles: [any NSObjectProtocol] = []
+
+    #if os(iOS)
+      var tokenManager: AuthAPNSTokenManager!
+      var appCredentialManager: AuthAppCredentialManager!
+      var notificationManager: AuthNotificationManager!
+      var authURLPresenter: AuthWebViewControllerDelegate!
+      var applicationDidBecomeActiveObserver: AnyObject?
+      var applicationDidEnterBackgroundObserver: AnyObject?
+      var protectedDataDidBecomeAvailableObserver: AnyObject?
+    #endif
+
+    init(requestConfiguration: AuthRequestConfiguration) {
+      self.requestConfiguration = requestConfiguration
+    }
+  }
 }

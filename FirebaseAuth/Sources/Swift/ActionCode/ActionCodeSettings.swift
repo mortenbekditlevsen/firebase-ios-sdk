@@ -17,7 +17,7 @@ import Foundation
 /** @class FIRActionCodeSettings
     @brief Used to set and retrieve settings related to handling action codes.
  */
- public struct ActionCodeSettings {
+ public struct ActionCodeSettings: Sendable {
   /** @property URL
       @brief This URL represents the state/Continue URL in the form of a universal link.
       @remarks This URL can should be constructed as a universal link that would either directly open

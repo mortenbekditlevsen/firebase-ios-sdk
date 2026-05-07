@@ -46,7 +46,7 @@ private let kTenantIDKey = "tenantId"
 
 @available(iOS 13, tvOS 13, macOS 15.0, macCatalyst 13, watchOS 7, *)
  public struct SignUpNewUserRequest: IdentityToolkitRequest,
-  AuthRPCRequest {
+  AuthRPCRequest, Encodable {
      public typealias Response = SignUpNewUserResponse
 
   /** @property email
@@ -95,5 +95,22 @@ private let kTenantIDKey = "tenantId"
     self.password = password
     self.displayName = displayName
       self.requestConfiguration = requestConfiguration
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case email
+    case password
+    case displayName
+    case returnSecureToken
+    case tenantID = "tenantId"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encodeIfPresent(email, forKey: .email)
+    try c.encodeIfPresent(password, forKey: .password)
+    try c.encodeIfPresent(displayName, forKey: .displayName)
+    if returnSecureToken { try c.encode(true, forKey: .returnSecureToken) }
+    try c.encodeIfPresent(tenantID, forKey: .tenantID)
   }
 }

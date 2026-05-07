@@ -17,7 +17,7 @@ import Foundation
 /** @class ActionCodeInfo
     @brief Manages information regarding action codes.
  */
- public struct ActionCodeInfo {
+ public struct ActionCodeInfo: Sendable {
   /**
       @brief The operation being performed.
    */
